@@ -1,0 +1,38 @@
+name: Nero 24/7 Monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run Nero monitor
+        run: python tools/nero_github_monitor.py
+        env:
+          NERO_MONITOR_ASSETS: BTC,GOLD
+          NERO_MONITOR_INTERVAL: 1h
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+      - name: Save monitor state
+        run: |
+          git config user.name "nero-monitor"
+          git config user.email "actions@users.noreply.github.com"
+          git add nero_monitor_state.json
+          git commit -m "Update Nero monitor state" || echo "no state changes"
+          git push || echo "nothing to push"
