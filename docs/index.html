@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nero Lite</title>
+  <style>
+    :root {
+      --bg: #070b10;
+      --panel: #101722;
+      --panel2: #0c121b;
+      --line: #1d2938;
+      --text: #e6edf7;
+      --muted: #8090a4;
+      --gold: #f0b90b;
+      --green: #16c784;
+      --red: #ea3943;
+      --blue: #5b8cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px 14px 72px; }
+    header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+    .brand h1 { margin: 0; font-size: 26px; letter-spacing: .01em; }
+    .brand p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .badge { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 7px 10px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0; }
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 11px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.active { background: var(--gold); color: #090d12; border-color: var(--gold); }
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 12px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+    .hero { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+    .price { font-size: clamp(34px, 10vw, 60px); line-height: .95; font-weight: 850; letter-spacing: -.02em; }
+    .change { font-size: 15px; margin-top: 8px; font-weight: 700; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .muted { color: var(--muted); }
+    .signal {
+      text-align: right;
+      font-size: clamp(25px, 8vw, 46px);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .signal.long { color: var(--green); }
+    .signal.short { color: var(--red); }
+    .signal.wait { color: var(--gold); }
+    .pillbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .pill { background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; font-size: 12px; }
+    .pill b { color: var(--gold); }
+    .levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+    .level { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+    .level .k { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+    .level .v { margin-top: 4px; font-size: 18px; font-weight: 800; }
+    canvas { width: 100%; height: 260px; display: block; margin-top: 10px; border-radius: 8px; background: #090f17; }
+    .rows { display: grid; gap: 8px; margin-top: 10px; }
+    .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .row span:first-child { color: var(--muted); }
+    .settings { display: grid; gap: 8px; }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #090f17;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 11px;
+      font-size: 14px;
+    }
+    .notice { margin-top: 12px; padding: 10px; border-radius: 8px; background: rgba(240,185,11,.08); border: 1px solid rgba(240,185,11,.28); color: #f7d978; font-size: 12px; line-height: 1.5; }
+    footer { margin-top: 14px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Nero Lite</h1>
+        <p>Mobile trade desk · static browser terminal</p>
+      </div>
+      <div class="badge" id="status">Loading...</div>
+    </header>
+
+    <div class="tabs">
+      <button id="btcBtn" class="active">BTC</button>
+      <button id="goldBtn">GOLD</button>
+    </div>
+
+    <div class="grid">
+      <main class="card">
+        <div class="hero">
+          <div>
+            <div class="muted" id="assetLabel">BTC/USDT</div>
+            <div class="price" id="price">--</div>
+            <div class="change" id="change">--</div>
+          </div>
+          <div class="signal wait" id="signal">WAIT</div>
+        </div>
+
+        <div class="pillbar">
+          <div class="pill"><b>Confidence</b> <span id="confidence">--</span></div>
+          <div class="pill"><b>RSI</b> <span id="rsi">--</span></div>
+          <div class="pill"><b>Trend</b> <span id="trend">--</span></div>
+          <div class="pill"><b>Source</b> <span id="source">--</span></div>
+        </div>
+
+        <div class="levels">
+          <div class="level"><div class="k">Entry Trigger</div><div class="v" id="entry">--</div></div>
+          <div class="level"><div class="k">Stop Loss</div><div class="v" id="sl">--</div></div>
+          <div class="level"><div class="k">Take Profit 1</div><div class="v" id="tp1">--</div></div>
+          <div class="level"><div class="k">Take Profit 2</div><div class="v" id="tp2">--</div></div>
+        </div>
+
+        <canvas id="chart" width="900" height="320"></canvas>
+      </main>
+
+      <aside class="card">
+        <h3 style="margin:0 0 8px">Reasoning Stack</h3>
+        <div class="rows" id="reasons"></div>
+        <div class="notice">
+          Nero Lite runs in the browser using public market APIs. It gives decision support only, not financial advice. Email alerts are handled separately by GitHub Actions.
+        </div>
+        <h3 style="margin:16px 0 8px">Gold Feed</h3>
+        <div class="settings">
+          <input id="tdKey" type="password" placeholder="Twelve Data API key for GOLD" />
+          <button id="saveKey">Save key on this device</button>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      Static mode for mobile access. Full Nero research dashboard remains the Python/Streamlit app.
+    </footer>
+  </div>
+
+  <script>
+    const state = { asset: "BTC", candles: [] };
+    const $ = id => document.getElementById(id);
+    const fmt = v => Math.abs(v) >= 1000 ? v.toFixed(0) : Math.abs(v) >= 1 ? v.toFixed(2) : v.toFixed(4);
+
+    $("btcBtn").onclick = () => setAsset("BTC");
+    $("goldBtn").onclick = () => setAsset("GOLD");
+    $("saveKey").onclick = () => {
+      localStorage.setItem("nero_td_key", $("tdKey").value.trim());
+      refresh();
+    };
+    $("tdKey").value = localStorage.getItem("nero_td_key") || "";
+
+    function setAsset(asset) {
+      state.asset = asset;
+      $("btcBtn").classList.toggle("active", asset === "BTC");
+      $("goldBtn").classList.toggle("active", asset === "GOLD");
+      refresh();
+    }
+
+    async function refresh() {
+      $("status").textContent = "Refreshing...";
+      try {
+        state.candles = state.asset === "BTC" ? await btcCandles() : await goldCandles();
+        if (!state.candles || state.candles.length < 40) throw new Error("Not enough candles");
+        render();
+        $("status").textContent = "Live · " + new Date().toLocaleTimeString();
+      } catch (err) {
+        $("status").textContent = "Feed issue";
+        $("reasons").innerHTML = `<div class="row"><span>Error</span><b>${err.message}</b></div>`;
+      }
+    }
+
+    async function btcCandles() {
+      const urls = [
+        ["Binance", "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=180"],
+        ["Binance Vision", "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=180"],
+        ["OKX", "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1H&limit=180"]
+      ];
+      for (const [source, url] of urls) {
+        try {
+          const r = await fetch(url, { cache: "no-store" });
+          if (!r.ok) continue;
+          const j = await r.json();
+          if (Array.isArray(j)) {
+            $("source").textContent = source;
+            return j.map(k => ({ t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
+          }
+          if (j && Array.isArray(j.data)) {
+            $("source").textContent = source;
+            return j.data.map(k => ({ t: +k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] })).reverse();
+          }
+        } catch (_) {}
+      }
+      throw new Error("BTC public feed unavailable");
+    }
+
+    async function goldCandles() {
+      const key = (localStorage.getItem("nero_td_key") || "").trim();
+      if (!key) throw new Error("Paste Twelve Data key for GOLD");
+      const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent("XAU/USD")}&interval=1h&outputsize=180&apikey=${encodeURIComponent(key)}`;
+      const r = await fetch(url, { cache: "no-store" });
+      const j = await r.json();
+      if (!j || !Array.isArray(j.values)) throw new Error(j.message || "Gold feed unavailable");
+      $("source").textContent = "Twelve Data";
+      return j.values.map(k => ({ t: Date.parse(k.datetime), o: +k.open, h: +k.high, l: +k.low, c: +k.close, v: +(k.volume || 0) })).reverse();
+    }
+
+    function render() {
+      const c = state.candles;
+      const last = c[c.length - 1], prev = c[c.length - 2];
+      const close = c.map(x => x.c);
+      const r = rsi(close);
+      const fast = avg(close.slice(-12)), slow = avg(close.slice(-36));
+      const atr = avg(c.slice(-14).map((x, i, a) => {
+        const p = c[c.length - 14 + i - 1] || x;
+        return Math.max(x.h - x.l, Math.abs(x.h - p.c), Math.abs(x.l - p.c));
+      }));
+      const prior = c.slice(-24);
+      const resistance = Math.max(...prior.map(x => x.h));
+      const support = Math.min(...prior.map(x => x.l));
+      const trendScore = fast > slow ? 1 : fast < slow ? -1 : 0;
+      const rsiScore = r > 58 ? 1 : r < 42 ? -1 : 0;
+      const breakout = last.c > resistance ? 1 : last.c < support ? -1 : 0;
+      const score = trendScore + rsiScore + breakout;
+      const plan = makePlan(score, last.c, atr, support, resistance);
+
+      $("assetLabel").textContent = state.asset === "BTC" ? "BTC/USDT" : "XAU/USD";
+      $("price").textContent = fmt(last.c);
+      const chg = (last.c - prev.c) / prev.c * 100;
+      $("change").textContent = `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}% · 1H`;
+      $("change").className = "change " + (chg >= 0 ? "green" : "red");
+      $("signal").textContent = plan.label;
+      $("signal").className = "signal " + plan.kind;
+      $("confidence").textContent = plan.confidence + "%";
+      $("rsi").textContent = r.toFixed(1);
+      $("trend").textContent = fast > slow ? "Bullish" : fast < slow ? "Bearish" : "Range";
+      $("entry").textContent = plan.entry;
+      $("sl").textContent = plan.sl;
+      $("tp1").textContent = plan.tp1;
+      $("tp2").textContent = plan.tp2;
+      $("reasons").innerHTML = [
+        ["Trend", fast > slow ? "Fast average above slow" : fast < slow ? "Fast average below slow" : "Flat"],
+        ["RSI", r.toFixed(1)],
+        ["Structure", breakout === 1 ? "Breakout pressure" : breakout === -1 ? "Breakdown pressure" : "Inside range"],
+        ["Decision", plan.note]
+      ].map(([k, v]) => `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("");
+      drawChart(c);
+    }
+
+    function makePlan(score, price, atr, support, resistance) {
+      if (score >= 2) {
+        const entry = Math.max(price, resistance + atr * .05);
+        return {
+          label: "LONG", kind: "long", confidence: Math.min(82, 55 + score * 11),
+          entry: fmt(entry), sl: fmt(Math.min(support, entry - atr * 1.25)),
+          tp1: fmt(entry + atr * 1.5), tp2: fmt(entry + atr * 2.5),
+          note: "Long only after price holds entry trigger."
+        };
+      }
+      if (score <= -2) {
+        const entry = Math.min(price, support - atr * .05);
+        return {
+          label: "SHORT", kind: "short", confidence: Math.min(82, 55 + Math.abs(score) * 11),
+          entry: fmt(entry), sl: fmt(Math.max(resistance, entry + atr * 1.25)),
+          tp1: fmt(entry - atr * 1.5), tp2: fmt(entry - atr * 2.5),
+          note: "Short only after price loses entry trigger."
+        };
+      }
+      return { label: "NO TRADE", kind: "wait", confidence: 35, entry: "--", sl: "--", tp1: "--", tp2: "--", note: "Signals mixed. Protect capital." };
+    }
+
+    function avg(a) { return a.reduce((s, x) => s + x, 0) / a.length; }
+    function rsi(closes, p = 14) {
+      let g = 0, l = 0;
+      for (let i = closes.length - p; i < closes.length; i++) {
+        const d = closes[i] - closes[i - 1];
+        if (d >= 0) g += d; else l -= d;
+      }
+      const al = l / p;
+      if (al === 0) return 100;
+      return 100 - 100 / (1 + (g / p) / al);
+    }
+    function drawChart(c) {
+      const canvas = $("chart"), ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const data = c.slice(-80);
+      const min = Math.min(...data.map(x => x.l)), max = Math.max(...data.map(x => x.h));
+      const xw = w / data.length;
+      ctx.strokeStyle = "#1d2938";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = i * h / 4;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      data.forEach((d, i) => {
+        const x = i * xw + xw / 2;
+        const yH = h - (d.h - min) / (max - min) * h;
+        const yL = h - (d.l - min) / (max - min) * h;
+        const yO = h - (d.o - min) / (max - min) * h;
+        const yC = h - (d.c - min) / (max - min) * h;
+        const up = d.c >= d.o;
+        ctx.strokeStyle = up ? "#16c784" : "#ea3943";
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
+        ctx.fillRect(x - xw * .28, Math.min(yO, yC), xw * .56, Math.max(2, Math.abs(yC - yO)));
+      });
+    }
+
+    refresh();
+    setInterval(refresh, 60_000);
+  </script>
+</body>
+</html>
