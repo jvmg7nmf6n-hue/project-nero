@@ -1,0 +1,9 @@
+event_id,event_date,title,narrative,tags,btc_bias,spy_bias,eth_bias,gold_bias
+E001,2023-01-06,Fed soft landing optimism,"Markets rallied as inflation pressure cooled and investors began pricing a slower hiking cycle.","fed|inflation|liquidity|risk-on",0.55,0.45,0.52,-0.10
+E002,2023-03-10,Banking stress liquidity shock,"Regional bank stress triggered emergency liquidity expectations, pressuring banks while supporting scarce and alternative assets.","banking|liquidity|stress|risk-off",0.35,-0.30,0.28,0.48
+E003,2023-06-14,Hawkish pause repricing,"The central bank paused rates but guided toward restrictive policy for longer, creating a mixed risk backdrop.","fed|rates|hawkish|repricing",-0.20,-0.12,-0.22,0.08
+E004,2023-10-27,Geopolitical escalation bid,"Conflict headlines increased geopolitical hedging demand and reduced appetite for levered beta exposure.","geopolitics|conflict|volatility|safe-haven",-0.18,-0.28,-0.22,0.62
+E005,2024-01-10,ETF approval liquidity impulse,"Digital asset ETF approval expanded access channels and drove strong institutional demand expectations.","crypto|etf|liquidity|risk-on",0.82,0.12,0.58,-0.18
+E006,2024-03-20,Dovish dot plot surprise,"Policy projections implied more easing flexibility than feared, lifting equities and high beta assets.","fed|dovish|rates|risk-on",0.48,0.55,0.50,-0.05
+E007,2024-04-12,Hot CPI repricing,"Sticky inflation data pushed yields higher and reduced near-term rate cut odds across risk assets.","inflation|rates|cpi|hawkish",-0.38,-0.42,-0.35,0.18
+E008,2024-08-05,Growth scare unwind,"Weak labor and growth data triggered deleveraging, but later increased expectations for emergency easing.","growth|labor|volatility|liquidity",-0.10,-0.32,-0.14,0.40

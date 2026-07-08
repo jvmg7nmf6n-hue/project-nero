@@ -1,0 +1,258 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime, timezone
+import os
+
+import pandas as pd
+import requests
+
+from nero_app.core.data_loader import load_price_history
+
+
+BINANCE_SYMBOLS = {
+    "BTC": "BTCUSDT",
+    "ETH": "ETHUSDT",
+}
+
+TWELVE_DATA_SYMBOLS = {
+    "GOLD": "XAU/USD",
+    "OIL": "WTI/USD",
+    "FDX": "FDX",
+}
+
+
+@dataclass(frozen=True)
+class MarketDataResult:
+    prices: pd.DataFrame
+    source: str
+    status: str
+
+
+class MarketDataClient:
+    def __init__(self, timeout_seconds: int = 8) -> None:
+        self.timeout_seconds = timeout_seconds
+
+    def load(
+        self,
+        asset: str,
+        prefer_live: bool = False,
+        days: int = 365,
+        twelve_data_api_key: str | None = None,
+    ) -> MarketDataResult:
+        if prefer_live and asset in BINANCE_SYMBOLS:
+            try:
+                prices = self._load_binance_daily(BINANCE_SYMBOLS[asset], days=days)
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"Binance {BINANCE_SYMBOLS[asset]} daily candles",
+                    status="live",
+                )
+            except requests.RequestException as exc:
+                return self._fallback(f"fallback: {exc.__class__.__name__}")
+            except (KeyError, TypeError, ValueError) as exc:
+                return self._fallback(f"fallback: malformed live response ({exc.__class__.__name__})")
+
+        if prefer_live and asset in TWELVE_DATA_SYMBOLS:
+            api_key = twelve_data_api_key or os.getenv("TWELVE_DATA_API_KEY", "")
+            if not api_key.strip():
+                return self._fallback("fallback: missing Twelve Data API key")
+            try:
+                symbol = TWELVE_DATA_SYMBOLS[asset]
+                prices = self._load_twelve_data_daily(symbol=symbol, days=days, api_key=api_key.strip())
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"Twelve Data {symbol} daily candles",
+                    status="live",
+                )
+            except requests.RequestException as exc:
+                return self._fallback(f"fallback: {exc.__class__.__name__}")
+            except (KeyError, TypeError, ValueError) as exc:
+                return self._fallback(f"fallback: malformed Twelve Data response ({exc.__class__.__name__})")
+
+        return MarketDataResult(
+            prices=load_price_history(),
+            source="Generated sample candles",
+            status="sample",
+        )
+    def load_intraday(
+        self,
+        asset: str,
+        prefer_live: bool = False,
+        interval: str = "1h",
+        candles: int = 240,
+        twelve_data_api_key: str | None = None,
+    ) -> MarketDataResult:
+        if prefer_live and asset in BINANCE_SYMBOLS:
+            try:
+                prices = self._load_binance_intraday(BINANCE_SYMBOLS[asset], interval=interval, candles=candles)
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"Binance {BINANCE_SYMBOLS[asset]} {interval} candles",
+                    status="live",
+                )
+            except requests.RequestException as exc:
+                return self._fallback_intraday(f"fallback: {exc.__class__.__name__}")
+            except (KeyError, TypeError, ValueError) as exc:
+                return self._fallback_intraday(f"fallback: malformed intraday response ({exc.__class__.__name__})")
+
+        if prefer_live and asset in TWELVE_DATA_SYMBOLS:
+            api_key = twelve_data_api_key or os.getenv("TWELVE_DATA_API_KEY", "")
+            if not api_key.strip():
+                return self._fallback_intraday("fallback: missing Twelve Data API key")
+            try:
+                symbol = TWELVE_DATA_SYMBOLS[asset]
+                prices = self._load_twelve_data_intraday(
+                    symbol=symbol,
+                    interval=interval,
+                    candles=candles,
+                    api_key=api_key.strip(),
+                )
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"Twelve Data {symbol} {interval} candles",
+                    status="live",
+                )
+            except requests.RequestException as exc:
+                return self._fallback_intraday(f"fallback: {exc.__class__.__name__}")
+            except (KeyError, TypeError, ValueError) as exc:
+                return self._fallback_intraday(f"fallback: malformed Twelve Data intraday response ({exc.__class__.__name__})")
+
+        return self._fallback_intraday("sample")
+
+    def _fallback(self, status: str) -> MarketDataResult:
+        return MarketDataResult(
+            prices=load_price_history(),
+            source="Generated sample candles",
+            status=status,
+        )
+
+
+    def _fallback_intraday(self, status: str) -> MarketDataResult:
+        daily = load_price_history().tail(14).copy()
+        hourly = daily.set_index("date").resample("1h").ffill().reset_index()
+        hourly["open"] = hourly["close"].shift(1).fillna(hourly["open"])
+        hourly["high"] = hourly[["open", "close"]].max(axis=1) * 1.002
+        hourly["low"] = hourly[["open", "close"]].min(axis=1) * 0.998
+        hourly["volume"] = hourly["volume"] / 24
+        return MarketDataResult(
+            prices=hourly.tail(240).reset_index(drop=True),
+            source="Generated sample intraday candles",
+            status=status,
+        )
+
+    def _load_binance_daily(self, symbol: str, days: int) -> pd.DataFrame:
+        response = requests.get(
+            "https://api.binance.com/api/v3/klines",
+            params={"symbol": symbol, "interval": "1d", "limit": max(30, min(days, 1000))},
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        frame = pd.DataFrame(
+            response.json(),
+            columns=[
+                "open_time",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "close_time",
+                "quote_asset_volume",
+                "number_of_trades",
+                "taker_buy_base_volume",
+                "taker_buy_quote_volume",
+                "ignore",
+            ],
+        )
+        numeric_columns = ["open", "high", "low", "close", "volume"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        frame["date"] = frame["open_time"].map(
+            lambda value: datetime.fromtimestamp(value / 1000, tz=timezone.utc).replace(tzinfo=None)
+        )
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+
+
+    def _load_binance_intraday(self, symbol: str, interval: str, candles: int) -> pd.DataFrame:
+        response = requests.get(
+            "https://api.binance.com/api/v3/klines",
+            params={"symbol": symbol, "interval": interval, "limit": max(30, min(candles, 1000))},
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        frame = pd.DataFrame(
+            response.json(),
+            columns=[
+                "open_time",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "close_time",
+                "quote_asset_volume",
+                "number_of_trades",
+                "taker_buy_base_volume",
+                "taker_buy_quote_volume",
+                "ignore",
+            ],
+        )
+        numeric_columns = ["open", "high", "low", "close", "volume"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        frame["date"] = frame["open_time"].map(
+            lambda value: datetime.fromtimestamp(value / 1000, tz=timezone.utc).replace(tzinfo=None)
+        )
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+
+    def _load_twelve_data_daily(self, symbol: str, days: int, api_key: str) -> pd.DataFrame:
+        response = requests.get(
+            "https://api.twelvedata.com/time_series",
+            params={
+                "symbol": symbol,
+                "interval": "1day",
+                "outputsize": max(30, min(days, 5000)),
+                "apikey": api_key,
+            },
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("status") == "error":
+            raise ValueError(str(payload.get("message", "Twelve Data error")))
+        frame = pd.DataFrame(payload["values"])
+        numeric_columns = ["open", "high", "low", "close"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        if "volume" in frame.columns:
+            frame["volume"] = pd.to_numeric(frame["volume"], errors="coerce").fillna(0.0)
+        else:
+            frame["volume"] = 0.0
+        frame["date"] = pd.to_datetime(frame["datetime"])
+        frame = frame.sort_values("date").reset_index(drop=True)
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+
+    def _load_twelve_data_intraday(self, symbol: str, interval: str, candles: int, api_key: str) -> pd.DataFrame:
+        response = requests.get(
+            "https://api.twelvedata.com/time_series",
+            params={
+                "symbol": symbol,
+                "interval": interval,
+                "outputsize": max(30, min(candles, 5000)),
+                "apikey": api_key,
+            },
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("status") == "error":
+            raise ValueError(str(payload.get("message", "Twelve Data error")))
+        frame = pd.DataFrame(payload["values"])
+        numeric_columns = ["open", "high", "low", "close"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        if "volume" in frame.columns:
+            frame["volume"] = pd.to_numeric(frame["volume"], errors="coerce").fillna(0.0)
+        else:
+            frame["volume"] = 0.0
+        frame["date"] = pd.to_datetime(frame["datetime"])
+        frame = frame.sort_values("date").reset_index(drop=True)
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+

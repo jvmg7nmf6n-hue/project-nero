@@ -1,0 +1,8 @@
+﻿nero_app/data/local_settings.json
+nero_app/data/prediction_log.csv
+__pycache__/
+*.pyc
+.pytest_cache/
+work/
+outputs/
+.env
