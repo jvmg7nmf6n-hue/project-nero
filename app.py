@@ -228,7 +228,9 @@ def main() -> None:
         st.toast("Prediction saved to log")
         st.success(f"Analysis #{st.session_state.run_count} saved at {st.session_state.last_run_at}")
         if demo_summary.opened:
-            st.info("Demo trader opened a paper trade for accountability tracking.")
+            st.info("Demo trader recorded the current signal for accountability tracking.")
+        if demo_summary.activated:
+            st.info(f"Demo trader activated {demo_summary.activated} pending setup(s).")
         if demo_summary.closed:
             st.info(f"Demo trader closed {demo_summary.closed} paper trade(s).")
         if mobile_alerts_enabled and trade_plan.action != "NO_TRADE":
@@ -421,19 +423,21 @@ def main() -> None:
                 source=f"{intraday_data.source} ({intraday_data.status})",
             )
             st.success(
-                f"Demo trader updated: opened {demo_summary.opened}, closed {demo_summary.closed}, "
-                f"win rate {demo_summary.win_rate:.0%}, expectancy {demo_summary.expectancy_r:.2f}R."
+                f"Demo trader updated: recorded {demo_summary.opened}, activated {demo_summary.activated}, "
+                f"closed {demo_summary.closed}, win rate {demo_summary.win_rate:.0%}, "
+                f"expectancy {demo_summary.expectancy_r:.2f}R."
             )
         demo_frame = load_demo_trades()
         scorecard = accountability_scorecard(demo_frame)
-        col_a, col_b, col_c, col_d, col_e = st.columns(5)
+        col_a, col_b, col_c, col_d, col_e, col_f = st.columns(6)
         col_a.metric("Total Paper Trades", str(scorecard["total"]))
-        col_b.metric("Open", str(scorecard["open"]))
-        col_c.metric("Closed", str(scorecard["closed"]))
-        col_d.metric("Win Rate", f"{float(scorecard['win_rate']):.0%}")
-        col_e.metric("Expectancy", f"{float(scorecard['expectancy_r']):.2f}R")
+        col_b.metric("Pending", str(scorecard["pending"]))
+        col_c.metric("Open", str(scorecard["open"]))
+        col_d.metric("Closed", str(scorecard["closed"]))
+        col_e.metric("Win Rate", f"{float(scorecard['win_rate']):.0%}")
+        col_f.metric("Expectancy", f"{float(scorecard['expectancy_r']):.2f}R")
         if demo_frame.empty:
-            st.info("No demo trades yet. Nero will open paper trades only when a LONG/SHORT trigger is actually touched.")
+            st.info("No demo trades yet. Nero records each LONG/SHORT signal as pending, then activates it when the trigger is touched.")
         else:
             st.dataframe(demo_frame.sort_values("opened_at", ascending=False), use_container_width=True)
 

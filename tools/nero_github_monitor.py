@@ -56,8 +56,9 @@ def main() -> None:
             source=f"{market_data.source} ({market_data.status})",
         )
         print(
-            f"{asset}: demo opened={demo_summary.opened} closed={demo_summary.closed} "
-            f"open={demo_summary.open_trades} win_rate={demo_summary.win_rate:.0%} expectancy={demo_summary.expectancy_r:.2f}R"
+            f"{asset}: demo recorded={demo_summary.opened} activated={demo_summary.activated} closed={demo_summary.closed} "
+            f"pending={demo_summary.pending_trades} open={demo_summary.open_trades} "
+            f"win_rate={demo_summary.win_rate:.0%} expectancy={demo_summary.expectancy_r:.2f}R"
         )
         if plan.action == "NO_TRADE":
             continue

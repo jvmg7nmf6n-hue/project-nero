@@ -232,6 +232,70 @@ class NeroCoreTest(unittest.TestCase):
         self.assertGreater(len(plan.reasons), 0)
 
 
+    def test_demo_trader_records_pending_signal_before_trigger(self) -> None:
+        prices = load_price_history().tail(40).copy()
+        latest_high = float(prices.iloc[-1]["high"])
+        plan = IntradayTradePlan(
+            action="WAIT_LONG_TRIGGER",
+            bias="Bullish",
+            confidence=0.72,
+            entry_trigger="Long only after trigger confirmation.",
+            entry_price=latest_high * 1.02,
+            stop_loss=latest_high * 0.99,
+            take_profit_1=latest_high * 1.04,
+            take_profit_2=latest_high * 1.06,
+            risk_reward_1=1.0,
+            risk_reward_2=2.0,
+            invalidation="Cancel below stop.",
+            status="Wait for trigger",
+            reasons=["test setup"],
+        )
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "demo_trades.csv"
+            summary = run_demo_trader("BTC", plan, prices, source="test", path=path)
+            frame = load_demo_trades(path)
+            scorecard = accountability_scorecard(frame)
+
+        self.assertEqual(summary.opened, 1)
+        self.assertEqual(summary.pending_trades, 1)
+        self.assertEqual(frame.iloc[0]["status"], "pending")
+        self.assertEqual(scorecard["pending"], 1)
+
+
+    def test_demo_trader_activates_pending_signal_when_trigger_touches(self) -> None:
+        prices = load_price_history().tail(40).copy()
+        latest_high = float(prices.iloc[-1]["high"])
+        plan = IntradayTradePlan(
+            action="WAIT_LONG_TRIGGER",
+            bias="Bullish",
+            confidence=0.72,
+            entry_trigger="Long only after trigger confirmation.",
+            entry_price=latest_high * 1.02,
+            stop_loss=latest_high * 0.99,
+            take_profit_1=latest_high * 1.04,
+            take_profit_2=latest_high * 1.06,
+            risk_reward_1=1.0,
+            risk_reward_2=2.0,
+            invalidation="Cancel below stop.",
+            status="Wait for trigger",
+            reasons=["test setup"],
+        )
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "demo_trades.csv"
+            run_demo_trader("BTC", plan, prices, source="test", path=path)
+            future = prices.copy()
+            future.loc[future.index[-1], "date"] = pd.to_datetime(future.iloc[-1]["date"]) + pd.Timedelta(hours=1)
+            future.loc[future.index[-1], "high"] = plan.entry_price * 1.001
+            summary = run_demo_trader("BTC", plan, future, source="test", path=path)
+            frame = load_demo_trades(path)
+
+        self.assertEqual(summary.activated, 1)
+        self.assertEqual(summary.open_trades, 1)
+        self.assertEqual(frame.iloc[0]["status"], "open")
+
+
     def test_demo_trader_opens_triggered_paper_trade(self) -> None:
         prices = load_price_history().tail(40).copy()
         latest_close = float(prices.iloc[-1]["close"])
@@ -258,6 +322,7 @@ class NeroCoreTest(unittest.TestCase):
             frame = load_demo_trades(path)
 
         self.assertEqual(summary.opened, 1)
+        self.assertEqual(summary.open_trades, 1)
         self.assertEqual(len(frame), 1)
         self.assertEqual(frame.iloc[0]["status"], "open")
 
