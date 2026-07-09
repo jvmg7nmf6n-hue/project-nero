@@ -33,6 +33,6 @@ jobs:
         run: |
           git config user.name "nero-monitor"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_monitor_state.json
-          git commit -m "Update Nero monitor state" || echo "no state changes"
+          git add nero_monitor_state.json nero_app/data/demo_trades.csv
+          git commit -m "Update Nero monitor accountability state" || echo "no state changes"
           git push || echo "nothing to push"

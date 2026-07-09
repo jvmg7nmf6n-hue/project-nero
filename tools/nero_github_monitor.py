@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from nero_app.core.market_data import MarketDataClient
+from nero_app.core.demo_trader import run_demo_trader
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.trade_desk import IntradayTradePlan, build_intraday_trade_plan
 
@@ -48,6 +49,16 @@ def main() -> None:
             risk_score=0.35,
         )
         print(f"{asset}: {plan.action} confidence={plan.confidence:.0%} source={market_data.source}")
+        demo_summary = run_demo_trader(
+            asset=asset,
+            plan=plan,
+            prices=market_data.prices,
+            source=f"{market_data.source} ({market_data.status})",
+        )
+        print(
+            f"{asset}: demo opened={demo_summary.opened} closed={demo_summary.closed} "
+            f"open={demo_summary.open_trades} win_rate={demo_summary.win_rate:.0%} expectancy={demo_summary.expectancy_r:.2f}R"
+        )
         if plan.action == "NO_TRADE":
             continue
 

@@ -5,9 +5,12 @@ from unittest.mock import Mock, patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pandas as pd
+
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
 from nero_app.core.data_loader import load_macro_events, load_price_history
+from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient, NewsItem, _rank_for_asset
@@ -16,7 +19,7 @@ from nero_app.core.prediction_log import append_prediction, evaluate_prediction_
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.technical_analysis import analyze_technical
-from nero_app.core.trade_desk import build_intraday_trade_plan
+from nero_app.core.trade_desk import IntradayTradePlan, build_intraday_trade_plan
 
 
 class NeroCoreTest(unittest.TestCase):
@@ -145,6 +148,71 @@ class NeroCoreTest(unittest.TestCase):
         self.assertGreaterEqual(plan.confidence, 0)
         self.assertLessEqual(plan.confidence, 1)
         self.assertGreater(len(plan.reasons), 0)
+
+
+    def test_demo_trader_opens_triggered_paper_trade(self) -> None:
+        prices = load_price_history().tail(40).copy()
+        latest_close = float(prices.iloc[-1]["close"])
+        plan = IntradayTradePlan(
+            action="WAIT_LONG_TRIGGER",
+            bias="Bullish",
+            confidence=0.72,
+            entry_trigger="Long only after trigger confirmation.",
+            entry_price=latest_close,
+            stop_loss=latest_close * 0.99,
+            take_profit_1=latest_close * 1.01,
+            take_profit_2=latest_close * 1.02,
+            risk_reward_1=1.0,
+            risk_reward_2=2.0,
+            invalidation="Cancel below stop.",
+            status="Wait for trigger",
+            reasons=["test setup"],
+        )
+        prices.loc[prices.index[-1], "high"] = plan.entry_price * 1.001
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "demo_trades.csv"
+            summary = run_demo_trader("BTC", plan, prices, source="test", path=path)
+            frame = load_demo_trades(path)
+
+        self.assertEqual(summary.opened, 1)
+        self.assertEqual(len(frame), 1)
+        self.assertEqual(frame.iloc[0]["status"], "open")
+
+
+    def test_demo_trader_closes_and_scores_paper_trade(self) -> None:
+        prices = load_price_history().tail(40).copy()
+        latest_close = float(prices.iloc[-1]["close"])
+        plan = IntradayTradePlan(
+            action="WAIT_LONG_TRIGGER",
+            bias="Bullish",
+            confidence=0.72,
+            entry_trigger="Long only after trigger confirmation.",
+            entry_price=latest_close,
+            stop_loss=latest_close * 0.99,
+            take_profit_1=latest_close * 1.01,
+            take_profit_2=latest_close * 1.02,
+            risk_reward_1=1.0,
+            risk_reward_2=2.0,
+            invalidation="Cancel below stop.",
+            status="Wait for trigger",
+            reasons=["test setup"],
+        )
+        prices.loc[prices.index[-1], "high"] = plan.entry_price * 1.001
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "demo_trades.csv"
+            run_demo_trader("BTC", plan, prices, source="test", path=path)
+            future = prices.copy()
+            future.loc[future.index[-1], "date"] = pd.to_datetime(future.iloc[-1]["date"]) + pd.Timedelta(hours=1)
+            future.loc[future.index[-1], "high"] = plan.take_profit_1 * 1.001
+            summary = run_demo_trader("BTC", plan, future, source="test", path=path)
+            frame = load_demo_trades(path)
+            scorecard = accountability_scorecard(frame)
+
+        self.assertEqual(summary.closed, 1)
+        self.assertEqual(frame.iloc[0]["status"], "closed")
+        self.assertEqual(scorecard["wins"], 1)
 
 
     def test_prediction_log_round_trip(self) -> None:

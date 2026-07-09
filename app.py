@@ -14,6 +14,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
 from nero_app.core.data_loader import load_macro_events
+from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
@@ -218,8 +219,18 @@ def main() -> None:
         st.session_state.run_count += 1
         st.session_state.last_run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         append_prediction(result, data_source=f"{market_data.source} ({market_data.status})", prices=price_history)
+        demo_summary = run_demo_trader(
+            asset=asset,
+            plan=trade_plan,
+            prices=intraday_data.prices,
+            source=f"{intraday_data.source} ({intraday_data.status})",
+        )
         st.toast("Prediction saved to log")
         st.success(f"Analysis #{st.session_state.run_count} saved at {st.session_state.last_run_at}")
+        if demo_summary.opened:
+            st.info("Demo trader opened a paper trade for accountability tracking.")
+        if demo_summary.closed:
+            st.info(f"Demo trader closed {demo_summary.closed} paper trade(s).")
         if mobile_alerts_enabled and trade_plan.action != "NO_TRADE":
             alert = send_email_alert(
                 smtp_host,
@@ -244,8 +255,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -398,6 +409,33 @@ def main() -> None:
                 st.caption("Email auto-alerts disabled")
         st.subheader("Reasoning Stack")
         st.dataframe(pd.DataFrame({"Reason": trade_plan.reasons}), use_container_width=True, hide_index=True)
+
+    with accountability_tab:
+        st.subheader("Nero Self-Accountability")
+        st.caption("Paper trades only. Nero records triggered setups, then judges them by TP1, SL, or expiry.")
+        if st.button("Run demo trader now"):
+            demo_summary = run_demo_trader(
+                asset=asset,
+                plan=trade_plan,
+                prices=intraday_data.prices,
+                source=f"{intraday_data.source} ({intraday_data.status})",
+            )
+            st.success(
+                f"Demo trader updated: opened {demo_summary.opened}, closed {demo_summary.closed}, "
+                f"win rate {demo_summary.win_rate:.0%}, expectancy {demo_summary.expectancy_r:.2f}R."
+            )
+        demo_frame = load_demo_trades()
+        scorecard = accountability_scorecard(demo_frame)
+        col_a, col_b, col_c, col_d, col_e = st.columns(5)
+        col_a.metric("Total Paper Trades", str(scorecard["total"]))
+        col_b.metric("Open", str(scorecard["open"]))
+        col_c.metric("Closed", str(scorecard["closed"]))
+        col_d.metric("Win Rate", f"{float(scorecard['win_rate']):.0%}")
+        col_e.metric("Expectancy", f"{float(scorecard['expectancy_r']):.2f}R")
+        if demo_frame.empty:
+            st.info("No demo trades yet. Nero will open paper trades only when a LONG/SHORT trigger is actually touched.")
+        else:
+            st.dataframe(demo_frame.sort_values("opened_at", ascending=False), use_container_width=True)
 
     with structure_tab:
         if market_data.status == "live":
