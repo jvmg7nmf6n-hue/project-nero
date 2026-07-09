@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pandas as pd
+import requests
 
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
@@ -88,6 +89,42 @@ class NeroCoreTest(unittest.TestCase):
         self.assertEqual(result.status, "sample")
         self.assertGreaterEqual(len(result.prices), 30)
         self.assertTrue({"date", "open", "high", "low", "close", "volume"}.issubset(result.prices.columns))
+
+
+    def test_btc_daily_falls_back_to_coinbase_when_binance_fails(self) -> None:
+        binance_response = Mock()
+        binance_response.raise_for_status.side_effect = requests.HTTPError("blocked")
+        coinbase_response = Mock()
+        coinbase_response.raise_for_status.return_value = None
+        coinbase_response.json.return_value = [
+            [1700000000 + i * 86400, 40000 + i, 40200 + i, 40100 + i, 40150 + i, 10 + i]
+            for i in range(35)
+        ]
+
+        with patch("nero_app.core.market_data.requests.get", side_effect=[binance_response, coinbase_response]):
+            result = MarketDataClient().load(asset="BTC", prefer_live=True, days=35)
+
+        self.assertEqual(result.status, "live")
+        self.assertIn("Coinbase BTC-USD", result.source)
+        self.assertGreaterEqual(len(result.prices), 30)
+
+
+    def test_btc_intraday_falls_back_to_coinbase_when_binance_fails(self) -> None:
+        binance_response = Mock()
+        binance_response.raise_for_status.side_effect = requests.HTTPError("blocked")
+        coinbase_response = Mock()
+        coinbase_response.raise_for_status.return_value = None
+        coinbase_response.json.return_value = [
+            [1700000000 + i * 3600, 40000 + i, 40200 + i, 40100 + i, 40150 + i, 10 + i]
+            for i in range(35)
+        ]
+
+        with patch("nero_app.core.market_data.requests.get", side_effect=[binance_response, coinbase_response]):
+            result = MarketDataClient().load_intraday(asset="BTC", prefer_live=True, interval="1h", candles=35)
+
+        self.assertEqual(result.status, "live")
+        self.assertIn("Coinbase BTC-USD", result.source)
+        self.assertGreaterEqual(len(result.prices), 30)
 
 
     def test_twelve_data_parser_handles_missing_volume(self) -> None:

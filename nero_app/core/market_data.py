@@ -15,6 +15,11 @@ BINANCE_SYMBOLS = {
     "ETH": "ETHUSDT",
 }
 
+COINBASE_PRODUCTS = {
+    "BTC": "BTC-USD",
+    "ETH": "ETH-USD",
+}
+
 TWELVE_DATA_SYMBOLS = {
     "GOLD": "XAU/USD",
     "OIL": "WTI/USD",
@@ -41,6 +46,7 @@ class MarketDataClient:
         twelve_data_api_key: str | None = None,
     ) -> MarketDataResult:
         if prefer_live and asset in BINANCE_SYMBOLS:
+            errors: list[str] = []
             try:
                 prices = self._load_binance_daily(BINANCE_SYMBOLS[asset], days=days)
                 return MarketDataResult(
@@ -49,9 +55,23 @@ class MarketDataClient:
                     status="live",
                 )
             except requests.RequestException as exc:
-                return self._fallback(f"fallback: {exc.__class__.__name__}")
+                errors.append(f"Binance {exc.__class__.__name__}")
             except (KeyError, TypeError, ValueError) as exc:
-                return self._fallback(f"fallback: malformed live response ({exc.__class__.__name__})")
+                errors.append(f"Binance malformed response ({exc.__class__.__name__})")
+
+            if asset in COINBASE_PRODUCTS:
+                try:
+                    prices = self._load_coinbase_candles(COINBASE_PRODUCTS[asset], granularity=86400, candles=days)
+                    return MarketDataResult(
+                        prices=prices,
+                        source=f"Coinbase {COINBASE_PRODUCTS[asset]} daily candles",
+                        status="live",
+                    )
+                except requests.RequestException as exc:
+                    errors.append(f"Coinbase {exc.__class__.__name__}")
+                except (KeyError, TypeError, ValueError) as exc:
+                    errors.append(f"Coinbase malformed response ({exc.__class__.__name__})")
+            return self._fallback(f"fallback: {'; '.join(errors)}")
 
         if prefer_live and asset in TWELVE_DATA_SYMBOLS:
             api_key = twelve_data_api_key or os.getenv("TWELVE_DATA_API_KEY", "")
@@ -84,6 +104,7 @@ class MarketDataClient:
         twelve_data_api_key: str | None = None,
     ) -> MarketDataResult:
         if prefer_live and asset in BINANCE_SYMBOLS:
+            errors: list[str] = []
             try:
                 prices = self._load_binance_intraday(BINANCE_SYMBOLS[asset], interval=interval, candles=candles)
                 return MarketDataResult(
@@ -92,9 +113,27 @@ class MarketDataClient:
                     status="live",
                 )
             except requests.RequestException as exc:
-                return self._fallback_intraday(f"fallback: {exc.__class__.__name__}")
+                errors.append(f"Binance {exc.__class__.__name__}")
             except (KeyError, TypeError, ValueError) as exc:
-                return self._fallback_intraday(f"fallback: malformed intraday response ({exc.__class__.__name__})")
+                errors.append(f"Binance malformed response ({exc.__class__.__name__})")
+
+            if asset in COINBASE_PRODUCTS:
+                try:
+                    prices = self._load_coinbase_candles(
+                        COINBASE_PRODUCTS[asset],
+                        granularity=_coinbase_granularity(interval),
+                        candles=candles,
+                    )
+                    return MarketDataResult(
+                        prices=prices,
+                        source=f"Coinbase {COINBASE_PRODUCTS[asset]} {interval} candles",
+                        status="live",
+                    )
+                except requests.RequestException as exc:
+                    errors.append(f"Coinbase {exc.__class__.__name__}")
+                except (KeyError, TypeError, ValueError) as exc:
+                    errors.append(f"Coinbase malformed response ({exc.__class__.__name__})")
+            return self._fallback_intraday(f"fallback: {'; '.join(errors)}")
 
         if prefer_live and asset in TWELVE_DATA_SYMBOLS:
             api_key = twelve_data_api_key or os.getenv("TWELVE_DATA_API_KEY", "")
@@ -204,6 +243,26 @@ class MarketDataClient:
         )
         return frame[["date", "open", "high", "low", "close", "volume"]]
 
+    def _load_coinbase_candles(self, product_id: str, granularity: int, candles: int) -> pd.DataFrame:
+        response = requests.get(
+            f"https://api.exchange.coinbase.com/products/{product_id}/candles",
+            params={"granularity": granularity},
+            headers={"User-Agent": "Project-Nero/1.0"},
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list) or not payload:
+            raise ValueError("empty Coinbase candle response")
+        frame = pd.DataFrame(payload, columns=["time", "low", "high", "open", "close", "volume"])
+        numeric_columns = ["open", "high", "low", "close", "volume"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        frame["date"] = frame["time"].map(
+            lambda value: datetime.fromtimestamp(int(value), tz=timezone.utc).replace(tzinfo=None)
+        )
+        frame = frame.sort_values("date").tail(max(30, min(candles, 300))).reset_index(drop=True)
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+
     def _load_twelve_data_daily(self, symbol: str, days: int, api_key: str) -> pd.DataFrame:
         response = requests.get(
             "https://api.twelvedata.com/time_series",
@@ -256,3 +315,15 @@ class MarketDataClient:
         frame = frame.sort_values("date").reset_index(drop=True)
         return frame[["date", "open", "high", "low", "close", "volume"]]
 
+
+
+def _coinbase_granularity(interval: str) -> int:
+    return {
+        "1m": 60,
+        "5m": 300,
+        "15m": 900,
+        "30m": 1800,
+        "1h": 3600,
+        "6h": 21600,
+        "1d": 86400,
+    }.get(interval, 3600)
