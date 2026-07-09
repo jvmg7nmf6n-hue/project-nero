@@ -430,12 +430,12 @@ def main() -> None:
         demo_frame = load_demo_trades()
         scorecard = accountability_scorecard(demo_frame)
         col_a, col_b, col_c, col_d, col_e, col_f = st.columns(6)
-        col_a.metric("Total Paper Trades", str(scorecard["total"]))
-        col_b.metric("Pending", str(scorecard["pending"]))
-        col_c.metric("Open", str(scorecard["open"]))
-        col_d.metric("Closed", str(scorecard["closed"]))
-        col_e.metric("Win Rate", f"{float(scorecard['win_rate']):.0%}")
-        col_f.metric("Expectancy", f"{float(scorecard['expectancy_r']):.2f}R")
+        col_a.metric("Total Paper Trades", str(scorecard.get("total", 0)))
+        col_b.metric("Pending", str(scorecard.get("pending", 0)))
+        col_c.metric("Open", str(scorecard.get("open", 0)))
+        col_d.metric("Closed", str(scorecard.get("closed", 0)))
+        col_e.metric("Win Rate", f"{float(scorecard.get('win_rate', 0.0)):.0%}")
+        col_f.metric("Expectancy", f"{float(scorecard.get('expectancy_r', 0.0)):.2f}R")
         if demo_frame.empty:
             st.info("No demo trades yet. Nero records each LONG/SHORT signal as pending, then activates it when the trigger is touched.")
         else:
