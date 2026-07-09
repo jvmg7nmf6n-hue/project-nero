@@ -414,19 +414,8 @@ def main() -> None:
 
     with accountability_tab:
         st.subheader("Nero Self-Accountability")
-        st.caption("Paper trades only. Nero records triggered setups, then judges them by TP1, SL, or expiry.")
-        if st.button("Run demo trader now"):
-            demo_summary = run_demo_trader(
-                asset=asset,
-                plan=trade_plan,
-                prices=intraday_data.prices,
-                source=f"{intraday_data.source} ({intraday_data.status})",
-            )
-            st.success(
-                f"Demo trader updated: recorded {demo_summary.opened}, activated {demo_summary.activated}, "
-                f"closed {demo_summary.closed}, win rate {demo_summary.win_rate:.0%}, "
-                f"expectancy {demo_summary.expectancy_r:.2f}R."
-            )
+        st.caption("Read-only paper trading ledger. Auto demo trading runs on GitHub Actions every 15 minutes.")
+        st.success("Auto demo trading: ON via GitHub Actions. No manual button required.")
         demo_frame = load_demo_trades()
         scorecard = accountability_scorecard(demo_frame)
         col_a, col_b, col_c, col_d, col_e, col_f = st.columns(6)
