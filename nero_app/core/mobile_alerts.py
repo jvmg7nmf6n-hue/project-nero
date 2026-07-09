@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from email.message import EmailMessage
 import smtplib
 
+import requests
+
 
 from nero_app.core.trade_desk import IntradayTradePlan
 
@@ -65,3 +67,35 @@ def send_email_alert(
         return AlertResult(ok=False, message=f"Email alert failed: {exc.__class__.__name__}")
 
     return AlertResult(ok=True, message="Email alert sent.")
+
+
+def send_ntfy_alert(
+    server_url: str,
+    topic: str,
+    title: str,
+    message: str,
+    priority: str = "high",
+    tags: str = "warning",
+    timeout_seconds: int = 12,
+) -> AlertResult:
+    server = (server_url or "https://ntfy.sh").strip().rstrip("/")
+    clean_topic = topic.strip().strip("/")
+    if not clean_topic:
+        return AlertResult(ok=False, message="Ntfy topic is required.")
+
+    try:
+        response = requests.post(
+            f"{server}/{clean_topic}",
+            data=message.encode("utf-8"),
+            headers={
+                "Title": title,
+                "Priority": priority,
+                "Tags": tags,
+            },
+            timeout=timeout_seconds,
+        )
+        response.raise_for_status()
+    except (requests.RequestException, ValueError) as exc:
+        return AlertResult(ok=False, message=f"Ntfy alert failed: {exc.__class__.__name__}")
+
+    return AlertResult(ok=True, message="Ntfy alert sent.")

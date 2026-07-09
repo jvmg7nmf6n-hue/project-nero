@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.demo_trader import run_demo_trader
-from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
+from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert, send_ntfy_alert
 from nero_app.core.trade_desk import IntradayTradePlan, build_intraday_trade_plan
 
 
@@ -67,11 +67,11 @@ def main() -> None:
             print(f"{asset}: cooldown active for {key}")
             continue
 
-        alert = _send_plan_email(asset, plan)
+        alert = _send_plan_alert(asset, plan)
         if alert.ok:
             sent += 1
             state[key] = {"cooldown": COOLDOWN_RUNS}
-            print(f"{asset}: email sent")
+            print(f"{asset}: {alert.message}")
         else:
             print(f"{asset}: {alert.message}")
 
@@ -93,15 +93,31 @@ def _price_bias(prices: pd.DataFrame) -> str:
     return "neutral"
 
 
-def _send_plan_email(asset: str, plan: IntradayTradePlan):
+def _send_plan_alert(asset: str, plan: IntradayTradePlan):
+    subject = f"Nero trade alert | {asset} | {plan.action.replace('_', ' ')}"
+    message = format_trade_alert(asset, plan)
+    ntfy_topic = os.getenv("NTFY_TOPIC", "").strip()
+    if ntfy_topic:
+        ntfy = send_ntfy_alert(
+            server_url=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
+            topic=ntfy_topic,
+            title=subject,
+            message=message,
+            priority="high",
+            tags="chart_with_upwards_trend",
+        )
+        if ntfy.ok:
+            return ntfy
+        print(f"{asset}: {ntfy.message}; trying email backup")
+
     return send_email_alert(
         smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
         smtp_port=int(os.getenv("SMTP_PORT", "465")),
         sender_email=os.getenv("SENDER_EMAIL", ""),
         app_password=os.getenv("EMAIL_APP_PASSWORD", ""),
         receiver_email=os.getenv("RECEIVER_EMAIL", ""),
-        subject=f"Nero trade alert | {asset} | {plan.action.replace('_', ' ')}",
-        message=format_trade_alert(asset, plan),
+        subject=subject,
+        message=message,
     )
 
 

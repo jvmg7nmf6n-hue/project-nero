@@ -13,7 +13,7 @@ from nero_app.core.backtester import run_event_backtest
 from nero_app.core.data_loader import load_macro_events, load_price_history
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.market_data import MarketDataClient
-from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
+from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert, send_ntfy_alert
 from nero_app.core.news_feed import NewsFeedClient, NewsItem, _rank_for_asset
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
@@ -177,6 +177,25 @@ class NeroCoreTest(unittest.TestCase):
 
         self.assertFalse(result.ok)
         self.assertIn("required", result.message)
+
+
+    def test_ntfy_alert_requires_topic(self) -> None:
+        result = send_ntfy_alert("https://ntfy.sh", "", "hello", "hello")
+
+        self.assertFalse(result.ok)
+        self.assertIn("topic", result.message.lower())
+
+
+    def test_ntfy_alert_posts_to_topic(self) -> None:
+        response = Mock()
+        response.raise_for_status.return_value = None
+
+        with patch("nero_app.core.mobile_alerts.requests.post", return_value=response) as post:
+            result = send_ntfy_alert("https://ntfy.sh", "nero-test", "Nero", "message")
+
+        self.assertTrue(result.ok)
+        post.assert_called_once()
+        self.assertEqual(post.call_args.args[0], "https://ntfy.sh/nero-test")
 
 
     def test_trade_alert_formatter_includes_plan_levels(self) -> None:
