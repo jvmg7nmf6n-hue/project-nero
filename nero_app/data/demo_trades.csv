@@ -1,1 +1,2 @@
 trade_id,opened_at,closed_at,asset,side,status,entry,stop_loss,take_profit_1,take_profit_2,exit_price,exit_reason,result,r_multiple,confidence,source,notes
+BTC-LONG-2026-07-09T19:00:00,2026-07-09T19:00:00,,BTC,LONG,pending,63469.4547,61636.05,64099.2961,64519.1904,,,,,0.86,Coinbase BTC-USD 1h candles (live),"Pending trigger: Long only after price holds above 63,469.45"
