@@ -127,6 +127,32 @@ class NeroCoreTest(unittest.TestCase):
         self.assertGreaterEqual(len(result.prices), 30)
 
 
+    def test_btc_intraday_falls_back_to_kraken_when_binance_and_coinbase_fail(self) -> None:
+        binance_response = Mock()
+        binance_response.raise_for_status.side_effect = requests.HTTPError("blocked")
+        coinbase_response = Mock()
+        coinbase_response.raise_for_status.side_effect = requests.HTTPError("blocked")
+        kraken_response = Mock()
+        kraken_response.raise_for_status.return_value = None
+        kraken_response.json.return_value = {
+            "error": [],
+            "result": {
+                "XXBTZUSD": [
+                    [1700000000 + i * 3600, str(40100 + i), str(40200 + i), str(40000 + i), str(40150 + i), "40125", str(10 + i), 20]
+                    for i in range(35)
+                ],
+                "last": 1700000000 + 35 * 3600,
+            },
+        }
+
+        with patch("nero_app.core.market_data.requests.get", side_effect=[binance_response, coinbase_response, kraken_response]):
+            result = MarketDataClient().load_intraday(asset="BTC", prefer_live=True, interval="1h", candles=35)
+
+        self.assertEqual(result.status, "live")
+        self.assertIn("Kraken XBTUSD", result.source)
+        self.assertGreaterEqual(len(result.prices), 30)
+
+
     def test_twelve_data_parser_handles_missing_volume(self) -> None:
         payload = {
             "values": [

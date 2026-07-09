@@ -20,6 +20,11 @@ COINBASE_PRODUCTS = {
     "ETH": "ETH-USD",
 }
 
+KRAKEN_PAIRS = {
+    "BTC": "XBTUSD",
+    "ETH": "ETHUSD",
+}
+
 TWELVE_DATA_SYMBOLS = {
     "GOLD": "XAU/USD",
     "OIL": "WTI/USD",
@@ -71,6 +76,19 @@ class MarketDataClient:
                     errors.append(f"Coinbase {exc.__class__.__name__}")
                 except (KeyError, TypeError, ValueError) as exc:
                     errors.append(f"Coinbase malformed response ({exc.__class__.__name__})")
+
+            if asset in KRAKEN_PAIRS:
+                try:
+                    prices = self._load_kraken_ohlc(KRAKEN_PAIRS[asset], interval_minutes=1440, candles=days)
+                    return MarketDataResult(
+                        prices=prices,
+                        source=f"Kraken {KRAKEN_PAIRS[asset]} daily candles",
+                        status="live",
+                    )
+                except requests.RequestException as exc:
+                    errors.append(f"Kraken {exc.__class__.__name__}")
+                except (KeyError, TypeError, ValueError) as exc:
+                    errors.append(f"Kraken malformed response ({exc.__class__.__name__})")
             return self._fallback(f"fallback: {'; '.join(errors)}")
 
         if prefer_live and asset in TWELVE_DATA_SYMBOLS:
@@ -133,6 +151,23 @@ class MarketDataClient:
                     errors.append(f"Coinbase {exc.__class__.__name__}")
                 except (KeyError, TypeError, ValueError) as exc:
                     errors.append(f"Coinbase malformed response ({exc.__class__.__name__})")
+
+            if asset in KRAKEN_PAIRS:
+                try:
+                    prices = self._load_kraken_ohlc(
+                        KRAKEN_PAIRS[asset],
+                        interval_minutes=_kraken_interval_minutes(interval),
+                        candles=candles,
+                    )
+                    return MarketDataResult(
+                        prices=prices,
+                        source=f"Kraken {KRAKEN_PAIRS[asset]} {interval} candles",
+                        status="live",
+                    )
+                except requests.RequestException as exc:
+                    errors.append(f"Kraken {exc.__class__.__name__}")
+                except (KeyError, TypeError, ValueError) as exc:
+                    errors.append(f"Kraken malformed response ({exc.__class__.__name__})")
             return self._fallback_intraday(f"fallback: {'; '.join(errors)}")
 
         if prefer_live and asset in TWELVE_DATA_SYMBOLS:
@@ -263,6 +298,31 @@ class MarketDataClient:
         frame = frame.sort_values("date").tail(max(30, min(candles, 300))).reset_index(drop=True)
         return frame[["date", "open", "high", "low", "close", "volume"]]
 
+    def _load_kraken_ohlc(self, pair: str, interval_minutes: int, candles: int) -> pd.DataFrame:
+        response = requests.get(
+            "https://api.kraken.com/0/public/OHLC",
+            params={"pair": pair, "interval": interval_minutes},
+            headers={"User-Agent": "Project-Nero/1.0"},
+            timeout=self.timeout_seconds,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if payload.get("error"):
+            raise ValueError(str(payload["error"]))
+        result = payload["result"]
+        series_key = next(key for key in result if key != "last")
+        frame = pd.DataFrame(
+            result[series_key],
+            columns=["time", "open", "high", "low", "close", "vwap", "volume", "count"],
+        )
+        numeric_columns = ["open", "high", "low", "close", "volume"]
+        frame[numeric_columns] = frame[numeric_columns].astype(float)
+        frame["date"] = frame["time"].map(
+            lambda value: datetime.fromtimestamp(int(value), tz=timezone.utc).replace(tzinfo=None)
+        )
+        frame = frame.sort_values("date").tail(max(30, min(candles, 720))).reset_index(drop=True)
+        return frame[["date", "open", "high", "low", "close", "volume"]]
+
     def _load_twelve_data_daily(self, symbol: str, days: int, api_key: str) -> pd.DataFrame:
         response = requests.get(
             "https://api.twelvedata.com/time_series",
@@ -327,3 +387,15 @@ def _coinbase_granularity(interval: str) -> int:
         "6h": 21600,
         "1d": 86400,
     }.get(interval, 3600)
+
+
+def _kraken_interval_minutes(interval: str) -> int:
+    return {
+        "1m": 1,
+        "5m": 5,
+        "15m": 15,
+        "30m": 30,
+        "1h": 60,
+        "4h": 240,
+        "1d": 1440,
+    }.get(interval, 60)
