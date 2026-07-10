@@ -17,6 +17,12 @@ from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
+from nero_app.core.historical_market_memory import (
+    format_regime_report,
+    infer_environment_tags,
+    load_historical_events,
+    score_regime_similarity,
+)
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
@@ -121,6 +127,48 @@ def _parse_rejection_counts(value: object) -> dict[str, int]:
         return {}
     return parsed if isinstance(parsed, dict) else {}
 
+
+def _render_market_memory_tab(asset: str, context_text: str) -> None:
+    st.subheader("Historical Market Memory")
+    st.caption("Current environment compared with stored BTC 120k and Gold rally regimes.")
+    if asset not in {"BTC", "GOLD"}:
+        st.info("Historical Market Memory is currently calibrated for BTC and GOLD.")
+        return
+
+    events = load_historical_events()
+    tags = infer_environment_tags(asset=asset, news_text=context_text)
+    memory_result = score_regime_similarity(asset, tags, events)
+
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("Regime Similarity", f"{memory_result.score:.0f}/100")
+    col_b.metric("Reference", memory_result.reference_regime.replace("_", " "))
+    col_c.metric("Memory Events", str(memory_result.matched_events))
+    st.write(memory_result.verdict)
+
+    factor_rows = []
+    factor_rows.extend({"Type": "Supportive", "Factor": factor} for factor in memory_result.supportive_factors)
+    factor_rows.extend({"Type": "Missing", "Factor": factor} for factor in memory_result.missing_factors)
+    factor_rows.extend({"Type": "Risk", "Factor": factor} for factor in memory_result.risk_factors)
+    if factor_rows:
+        st.dataframe(pd.DataFrame(factor_rows), use_container_width=True, hide_index=True)
+    else:
+        st.caption("No historical memory factors detected in the current context.")
+
+    with st.expander("Market memory report"):
+        st.code(format_regime_report(memory_result), language="text")
+
+    st.subheader("Historical Memory Events")
+    if events.empty:
+        st.info("Historical event memory CSV is empty or unavailable.")
+    else:
+        filtered = events[events.get("asset_focus", pd.Series(dtype=str)).astype(str).str.upper().eq(asset)]
+        if filtered.empty:
+            filtered = events[events.get("reference_regime", pd.Series(dtype=str)).astype(str).str.contains(asset, case=False, na=False)]
+        visible_cols = [
+            col for col in ["date", "reference_regime", "event_type", "headline", "macro_tags", "impact_score", "confidence"]
+            if col in filtered.columns
+        ]
+        st.dataframe(filtered[visible_cols].head(20), use_container_width=True, hide_index=True)
 
 def _render_mean_reversion_tab() -> None:
     st.subheader("Mean-Reversion Agent")
@@ -371,8 +419,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -549,6 +597,10 @@ def main() -> None:
 
     with mean_reversion_tab:
         _render_mean_reversion_tab()
+
+    with market_memory_tab:
+        _render_market_memory_tab(asset, enriched_headline)
+
 
     with structure_tab:
         if market_data.status == "live":
