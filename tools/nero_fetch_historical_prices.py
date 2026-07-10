@@ -32,9 +32,11 @@ def main() -> None:
         print(f"{result.asset}: {result.status} rows={result.rows} source={result.source} path={result.path}")
 
     if args.rebuild_white_house:
+        btc_path = output_dir / "btc_daily.csv"
+        gold_path = output_dir / "gold_daily.csv"
         built = build_white_house_dataset(
-            btc_price_path=output_dir / "btc_daily.csv",
-            gold_price_path=output_dir / "gold_daily.csv",
+            btc_price_path=btc_path if btc_path.exists() else None,
+            gold_price_path=gold_path if gold_path.exists() else None,
         )
         print(
             "White House dataset rebuilt. "

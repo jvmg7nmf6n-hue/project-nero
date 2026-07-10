@@ -1,0 +1,68 @@
+﻿name: Nero White House Event Study
+
+on:
+  schedule:
+    - cron: "30 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  white-house-event-study:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Fetch historical prices and rebuild event study
+        run: python tools/nero_fetch_historical_prices.py --start 2021-01-01 --rebuild-white-house
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      - name: Save event study outputs
+        run: |
+          git config user.name "nero-white-house-event-study"
+          git config user.email "actions@users.noreply.github.com"
+          git pull --rebase origin main || git rebase --abort || true
+          for path in \
+            nero_app/data/history/btc_daily.csv \
+            nero_app/data/history/gold_daily.csv \
+            reports/white_house_market_events_enriched.csv \
+            reports/white_house_impact_summary.csv; do
+            if [ -f "$path" ]; then
+              git add "$path"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "no White House event-study changes"
+            exit 0
+          fi
+          git commit -m "Update White House event study data"
+          git pull --rebase origin main || git rebase --abort || true
+          git push || echo "event-study push skipped; next run will retry"
+      - name: Notify event study refresh
+        if: always()
+        run: |
+          if [ -n "${NTFY_TOPIC}" ]; then
+            STATUS="${{ job.status }}"
+            curl -sS -X POST "${NTFY_SERVER:-https://ntfy.sh}/${NTFY_TOPIC}" \
+              -H "Title: NERO White House Event Study" \
+              -H "Priority: default" \
+              -H "Tags: bar_chart" \
+              -d "White House event study workflow finished: ${STATUS}"
+          else
+            echo "NTFY_TOPIC not set"
+          fi
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+      - name: Upload event study artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nero-white-house-event-study
+          path: |
+            reports/white_house_market_events_enriched.csv
+            reports/white_house_impact_summary.csv
