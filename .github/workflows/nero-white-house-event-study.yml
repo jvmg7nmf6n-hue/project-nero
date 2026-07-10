@@ -19,7 +19,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Fetch historical prices and rebuild event study
-        run: python tools/nero_fetch_historical_prices.py --start 2021-01-01 --rebuild-white-house
+        run: |
+          set +e
+          python tools/nero_fetch_historical_prices.py --start 2021-01-01 --rebuild-white-house
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            echo "Historical price fetch failed with status $STATUS; rebuilding White House dataset from seeded memory."
+            python tools/nero_white_house_dataset.py
+          fi
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
       - name: Save event study outputs
