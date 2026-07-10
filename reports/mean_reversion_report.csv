@@ -1,0 +1,5 @@
+asset,total_trades,win_rate,net_pnl,expectancy_r,profit_factor,max_drawdown,average_win,average_loss,average_holding_hours,consecutive_wins,consecutive_losses,fees_paid,slippage_paid_estimate,insufficient_sample,rejected_setup_counts
+BTC,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0,True,{}
+PAXG,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0,True,{}
+SOL,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0,True,{}
+COMBINED,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0.0,0.0,True,{}
