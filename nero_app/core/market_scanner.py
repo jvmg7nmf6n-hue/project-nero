@@ -150,6 +150,8 @@ def calculate_rsi(closes: list[float], period: int = 14) -> float | None:
             losses -= change
     average_gain = gains / period
     average_loss = losses / period
+    if average_gain == 0 and average_loss == 0:
+        return 50.0
     if average_loss == 0:
         return 100.0
     relative_strength = average_gain / average_loss

@@ -1,0 +1,39 @@
+name: Nero Mean Reversion Agent
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mean-reversion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run mean reversion agent
+        run: python tools/nero_mean_reversion_agent.py
+        env:
+          MR_ASSETS: BTC:BTCUSDT,SOL:SOLUSDT,PAXG:PAXGUSDT
+          MR_FEE_BPS: "10"
+          MR_SLIPPAGE_BPS: "2"
+          MR_RISK_PER_TRADE: "0.01"
+          MR_DAILY_LOSS_GUARD_R: "-3"
+          MR_MAX_NOTIONAL_PCT: "1"
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+      - name: Save mean reversion audit records
+        run: |
+          git config user.name "nero-mean-reversion-agent"
+          git config user.email "actions@users.noreply.github.com"
+          git add nero_app/data/mean_reversion reports/mean_reversion_report.csv reports/mean_reversion_report.json
+          git commit -m "Update mean reversion agent records" || echo "no mean reversion changes"
+          git pull --rebase origin main || true
+          git push || echo "nothing to push"
