@@ -2,3 +2,6 @@ timestamp,asset,code,message
 2026-07-10T07:40:48.837369+00:00,BTC,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=260
 2026-07-10T07:40:48.837369+00:00,SOL,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1h&limit=260
 2026-07-10T07:40:48.837369+00:00,PAXG,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=1h&limit=260
+2026-07-10T07:49:00.220886+00:00,BTC,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=260
+2026-07-10T07:49:00.220886+00:00,SOL,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1h&limit=260
+2026-07-10T07:49:00.220886+00:00,PAXG,ERROR,HTTPError: 451 Client Error:  for url: https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=1h&limit=260
