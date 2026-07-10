@@ -1,12 +1,13 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import os
 import unittest
 from zoneinfo import ZoneInfo
 
-from tools.nero_weekly_report import WeeklyReportPaths, build_weekly_report, read_csv_if_exists
+from tools.nero_weekly_report import WeeklyReportPaths, _env_first, build_weekly_report, read_csv_if_exists
 
 
 class WeeklyReportTest(unittest.TestCase):
@@ -64,6 +65,18 @@ class WeeklyReportTest(unittest.TestCase):
         self.assertIn("Demo trades: 2 closed trades", report)
         self.assertIn("Mean-Reversion Agent", report)
         self.assertIn("insufficient sample", report)
+
+
+    def test_env_first_accepts_alternate_secret_names(self) -> None:
+        original = os.environ.get("GMAIL_APP_PASSWORD")
+        os.environ["GMAIL_APP_PASSWORD"] = "app-secret"
+        try:
+            self.assertEqual(_env_first("EMAIL_APP_PASSWORD", "GMAIL_APP_PASSWORD"), "app-secret")
+        finally:
+            if original is None:
+                os.environ.pop("GMAIL_APP_PASSWORD", None)
+            else:
+                os.environ["GMAIL_APP_PASSWORD"] = original
 
 
 if __name__ == "__main__":

@@ -164,12 +164,28 @@ def _mean_reversion_lines(mean_reversion: pd.DataFrame) -> list[str]:
 
 def send_weekly_report(report: str) -> None:
     subject = f"NERO Weekly Performance Report | {datetime.now(PKT).strftime('%Y-%m-%d')}"
+    receiver_email = _env_first("RECEIVER_EMAIL", default="tareekh39@gmail.com")
+    sender_email = _env_first("SENDER_EMAIL", "GMAIL_EMAIL", "GMAIL_USER", "EMAIL_SENDER", default=receiver_email)
+    app_password = _env_first("EMAIL_APP_PASSWORD", "GMAIL_APP_PASSWORD", "APP_PASSWORD", "EMAIL_PASSWORD")
+    smtp_host = _env_first("SMTP_HOST", default="smtp.gmail.com")
+    smtp_port = int(_env_first("SMTP_PORT", default="465") or "465")
+
+    missing = []
+    if not sender_email:
+        missing.append("SENDER_EMAIL")
+    if not app_password:
+        missing.append("EMAIL_APP_PASSWORD")
+    if not receiver_email:
+        missing.append("RECEIVER_EMAIL")
+    if missing:
+        print(f"Missing email secrets: {', '.join(missing)}")
+
     email_result = send_email_alert(
-        smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
-        smtp_port=int(os.getenv("SMTP_PORT", "465") or "465"),
-        sender_email=os.getenv("SENDER_EMAIL", ""),
-        app_password=os.getenv("EMAIL_APP_PASSWORD", ""),
-        receiver_email=os.getenv("RECEIVER_EMAIL", ""),
+        smtp_host=smtp_host,
+        smtp_port=smtp_port,
+        sender_email=sender_email,
+        app_password=app_password,
+        receiver_email=receiver_email,
         subject=subject,
         message=report,
     )
@@ -186,6 +202,14 @@ def send_weekly_report(report: str) -> None:
             tags="bar_chart",
         )
         print(ntfy_result.message)
+
+
+def _env_first(*names: str, default: str = "") -> str:
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return default.strip()
 
 
 def _closed_trades(frame: pd.DataFrame) -> pd.DataFrame:
@@ -236,3 +260,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
