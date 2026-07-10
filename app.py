@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
+import json
 
 import pandas as pd
 
@@ -97,6 +99,115 @@ DISCLAIMER = (
     "Project Nero is an educational research and historical probability modeling tool. "
     "It does not provide financial, investment, legal, tax, or execution advice."
 )
+
+
+def _read_csv_if_exists(path: str | Path) -> pd.DataFrame:
+    file_path = Path(path)
+    if not file_path.exists() or file_path.stat().st_size == 0:
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(file_path)
+    except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _parse_rejection_counts(value: object) -> dict[str, int]:
+    if pd.isna(value) or not str(value).strip():
+        return {}
+    try:
+        parsed = json.loads(str(value))
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _render_mean_reversion_tab() -> None:
+    st.subheader("Mean-Reversion Agent")
+    st.caption("Standalone paper-trading forward test. Closed 1h candles only. Long-only. No real orders.")
+    report = _read_csv_if_exists("reports/mean_reversion_report.csv")
+    closed = _read_csv_if_exists("nero_app/data/mean_reversion/trades/closed_trades.csv")
+    evaluations = _read_csv_if_exists("nero_app/data/mean_reversion/trades/evaluations.csv")
+    events = _read_csv_if_exists("nero_app/data/mean_reversion/trades/trade_events.csv")
+    heartbeats = _read_csv_if_exists("nero_app/data/mean_reversion/heartbeats/heartbeats.csv")
+    errors = _read_csv_if_exists("nero_app/data/mean_reversion/trades/runtime_errors.csv")
+
+    if report.empty:
+        st.info("Mean-reversion report is not available locally yet. Run the GitHub workflow, then pull latest repo data to view it here.")
+    else:
+        combined = report[report["asset"].astype(str).str.upper() == "COMBINED"]
+        row = combined.iloc[0] if not combined.empty else report.iloc[0]
+        col_a, col_b, col_c, col_d, col_e, col_f = st.columns(6)
+        col_a.metric("Trades", str(int(row.get("total_trades", 0))))
+        col_b.metric("Win Rate", f"{float(row.get('win_rate', 0.0)):.0%}")
+        col_c.metric("Net P/L", f"${float(row.get('net_pnl', 0.0)):,.2f}")
+        col_d.metric("Expectancy", f"{float(row.get('expectancy_r', 0.0)):.2f}R")
+        col_e.metric("Profit Factor", f"{float(row.get('profit_factor', 0.0)):.2f}")
+        col_f.metric("Max DD", f"{float(row.get('max_drawdown', 0.0)):.2%}")
+        if bool(row.get("insufficient_sample", True)):
+            st.warning("Insufficient sample: wait for at least 20-30 closed trades before trusting the statistics.")
+        st.dataframe(report, use_container_width=True, hide_index=True)
+
+    st.subheader("Latest Paper Trades")
+    if closed.empty:
+        st.info("No closed mean-reversion trades are present in the local CSV yet.")
+    else:
+        visible_cols = [
+            col for col in [
+                "trade_id", "asset", "opened_at", "closed_at", "exit_reason", "entry_price", "target", "stop_loss",
+                "exit_price", "net_pnl", "r_multiple", "equity_after", "holding_hours", "strategy_version"
+            ] if col in closed.columns
+        ]
+        sort_col = "closed_at" if "closed_at" in closed.columns else closed.columns[0]
+        st.dataframe(closed.sort_values(sort_col, ascending=False)[visible_cols].head(50), use_container_width=True, hide_index=True)
+
+    st.subheader("Open/Recent Events")
+    if events.empty:
+        st.caption("No entry/exit event ledger is present locally yet.")
+    else:
+        sort_col = "timestamp" if "timestamp" in events.columns else events.columns[0]
+        st.dataframe(events.sort_values(sort_col, ascending=False).head(50), use_container_width=True)
+
+    col_left, col_right = st.columns(2)
+    with col_left:
+        st.subheader("Rejected Setup Reasons")
+        counts: dict[str, int] = {}
+        if not report.empty and "rejected_setup_counts" in report.columns:
+            for _, report_row in report.iterrows():
+                if str(report_row.get("asset", "")).upper() == "COMBINED":
+                    counts = _parse_rejection_counts(report_row.get("rejected_setup_counts"))
+                    break
+        if counts:
+            reason_frame = pd.DataFrame([{"Reason": key, "Count": value} for key, value in counts.items()]).sort_values("Count", ascending=False)
+            st.dataframe(reason_frame, use_container_width=True, hide_index=True)
+        elif evaluations.empty:
+            st.caption("No evaluation/rejection ledger is present locally yet.")
+        else:
+            st.caption("No rejected setup counts found in the report yet.")
+
+    with col_right:
+        st.subheader("Heartbeat / Errors")
+        if heartbeats.empty:
+            st.caption("No heartbeat records are present locally yet.")
+        else:
+            sort_col = "timestamp" if "timestamp" in heartbeats.columns else heartbeats.columns[0]
+            st.dataframe(heartbeats.sort_values(sort_col, ascending=False).head(10), use_container_width=True, hide_index=True)
+        if not errors.empty:
+            st.error("Runtime/data-source errors found in local ledger.")
+            sort_col = "timestamp" if "timestamp" in errors.columns else errors.columns[0]
+            st.dataframe(errors.sort_values(sort_col, ascending=False).head(10), use_container_width=True, hide_index=True)
+
+    with st.expander("Strategy Rules"):
+        st.markdown(
+            """
+- Assets: BTCUSDT, SOLUSDT, PAXGUSDT gold proxy
+- Timeframe: 1-hour fully closed candles
+- Entry: RSI(14) < 35, close below lower Bollinger Band, close above MA200
+- Target: frozen MA20 recorded at entry
+- Stop: 1.5 x ATR(14) below entry
+- Max hold: 24 hours
+- Risk: 1% of virtual equity, paper trading only
+            """.strip()
+        )
 
 
 def main() -> None:
@@ -257,8 +368,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -429,6 +540,9 @@ def main() -> None:
             st.info("No demo trades yet. Nero records each LONG/SHORT signal as pending, then activates it when the trigger is touched.")
         else:
             st.dataframe(demo_frame.sort_values("opened_at", ascending=False), use_container_width=True)
+
+    with mean_reversion_tab:
+        _render_mean_reversion_tab()
 
     with structure_tab:
         if market_data.status == "live":
