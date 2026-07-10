@@ -29,7 +29,17 @@ jobs:
         run: |
           git config user.name "nero-prediction-lab"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_app/data/prediction_log.csv reports/prediction_lab_report.csv
-          git commit -m "Update Nero prediction lab records" || echo "no prediction lab changes"
-          git pull --rebase origin main || true
-          git push || echo "nothing to push"
+          git pull --rebase origin main || git rebase --abort || true
+          if [ -f nero_app/data/prediction_log.csv ]; then
+            git add nero_app/data/prediction_log.csv
+          fi
+          if [ -f reports/prediction_lab_report.csv ]; then
+            git add reports/prediction_lab_report.csv
+          fi
+          if git diff --cached --quiet; then
+            echo "no prediction lab changes"
+            exit 0
+          fi
+          git commit -m "Update Nero prediction lab records"
+          git pull --rebase origin main || git rebase --abort || true
+          git push || echo "prediction lab push skipped; next run will retry"
