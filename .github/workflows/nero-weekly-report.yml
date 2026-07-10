@@ -1,0 +1,32 @@
+﻿name: Nero Weekly Report
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Send Nero weekly report
+        run: python tools/nero_weekly_report.py
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nero-weekly-report
+          path: reports/nero_weekly_report.txt
