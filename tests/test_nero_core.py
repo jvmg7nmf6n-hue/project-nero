@@ -13,6 +13,7 @@ from nero_app.core.backtester import run_event_backtest
 from nero_app.core.data_loader import load_macro_events, load_price_history
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.market_data import MarketDataClient
+from nero_app.core.market_scanner import scan_market_activity
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert, send_ntfy_alert
 from nero_app.core.news_feed import NewsFeedClient, NewsItem, _rank_for_asset
 from nero_app.core.orchestrator import NeroOrchestrator
@@ -488,5 +489,39 @@ class NeroCoreTest(unittest.TestCase):
         self.assertEqual(settings["twelve_data_api_key"], "abc")
 
 
+    def test_market_scanner_detects_breakout_move_and_volume(self) -> None:
+        dates = pd.date_range("2026-07-01", periods=26, freq="30min")
+        rows = []
+        for index, date in enumerate(dates):
+            close = 100.0 + index * 0.1
+            rows.append({"date": date, "open": close - 0.05, "high": close + 0.2, "low": close - 0.2, "close": close, "volume": 100.0})
+        frame = pd.DataFrame(rows)
+        frame.loc[frame.index[-1], "close"] = 110.0
+        frame.loc[frame.index[-1], "high"] = 111.0
+        frame.loc[frame.index[-1], "volume"] = 400.0
+
+        alerts = scan_market_activity(frame, asset="SOL", move_pct_threshold=3.0, volume_multiple=2.5)
+        event_types = {alert.event_type for alert in alerts}
+
+        self.assertIn("move", event_types)
+        self.assertIn("breakout", event_types)
+        self.assertIn("volume", event_types)
+
+    def test_market_scanner_returns_no_alert_for_quiet_market(self) -> None:
+        dates = pd.date_range("2026-07-01", periods=30, freq="30min")
+        frame = pd.DataFrame(
+            {
+                "date": dates,
+                "open": [100.0] * 30,
+                "high": [101.0] * 30,
+                "low": [99.0] * 30,
+                "close": [100.0] * 30,
+                "volume": [100.0] * 30,
+            }
+        )
+
+        alerts = scan_market_activity(frame, asset="BTC")
+
+        self.assertEqual(alerts, [])
 if __name__ == "__main__":
     unittest.main()

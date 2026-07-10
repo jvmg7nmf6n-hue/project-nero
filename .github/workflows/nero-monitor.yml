@@ -23,6 +23,8 @@ jobs:
         env:
           NERO_MONITOR_ASSETS: BTC,GOLD
           NERO_MONITOR_INTERVAL: 1h
+          NERO_SCANNER_ASSETS: BTC,ETH,XRP,SOL,ADA,LINK,LTC,AVAX,NEAR,DOT,DOGE,SHIB,PEPE,BONK,WIF
+          NERO_SCANNER_INTERVAL: 30m
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}

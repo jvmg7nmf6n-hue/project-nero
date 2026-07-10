@@ -13,6 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.demo_trader import run_demo_trader
+from nero_app.core.market_scanner import DEFAULT_SCANNER_ASSETS, ScannerAlert, scan_market_activity
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert, send_ntfy_alert
 from nero_app.core.trade_desk import IntradayTradePlan, build_intraday_trade_plan
 
@@ -76,10 +77,67 @@ def main() -> None:
         else:
             print(f"{asset}: {alert.message}")
 
+    sent += _run_market_scanner(state, market_client)
     _tick_cooldowns(state)
     _save_state(state)
-    print(f"Nero monitor complete. Emails sent: {sent}")
+    print(f"Nero monitor complete. Alerts sent: {sent}")
 
+
+
+def _run_market_scanner(state: dict[str, dict[str, int]], market_client: MarketDataClient) -> int:
+    raw_assets = os.getenv("NERO_SCANNER_ASSETS", ",".join(DEFAULT_SCANNER_ASSETS))
+    assets = [asset.strip().upper() for asset in raw_assets.split(",") if asset.strip()]
+    if not assets:
+        return 0
+
+    interval = os.getenv("NERO_SCANNER_INTERVAL", "30m")
+    sent = 0
+    for asset in assets:
+        market_data = market_client.load_intraday(asset=asset, prefer_live=True, interval=interval, candles=60)
+        if market_data.status != "live":
+            print(f"scanner {asset}: skipped because source is {market_data.status}")
+            continue
+        alerts = scan_market_activity(market_data.prices, asset=asset, bar_label=interval)
+        if not alerts:
+            print(f"scanner {asset}: no new activity source={market_data.source}")
+            continue
+        for alert in alerts:
+            key = f"scanner:{alert.asset}:{alert.event_type}"
+            if not _can_send(state, key):
+                print(f"scanner {asset}: cooldown active for {alert.event_type}")
+                continue
+            result = _send_scanner_alert(alert)
+            if result.ok:
+                state[key] = {"cooldown": COOLDOWN_RUNS}
+                sent += 1
+            print(f"scanner {asset}: {alert.event_type} {result.message}")
+    return sent
+
+
+def _send_scanner_alert(alert: ScannerAlert):
+    ntfy_topic = os.getenv("NTFY_TOPIC", "").strip()
+    if ntfy_topic:
+        ntfy = send_ntfy_alert(
+            server_url=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
+            topic=ntfy_topic,
+            title=f"Nero scanner | {alert.title}",
+            message=alert.message,
+            priority=alert.priority,
+            tags=alert.tags,
+        )
+        if ntfy.ok:
+            return ntfy
+        print(f"scanner {alert.asset}: {ntfy.message}; trying email backup")
+
+    return send_email_alert(
+        smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
+        smtp_port=int(os.getenv("SMTP_PORT", "465")),
+        sender_email=os.getenv("SENDER_EMAIL", ""),
+        app_password=os.getenv("EMAIL_APP_PASSWORD", ""),
+        receiver_email=os.getenv("RECEIVER_EMAIL", ""),
+        subject=f"Nero scanner | {alert.title}",
+        message=alert.message,
+    )
 
 def _price_bias(prices: pd.DataFrame) -> str:
     close = prices.sort_values("date")["close"].astype(float)

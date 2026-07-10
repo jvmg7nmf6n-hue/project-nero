@@ -13,16 +13,51 @@ from nero_app.core.data_loader import load_price_history
 BINANCE_SYMBOLS = {
     "BTC": "BTCUSDT",
     "ETH": "ETHUSDT",
+    "XRP": "XRPUSDT",
+    "SOL": "SOLUSDT",
+    "ADA": "ADAUSDT",
+    "LINK": "LINKUSDT",
+    "LTC": "LTCUSDT",
+    "AVAX": "AVAXUSDT",
+    "NEAR": "NEARUSDT",
+    "DOT": "DOTUSDT",
+    "DOGE": "DOGEUSDT",
+    "SHIB": "SHIBUSDT",
+    "PEPE": "PEPEUSDT",
+    "BONK": "BONKUSDT",
+    "WIF": "WIFUSDT",
 }
 
 COINBASE_PRODUCTS = {
     "BTC": "BTC-USD",
     "ETH": "ETH-USD",
+    "XRP": "XRP-USD",
+    "SOL": "SOL-USD",
+    "ADA": "ADA-USD",
+    "LINK": "LINK-USD",
+    "LTC": "LTC-USD",
+    "AVAX": "AVAX-USD",
+    "NEAR": "NEAR-USD",
+    "DOT": "DOT-USD",
+    "DOGE": "DOGE-USD",
+    "SHIB": "SHIB-USD",
+    "PEPE": "PEPE-USD",
+    "BONK": "BONK-USD",
+    "WIF": "WIF-USD",
 }
 
 KRAKEN_PAIRS = {
     "BTC": "XBTUSD",
     "ETH": "ETHUSD",
+    "XRP": "XRPUSD",
+    "SOL": "SOLUSD",
+    "ADA": "ADAUSD",
+    "LINK": "LINKUSD",
+    "LTC": "LTCUSD",
+    "AVAX": "AVAXUSD",
+    "DOT": "DOTUSD",
+    "DOGE": "XDGUSD",
+    "SHIB": "SHIBUSD",
 }
 
 TWELVE_DATA_SYMBOLS = {
