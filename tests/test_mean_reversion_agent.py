@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import Mock, patch
+
+import requests
 
 import pandas as pd
 
@@ -33,6 +36,33 @@ class MeanReversionAgentTest(unittest.TestCase):
         }
         data.update(overrides)
         return pd.Series(data)
+
+
+    def test_fetch_closed_candles_falls_back_when_binance_http_fails(self) -> None:
+        with TemporaryDirectory() as directory:
+            agent = MeanReversionAgent(config=self.config, data_dir=Path(directory) / "data", report_dir=Path(directory) / "reports", now=self.now)
+            market_result = Mock()
+            market_result.status = "live"
+            market_result.prices = pd.DataFrame(
+                {
+                    "date": pd.date_range("2026-07-01", periods=30, freq="1h", tz="UTC"),
+                    "open": [100.0] * 30,
+                    "high": [102.0] * 30,
+                    "low": [99.0] * 30,
+                    "close": [101.0] * 30,
+                    "volume": [1000.0] * 30,
+                }
+            )
+
+            with patch("nero_app.core.mean_reversion_agent.requests.get", side_effect=requests.HTTPError("blocked")), patch(
+                "nero_app.core.mean_reversion_agent.MarketDataClient"
+            ) as client:
+                client.return_value.load_intraday.return_value = market_result
+                candles = agent.fetch_closed_candles("BTC", "BTCUSDT")
+
+        self.assertGreaterEqual(len(candles), 20)
+        self.assertTrue({"date", "open_time", "close_time", "open", "high", "low", "close", "volume"}.issubset(candles.columns))
+        self.assertGreater(int(candles.iloc[-1]["close_time"]), 0)
 
     def test_entry_conditions_pass_and_size_is_capped_by_notional(self) -> None:
         with TemporaryDirectory() as directory:

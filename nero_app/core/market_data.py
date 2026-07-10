@@ -26,6 +26,7 @@ BINANCE_SYMBOLS = {
     "PEPE": "PEPEUSDT",
     "BONK": "BONKUSDT",
     "WIF": "WIFUSDT",
+    "PAXG": "PAXGUSDT",
 }
 
 COINBASE_PRODUCTS = {
@@ -44,6 +45,7 @@ COINBASE_PRODUCTS = {
     "PEPE": "PEPE-USD",
     "BONK": "BONK-USD",
     "WIF": "WIF-USD",
+    "PAXG": "PAXG-USD",
 }
 
 KRAKEN_PAIRS = {
@@ -58,6 +60,7 @@ KRAKEN_PAIRS = {
     "DOT": "DOTUSD",
     "DOGE": "XDGUSD",
     "SHIB": "SHIBUSD",
+    "PAXG": "PAXGUSD",
 }
 
 TWELVE_DATA_SYMBOLS = {

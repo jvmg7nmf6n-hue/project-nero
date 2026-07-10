@@ -12,6 +12,8 @@ from typing import Any
 import pandas as pd
 import requests
 
+from nero_app.core.market_data import MarketDataClient
+
 
 STRATEGY_VERSION = "mean-reversion-v1.0.0"
 DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "mean_reversion"
@@ -81,7 +83,7 @@ class MeanReversionAgent:
             symbol = self.config.assets.get(asset, asset)
             state = self._load_state(asset)
             try:
-                candles = self.fetch_closed_candles(symbol)
+                candles = self.fetch_closed_candles(asset, symbol)
                 stale = self._is_stale(candles)
                 missed = self._missed_run_count(state, candles)
                 missed_runs += missed
@@ -108,7 +110,13 @@ class MeanReversionAgent:
         self.write_report()
         return AgentRunSummary(evaluated=evaluated, entries=entries, exits=exits, alerts=alerts, missed_runs=missed_runs)
 
-    def fetch_closed_candles(self, symbol: str) -> pd.DataFrame:
+    def fetch_closed_candles(self, asset: str, symbol: str) -> pd.DataFrame:
+        try:
+            return self._fetch_binance_closed_candles(symbol)
+        except (requests.RequestException, KeyError, TypeError, ValueError):
+            return self._fetch_fallback_closed_candles(asset)
+
+    def _fetch_binance_closed_candles(self, symbol: str) -> pd.DataFrame:
         response = requests.get(
             "https://api.binance.com/api/v3/klines",
             params={"symbol": symbol, "interval": self.config.interval, "limit": self.config.candle_limit},
@@ -140,6 +148,27 @@ class MeanReversionAgent:
         frame = frame[frame["close_time"] < now_ms].copy()
         frame["date"] = pd.to_datetime(frame["close_time"], unit="ms", utc=True)
         return frame[["date", "open_time", "close_time", "open", "high", "low", "close", "volume"]].reset_index(drop=True)
+
+    def _fetch_fallback_closed_candles(self, asset: str) -> pd.DataFrame:
+        result = MarketDataClient(timeout_seconds=15).load_intraday(
+            asset=asset,
+            prefer_live=True,
+            interval=self.config.interval,
+            candles=self.config.candle_limit,
+            twelve_data_api_key=os.getenv("TWELVE_DATA_API_KEY", ""),
+        )
+        if result.status != "live":
+            raise ValueError(f"No live fallback candles for {asset}: {result.status}")
+        frame = result.prices.copy().sort_values("date").reset_index(drop=True)
+        for column in ["open", "high", "low", "close", "volume"]:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+        frame = frame.dropna(subset=["date", "open", "high", "low", "close"])
+        frame["date"] = pd.to_datetime(frame["date"], utc=True)
+        frame["close_time"] = (frame["date"].astype("int64") // 1_000_000).astype("int64")
+        frame["open_time"] = frame["close_time"] - _interval_milliseconds(self.config.interval)
+        now_ms = int(self.now.timestamp() * 1000)
+        frame = frame[frame["close_time"] < now_ms].copy()
+        return frame[["date", "open_time", "close_time", "open", "high", "low", "close", "volume"]].tail(self.config.candle_limit).reset_index(drop=True)
 
     def process_asset(self, asset: str, symbol: str, candles: pd.DataFrame, state: dict[str, Any]) -> dict[str, Any]:
         enriched = add_indicators(candles, self.config)
@@ -449,6 +478,18 @@ def atr(frame: pd.DataFrame, period: int) -> pd.Series:
     true_range = pd.concat([(high - low), (high - previous_close).abs(), (low - previous_close).abs()], axis=1).max(axis=1)
     return true_range.rolling(period).mean()
 
+
+
+def _interval_milliseconds(interval: str) -> int:
+    return {
+        "1m": 60_000,
+        "5m": 300_000,
+        "15m": 900_000,
+        "30m": 1_800_000,
+        "1h": 3_600_000,
+        "4h": 14_400_000,
+        "1d": 86_400_000,
+    }.get(interval, 3_600_000)
 
 def apply_slippage(price: float, slippage_bps: float, side: str) -> float:
     factor = slippage_bps / 10000.0
