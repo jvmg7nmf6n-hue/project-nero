@@ -25,6 +25,8 @@ jobs:
           PREDICTION_LAB_HORIZON_DAYS: "1"
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
       - name: Save prediction lab records
         run: |
           git config user.name "nero-prediction-lab"

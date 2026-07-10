@@ -7,6 +7,7 @@ import unittest
 import pandas as pd
 
 from nero_app.core.prediction_lab import _already_recorded_today, write_prediction_lab_report
+from tools.nero_prediction_lab import format_prediction_lab_alert
 
 
 class PredictionLabTest(unittest.TestCase):
@@ -41,6 +42,21 @@ class PredictionLabTest(unittest.TestCase):
         self.assertEqual(int(btc["evaluated"]), 2)
         self.assertEqual(float(btc["win_rate"]), 0.5)
         self.assertEqual(int(gold["pending"]), 1)
+
+    def test_prediction_lab_alert_includes_mobile_summary(self) -> None:
+        message = format_prediction_lab_alert(
+            assets=["BTC", "GOLD"],
+            horizon_days=1,
+            recorded=2,
+            evaluated=1,
+            report_path=Path("reports") / "prediction_lab_report.csv",
+        )
+
+        self.assertIn("NERO Prediction Lab", message)
+        self.assertIn("Assets: BTC,GOLD", message)
+        self.assertIn("Recorded: 2", message)
+        self.assertIn("Evaluated: 1", message)
+        self.assertIn("reports", message)
 
 
 if __name__ == "__main__":
