@@ -25,6 +25,7 @@ from nero_app.core.prediction_log import append_prediction, evaluate_prediction_
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.trade_desk import build_intraday_trade_plan
+from nero_app.core.verdict_modifiers import apply_white_house_modifier
 
 
 def _install_terminal_skin() -> None:
@@ -303,6 +304,8 @@ def main() -> None:
     )
     request = AnalysisRequest(asset=AssetSymbol(asset), headline=enriched_headline, lookback_days=lookback)
     result = orchestrator.run(request, price_history)
+    adjusted_verdict, white_house_impact = apply_white_house_modifier(asset, enriched_headline, result.verdict)
+    result = result.model_copy(update={"verdict": adjusted_verdict})
     trade_plan = build_intraday_trade_plan(
         intraday_data.prices,
         asset=asset,
@@ -382,29 +385,32 @@ def main() -> None:
         st.subheader("Rationale")
         st.write(result.verdict.summary)
         st.subheader("Driver Breakdown")
-        driver_frame = pd.DataFrame(
-            {
-                "Signal": ["Macro Theme", "AI News Sentiment", "Technical Confluence", "Market Regime", "Momentum", "FVG / BOS", "Liquidity Sweep"],
-                "Reading": [
-                    f"{result.brain.thematic_score:.2f}",
-                    f"{sentiment_result.overall_sentiment} ({sentiment_result.sentiment_score}/10)",
-                    f"{result.assessment.confluence_score:.0f}/100",
-                    f"{result.assessment.market_regime} / {result.assessment.volatility_regime}",
-                    f"{result.assessment.momentum_score:.2f}",
-                    f"{result.assessment.fair_value_gap} / {result.assessment.bos_signal}",
-                    result.assessment.liquidity_sweep,
-                ],
-                "Meaning": [
-                    "Historical macro matches and asset bias",
-                    f"{sentiment_result.source}: {sentiment_result.summary}",
-                    result.assessment.confluence_label,
-                    f"ATR about {result.assessment.atr_pct:.2f}% of price",
-                    "RSI plus short-term trend pressure",
-                    "Imbalance plus break-of-structure context",
-                    "Failed breakout/breakdown context",
-                ],
-            }
-        )
+        signal_rows = ["Macro Theme", "AI News Sentiment", "Technical Confluence", "Market Regime", "Momentum", "FVG / BOS", "Liquidity Sweep"]
+        reading_rows = [
+            f"{result.brain.thematic_score:.2f}",
+            f"{sentiment_result.overall_sentiment} ({sentiment_result.sentiment_score}/10)",
+            f"{result.assessment.confluence_score:.0f}/100",
+            f"{result.assessment.market_regime} / {result.assessment.volatility_regime}",
+            f"{result.assessment.momentum_score:.2f}",
+            f"{result.assessment.fair_value_gap} / {result.assessment.bos_signal}",
+            result.assessment.liquidity_sweep,
+        ]
+        meaning_rows = [
+            "Historical macro matches and asset bias",
+            f"{sentiment_result.source}: {sentiment_result.summary}",
+            result.assessment.confluence_label,
+            f"ATR about {result.assessment.atr_pct:.2f}% of price",
+            "RSI plus short-term trend pressure",
+            "Imbalance plus break-of-structure context",
+            "Failed breakout/breakdown context",
+        ]
+        if white_house_impact is not None:
+            asset_impact = white_house_impact.btc_average_impact if asset == "BTC" else white_house_impact.gold_average_impact
+            asset_direction = white_house_impact.btc_direction if asset == "BTC" else white_house_impact.gold_direction
+            signal_rows.append("White House Impact")
+            reading_rows.append(f"{asset_direction} ({asset_impact:.0f}/100)")
+            meaning_rows.append(f"{white_house_impact.matched_events} similar event(s), confidence {white_house_impact.confidence:.0%}")
+        driver_frame = pd.DataFrame({"Signal": signal_rows, "Reading": reading_rows, "Meaning": meaning_rows})
         st.dataframe(driver_frame, use_container_width=True, hide_index=True)
         with st.expander("Technical JSON payload"):
             st.json(result.verdict.model_dump())
