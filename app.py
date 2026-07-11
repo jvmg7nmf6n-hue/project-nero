@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_quant_snapshot, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cross_asset_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -346,6 +346,27 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     st.dataframe(pd.DataFrame(quant_driver_rows(snapshot)), use_container_width=True, hide_index=True)
     st.caption(f"Source: {snapshot.source} | Observations: {snapshot.observation_count} | Latest close: {snapshot.latest_close:,.2f}")
 
+    st.subheader("Cross-Asset Driver Matrix")
+    st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")
+    if asset in {"BTC", "GOLD"}:
+        if st.button("Refresh cross-asset drivers"):
+            driver_prices, driver_source = fetch_cross_asset_price_data(asset)
+            driver_report = build_cross_asset_driver_report(asset, driver_prices)
+            if driver_report.rows:
+                dcol_a, dcol_b = st.columns(2)
+                dcol_a.metric("Strongest Driver", driver_report.strongest_driver.upper())
+                dcol_b.metric("60D Correlation", f"{driver_report.strongest_correlation:.2f}")
+                for note in driver_report.notes:
+                    st.info(note)
+                st.dataframe(pd.DataFrame(driver_report.rows), use_container_width=True, hide_index=True)
+                st.caption(driver_source)
+            else:
+                st.warning("Cross-asset driver matrix is not available yet.")
+                for note in driver_report.notes:
+                    st.caption(note)
+                st.caption(driver_source)
+    else:
+        st.caption("Cross-asset driver matrix is currently calibrated for BTC and GOLD.")
     with st.expander("How to read this quant layer"):
         st.markdown(
             """

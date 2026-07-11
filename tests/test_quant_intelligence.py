@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 
 from nero_app.core.quant_intelligence import (
+    build_cross_asset_driver_report,
     build_quant_snapshot,
     information_coefficient,
     log_returns,
@@ -61,6 +62,20 @@ class QuantIntelligenceTest(unittest.TestCase):
 
         self.assertAlmostEqual(ic, 1.0, places=6)
 
+    def test_cross_asset_driver_report_ranks_strongest_driver(self) -> None:
+        prices = pd.DataFrame(
+            {
+                "btc": [100, 102, 104, 106, 108, 110, 112, 114, 116, 118],
+                "spx": [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+                "dxy": [100, 99, 100, 99, 100, 99, 100, 99, 100, 99],
+            }
+        )
+
+        report = build_cross_asset_driver_report("BTC", prices, windows=(3, 5))
+
+        self.assertGreater(len(report.rows), 0)
+        self.assertEqual(report.strongest_driver, "spx")
+        self.assertGreater(report.strongest_correlation, 0.9)
 
 if __name__ == "__main__":
     unittest.main()

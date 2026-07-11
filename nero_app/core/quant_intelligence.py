@@ -224,3 +224,146 @@ def _with_notes(snapshot: QuantSnapshot) -> QuantSnapshot:
         pressure=snapshot.pressure,
         notes=notes,
     )
+
+
+QUANT_DRIVER_TICKERS = {
+    "BTC": {
+        "btc": "BTC-USD",
+        "dxy": "DX-Y.NYB",
+        "spx": "^GSPC",
+        "nasdaq": "^IXIC",
+        "mstr": "MSTR",
+        "coinbase": "COIN",
+        "ibit": "IBIT",
+        "gbtc": "GBTC",
+        "mara": "MARA",
+        "riot": "RIOT",
+    },
+    "GOLD": {
+        "gold": "GC=F",
+        "dxy": "DX-Y.NYB",
+        "spx": "^GSPC",
+        "us10y": "^TNX",
+        "gold_etf": "GLD",
+        "gold_miners": "GDX",
+        "newmont": "NEM",
+        "barrick": "GOLD",
+    },
+}
+
+
+@dataclass(frozen=True)
+class CrossAssetDriverReport:
+    asset: str
+    source: str
+    rows: list[dict[str, str]]
+    strongest_driver: str
+    strongest_correlation: float
+    notes: list[str]
+
+
+def fetch_cross_asset_price_data(asset: str, start: str = "2024-01-01", interval: str = "1d") -> tuple[pd.DataFrame, str]:
+    """Fetch cross-asset daily prices lazily. Dashboard remains usable if yfinance is absent."""
+    tickers = QUANT_DRIVER_TICKERS.get(asset.upper())
+    if not tickers:
+        return pd.DataFrame(), f"No cross-asset ticker map for {asset}."
+    try:
+        import yfinance as yf
+    except ModuleNotFoundError:
+        return pd.DataFrame(), "yfinance is not installed; run pip install -r requirements.txt to enable live cross-asset drivers."
+
+    frames: dict[str, pd.Series] = {}
+    warnings: list[str] = []
+    for name, ticker in tickers.items():
+        try:
+            raw = yf.download(ticker, start=start, interval=interval, progress=False, auto_adjust=True, threads=False)
+        except Exception as exc:  # pragma: no cover - external feed behavior
+            warnings.append(f"{name}:{exc.__class__.__name__}")
+            continue
+        if raw is None or raw.empty or "Close" not in raw:
+            warnings.append(f"{name}:empty")
+            continue
+        close = raw["Close"]
+        if isinstance(close, pd.DataFrame):
+            close = close.iloc[:, 0]
+        frames[name] = pd.to_numeric(close, errors="coerce")
+    if not frames:
+        return pd.DataFrame(), "No cross-asset prices fetched from yfinance."
+    prices = pd.DataFrame(frames).ffill().dropna(how="all")
+    suffix = f"; skipped {', '.join(warnings[:5])}" if warnings else ""
+    return prices, f"yfinance daily closes{suffix}"
+
+
+def build_cross_asset_driver_report(asset: str, prices: pd.DataFrame, windows: tuple[int, ...] = (30, 60, 90)) -> CrossAssetDriverReport:
+    asset_key = _asset_price_column(asset, prices)
+    if prices.empty or asset_key not in prices.columns:
+        return CrossAssetDriverReport(asset, "cross-asset prices", [], "none", 0.0, ["No matching asset column found for cross-asset analysis."])
+    returns = log_returns(prices).dropna(how="all")
+    if asset_key not in returns.columns or len(returns) < min(windows):
+        return CrossAssetDriverReport(asset, "cross-asset prices", [], "none", 0.0, ["Not enough return history for rolling driver analysis."])
+
+    rows: list[dict[str, str]] = []
+    rank_window = 60 if 60 in windows else max(windows)
+    strongest_driver = "none"
+    strongest_correlation = 0.0
+    for driver in returns.columns:
+        if driver == asset_key:
+            continue
+        row: dict[str, str] = {"Driver": driver}
+        latest_corr_for_rank = 0.0
+        for window in windows:
+            if len(returns[[asset_key, driver]].dropna()) < window:
+                corr_value = 0.0
+                beta_value = 0.0
+            else:
+                corr_value = _latest(rolling_correlation(returns, asset_key, driver, window))
+                beta_value = _latest(rolling_beta(returns, asset_key, driver, window))
+            row[f"Corr {window}D"] = f"{corr_value:.2f}"
+            row[f"Beta {window}D"] = f"{beta_value:.2f}"
+            if window == rank_window:
+                latest_corr_for_rank = corr_value
+        row["Reading"] = _driver_reading(latest_corr_for_rank)
+        rows.append(row)
+        if abs(latest_corr_for_rank) > abs(strongest_correlation):
+            strongest_driver = driver
+            strongest_correlation = latest_corr_for_rank
+
+    rank_column = f"Corr {rank_window}D"
+    rows.sort(key=lambda item: abs(float(item.get(rank_column, "0") or 0)), reverse=True)
+    notes = _cross_asset_notes(strongest_driver, strongest_correlation, rows, rank_window)
+    return CrossAssetDriverReport(asset, "cross-asset prices", rows, strongest_driver, strongest_correlation, notes)
+
+
+def _asset_price_column(asset: str, prices: pd.DataFrame) -> str:
+    asset_upper = asset.upper()
+    if asset_upper == "BTC" and "btc" in prices.columns:
+        return "btc"
+    if asset_upper == "GOLD" and "gold" in prices.columns:
+        return "gold"
+    lowered = asset.lower()
+    return lowered if lowered in prices.columns else prices.columns[0]
+
+
+def _driver_reading(correlation: float) -> str:
+    if correlation >= 0.65:
+        return "strong positive linkage"
+    if correlation >= 0.35:
+        return "moderate positive linkage"
+    if correlation <= -0.65:
+        return "strong inverse linkage"
+    if correlation <= -0.35:
+        return "moderate inverse linkage"
+    return "weak / unstable linkage"
+
+
+def _cross_asset_notes(strongest_driver: str, strongest_correlation: float, rows: list[dict[str, str]], window: int = 60) -> list[str]:
+    if not rows:
+        return ["No driver rows available."]
+    notes = [f"Strongest {window}D linkage: {strongest_driver} at {strongest_correlation:.2f} correlation."]
+    if abs(strongest_correlation) < 0.35:
+        notes.append("No dominant cross-asset driver; treat the regime as internally driven or noisy.")
+    elif strongest_correlation > 0:
+        notes.append("Positive linkage means this driver is moving with the asset in the current regime.")
+    else:
+        notes.append("Inverse linkage means this driver is applying opposite pressure in the current regime.")
+    return notes
