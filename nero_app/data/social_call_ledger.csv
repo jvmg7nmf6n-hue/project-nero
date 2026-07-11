@@ -1,0 +1,2 @@
+call_id,source_name,handle,posted_at,asset,direction,timeframe,entry,stop,target,post_text,status,outcome,r_multiple,evaluated_at,notes
+sample-btc-ali-001,Ali Martinez,@ali_charts,2026-07-10 00:00:00,BTC,LONG,1d,64000,62500,68000,"Sample: BTC long if breakout holds above 64000; stop 62500 target 68000",pending,,,,,"manual sample; replace with real post data"

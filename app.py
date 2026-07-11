@@ -31,7 +31,9 @@ from nero_app.core.prediction_log import append_prediction, evaluate_prediction_
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
+    build_social_reliability_report,
     filter_watchlist_for_asset,
+    load_social_call_ledger,
     load_social_watchlist,
     summarize_social_intel,
 )
@@ -135,15 +137,18 @@ def _parse_rejection_counts(value: object) -> dict[str, int]:
 
 def _render_social_intel_tab(asset: str) -> None:
     st.subheader("Social Intelligence")
-    st.caption("Curated X/market voice watchlist. Context only until NERO has audited each voice with outcomes.")
+    st.caption("Curated X/market voice watchlist plus call accountability ledger. Context only, not a direct trade command.")
     watchlist = load_social_watchlist()
+    ledger = load_social_call_ledger()
     summary = summarize_social_intel(asset, watchlist)
     filtered = filter_watchlist_for_asset(asset, watchlist)
+    reliability = build_social_reliability_report(ledger)
 
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("Tracked Voices", str(summary.tracked_voices))
-    col_b.metric("Avg Reliability", f"{summary.average_reliability:.1f}/100")
-    col_c.metric("Higher-Reliability", str(summary.high_reliability_voices))
+    col_b.metric("Avg Starting Reliability", f"{summary.average_reliability:.1f}/100")
+    audited_calls = int((ledger.get("status", pd.Series(dtype=str)).astype(str).str.lower() == "evaluated").sum()) if not ledger.empty else 0
+    col_c.metric("Audited Calls", str(audited_calls))
     st.write(summary.note)
 
     if summary.dominant_styles:
@@ -151,6 +156,7 @@ def _render_social_intel_tab(asset: str) -> None:
     if summary.caution_flags:
         st.warning("Caution flags: " + ", ".join(summary.caution_flags[:5]))
 
+    st.subheader("Voice Watchlist")
     if filtered.empty:
         st.info("No social voices mapped to this asset yet.")
     else:
@@ -162,16 +168,30 @@ def _render_social_intel_tab(asset: str) -> None:
         ]
         st.dataframe(filtered[visible_cols], use_container_width=True, hide_index=True)
 
-    with st.expander("How NERO will use this later"):
+    st.subheader("Guru Reliability Report")
+    if reliability.empty:
+        st.info("No evaluated social calls yet. Add calls to social_call_ledger.csv, then evaluate with price data.")
+    else:
+        st.dataframe(reliability, use_container_width=True, hide_index=True)
+
+    st.subheader("Social Call Ledger")
+    if ledger.empty:
+        st.caption("No calls recorded yet.")
+    else:
+        asset_ledger = ledger[ledger["asset"].astype(str).str.upper() == asset] if "asset" in ledger.columns else ledger
+        st.dataframe(asset_ledger.tail(50), use_container_width=True, hide_index=True)
+
+    with st.expander("How NERO finds the real guru"):
         st.markdown(
             """
-- Collect public posts or imported post CSVs.
-- Classify asset, sentiment, timeframe, and whether a real trade plan exists.
-- Compare each post against 1h, 4h, 1d, and 7d price outcomes.
-- Build a reliability score for each voice.
+- Record a public call only if it has asset, direction, timeframe, and preferably entry/stop/target.
+- Evaluate the call against later price action.
+- Score each voice by win rate, average R, and sample size.
+- Penalize vague hype that has no clear trade plan.
 - Use social consensus only as one input, never as a direct trade command.
             """.strip()
         )
+
 
 def _render_market_memory_tab(asset: str, context_text: str) -> None:
     st.subheader("Historical Market Memory")
