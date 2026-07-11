@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cross_asset_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cross_asset_driver_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -359,6 +359,19 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
                 for note in driver_report.notes:
                     st.info(note)
                 st.dataframe(pd.DataFrame(driver_report.rows), use_container_width=True, hide_index=True)
+                lead_lag_report = build_lead_lag_driver_report(asset, driver_prices)
+                st.subheader("Lead/Lag Driver Engine")
+                if lead_lag_report.rows:
+                    lcol_a, lcol_b, lcol_c = st.columns(3)
+                    lcol_a.metric("Strongest Leader", lead_lag_report.strongest_leader.upper())
+                    lcol_b.metric("Lead Days", str(lead_lag_report.strongest_lag_days))
+                    lcol_c.metric("Lead Corr", f"{lead_lag_report.strongest_lead_correlation:.2f}")
+                    for note in lead_lag_report.notes:
+                        st.info(note)
+                    st.dataframe(pd.DataFrame(lead_lag_report.rows), use_container_width=True, hide_index=True)
+                else:
+                    for note in lead_lag_report.notes:
+                        st.caption(note)
                 st.caption(driver_source)
             else:
                 st.warning("Cross-asset driver matrix is not available yet.")

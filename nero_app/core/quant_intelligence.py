@@ -262,6 +262,16 @@ class CrossAssetDriverReport:
     notes: list[str]
 
 
+@dataclass(frozen=True)
+class LeadLagDriverReport:
+    asset: str
+    rows: list[dict[str, str]]
+    strongest_leader: str
+    strongest_lag_days: int
+    strongest_lead_correlation: float
+    notes: list[str]
+
+
 def fetch_cross_asset_price_data(asset: str, start: str = "2024-01-01", interval: str = "1d") -> tuple[pd.DataFrame, str]:
     """Fetch cross-asset daily prices lazily. Dashboard remains usable if yfinance is absent."""
     tickers = QUANT_DRIVER_TICKERS.get(asset.upper())
@@ -369,3 +379,76 @@ def _cross_asset_notes(strongest_driver: str, strongest_correlation: float, rows
     else:
         notes.append("Inverse linkage means this driver is applying opposite pressure in the current regime.")
     return notes
+
+def build_lead_lag_driver_report(asset: str, prices: pd.DataFrame, max_lag: int = 5, min_observations: int = 60) -> LeadLagDriverReport:
+    if prices.empty or len(prices.columns) == 0:
+        return LeadLagDriverReport(asset, [], "none", 0, 0.0, ["No cross-asset price data available for lead/lag analysis."])
+    asset_key = _asset_price_column(asset, prices)
+    if asset_key not in prices.columns:
+        return LeadLagDriverReport(asset, [], "none", 0, 0.0, ["No matching asset column found for lead/lag analysis."])
+    returns = log_returns(prices).dropna(how="all")
+    if asset_key not in returns.columns or len(returns) < min_observations:
+        return LeadLagDriverReport(asset, [], "none", 0, 0.0, ["Not enough return history for lead/lag analysis."])
+
+    rows: list[dict[str, str]] = []
+    strongest_leader = "none"
+    strongest_lag_days = 0
+    strongest_lead_correlation = 0.0
+    for driver in returns.columns:
+        if driver == asset_key:
+            continue
+        clean = returns[[asset_key, driver]].dropna()
+        if len(clean) < min_observations:
+            continue
+        same_day = _safe_corr(clean[asset_key], clean[driver])
+        best_lag = 0
+        best_corr = same_day
+        for lag in range(1, max_lag + 1):
+            lagged_driver = clean[driver].shift(lag)
+            lag_frame = pd.concat([clean[asset_key], lagged_driver], axis=1).dropna()
+            if len(lag_frame) < min_observations:
+                continue
+            corr = _safe_corr(lag_frame.iloc[:, 0], lag_frame.iloc[:, 1])
+            if abs(corr) > abs(best_corr):
+                best_corr = corr
+                best_lag = lag
+        row = {
+            "Driver": driver,
+            "Same-Day Corr": f"{same_day:.2f}",
+            "Best Lead Days": str(best_lag),
+            "Lead Corr": f"{best_corr:.2f}",
+            "Reading": _lead_lag_reading(driver, best_lag, same_day, best_corr),
+        }
+        rows.append(row)
+        if best_lag > 0 and abs(best_corr) > abs(strongest_lead_correlation):
+            strongest_leader = driver
+            strongest_lag_days = best_lag
+            strongest_lead_correlation = best_corr
+
+    rows.sort(key=lambda item: abs(float(item.get("Lead Corr", "0") or 0)), reverse=True)
+    notes = _lead_lag_notes(strongest_leader, strongest_lag_days, strongest_lead_correlation, rows)
+    return LeadLagDriverReport(asset, rows, strongest_leader, strongest_lag_days, strongest_lead_correlation, notes)
+
+
+def _safe_corr(left: pd.Series, right: pd.Series) -> float:
+    value = pd.to_numeric(left, errors="coerce").corr(pd.to_numeric(right, errors="coerce"))
+    return 0.0 if pd.isna(value) else float(value)
+
+
+def _lead_lag_reading(driver: str, lag_days: int, same_day_corr: float, lead_corr: float) -> str:
+    improvement = abs(lead_corr) - abs(same_day_corr)
+    if lag_days <= 0 or improvement < 0.05:
+        return "mostly same-day / no clear lead"
+    if lead_corr > 0:
+        return f"{driver} tends to lead positively by {lag_days}d"
+    return f"{driver} tends to lead inversely by {lag_days}d"
+
+
+def _lead_lag_notes(strongest_leader: str, lag_days: int, corr: float, rows: list[dict[str, str]]) -> list[str]:
+    if not rows:
+        return ["No lead/lag driver rows available."]
+    if strongest_leader == "none" or lag_days == 0 or abs(corr) < 0.35:
+        return ["No reliable leading driver detected. Current relationships look same-day/noisy."]
+    direction = "positive" if corr > 0 else "inverse"
+    return [f"Strongest lead signal: {strongest_leader} leads the asset by {lag_days} day(s) with {direction} correlation {corr:.2f}."]
+

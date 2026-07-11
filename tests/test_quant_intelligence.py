@@ -6,6 +6,7 @@ import pandas as pd
 
 from nero_app.core.quant_intelligence import (
     build_cross_asset_driver_report,
+    build_lead_lag_driver_report,
     build_quant_snapshot,
     information_coefficient,
     log_returns,
@@ -82,6 +83,22 @@ class QuantIntelligenceTest(unittest.TestCase):
         self.assertEqual(report.rows, [])
         self.assertEqual(report.strongest_driver, "none")
         self.assertIn("No cross-asset price data", report.notes[0])
+
+    def test_lead_lag_driver_report_detects_driver_lead(self) -> None:
+        driver_returns = [0.01, -0.02, 0.03, -0.01, 0.02, 0.01, -0.03, 0.04, -0.02, 0.01] * 12
+        asset_returns = [0.0] + driver_returns[:-1]
+        driver_prices = [100.0]
+        asset_prices = [100.0]
+        for d_ret, a_ret in zip(driver_returns, asset_returns):
+            driver_prices.append(driver_prices[-1] * (1 + d_ret))
+            asset_prices.append(asset_prices[-1] * (1 + a_ret))
+        prices = pd.DataFrame({"btc": asset_prices, "ibit": driver_prices})
+
+        report = build_lead_lag_driver_report("BTC", prices, max_lag=3, min_observations=30)
+
+        self.assertEqual(report.strongest_leader, "ibit")
+        self.assertEqual(report.strongest_lag_days, 1)
+        self.assertGreater(report.strongest_lead_correlation, 0.9)
 
 if __name__ == "__main__":
     unittest.main()
