@@ -281,6 +281,16 @@ class CointegrationReport:
     notes: list[str]
 
 
+@dataclass(frozen=True)
+class GrangerCausalityReport:
+    asset: str
+    rows: list[dict[str, str]]
+    strongest_predictor: str
+    strongest_lag: int
+    strongest_pvalue: float | None
+    notes: list[str]
+
+
 def fetch_cross_asset_price_data(asset: str, start: str = "2024-01-01", interval: str = "1d") -> tuple[pd.DataFrame, str]:
     """Fetch cross-asset daily prices lazily. Dashboard remains usable if yfinance is absent."""
     tickers = QUANT_DRIVER_TICKERS.get(asset.upper())
@@ -556,4 +566,95 @@ def _cointegration_notes(strongest_pair: str, pvalue: float | None, rows: list[d
     if pvalue < 0.05:
         return [f"Strongest long-run relationship candidate: {strongest_pair} with ADF p-value {pvalue:.4f}."]
     return ["No statistically strong cointegration found at the 5% level. Treat correlations as regime-dependent."]
+
+def granger_causality_pvalues(returns: pd.DataFrame, cause: str, effect: str, max_lag: int = 5) -> dict[int, float] | str:
+    data = returns[[effect, cause]].dropna()
+    if len(data) < max(30, max_lag * 8):
+        return "insufficient_data"
+    try:
+        from statsmodels.tsa.stattools import grangercausalitytests
+    except ModuleNotFoundError:
+        return "missing_statsmodels"
+    try:
+        result = grangercausalitytests(data, maxlag=max_lag, verbose=False)
+    except Exception as exc:
+        if exc.__class__.__name__ != "InfeasibleTestError" and not isinstance(exc, (ValueError, np.linalg.LinAlgError)):
+            raise
+        return "test_failed"
+    return {lag: float(result[lag][0]["ssr_ftest"][1]) for lag in result}
+
+
+def build_granger_causality_report(asset: str, prices: pd.DataFrame, max_lag: int = 5, min_observations: int = 90) -> GrangerCausalityReport:
+    if prices.empty or len(prices.columns) == 0:
+        return GrangerCausalityReport(asset, [], "none", 0, None, ["No cross-asset price data available for Granger causality analysis."])
+    asset_key = _asset_price_column(asset, prices)
+    if asset_key not in prices.columns:
+        return GrangerCausalityReport(asset, [], "none", 0, None, ["No matching asset column found for Granger causality analysis."])
+    returns = log_returns(prices).dropna(how="all")
+    if asset_key not in returns.columns or len(returns) < min_observations:
+        return GrangerCausalityReport(asset, [], "none", 0, None, ["Not enough return history for Granger causality analysis."])
+
+    rows: list[dict[str, str]] = []
+    strongest_predictor = "none"
+    strongest_lag = 0
+    strongest_pvalue: float | None = None
+    missing_dependency = False
+    for driver in returns.columns:
+        if driver == asset_key:
+            continue
+        clean = returns[[asset_key, driver]].dropna()
+        if len(clean) < min_observations:
+            continue
+        result = granger_causality_pvalues(clean, cause=driver, effect=asset_key, max_lag=max_lag)
+        if isinstance(result, str):
+            status = result
+            best_lag = 0
+            best_pvalue = None
+            if result == "missing_statsmodels":
+                missing_dependency = True
+        else:
+            status = "ok"
+            best_lag, best_pvalue = min(result.items(), key=lambda item: item[1])
+            if strongest_pvalue is None or best_pvalue < strongest_pvalue:
+                strongest_predictor = driver
+                strongest_lag = int(best_lag)
+                strongest_pvalue = float(best_pvalue)
+        rows.append(
+            {
+                "Driver": driver,
+                "Best Lag": str(best_lag),
+                "Best p-value": "n/a" if best_pvalue is None else f"{best_pvalue:.4f}",
+                "Predictive 5%": "yes" if isinstance(best_pvalue, float) and best_pvalue < 0.05 else "no",
+                "Status": status,
+                "Reading": _granger_reading(status, best_pvalue, best_lag),
+            }
+        )
+
+    rows.sort(key=lambda item: 999.0 if item["Best p-value"] == "n/a" else float(item["Best p-value"]))
+    notes = _granger_notes(strongest_predictor, strongest_lag, strongest_pvalue, rows, missing_dependency)
+    return GrangerCausalityReport(asset, rows, strongest_predictor, strongest_lag, strongest_pvalue, notes)
+
+
+def _granger_reading(status: str, pvalue: float | None, lag: int) -> str:
+    if status == "missing_statsmodels":
+        return "statsmodels missing; install requirements to run Granger test"
+    if status != "ok":
+        return "test unavailable"
+    if pvalue is not None and pvalue < 0.05:
+        return f"driver history has predictive signal at lag {lag}"
+    if pvalue is not None and pvalue < 0.15:
+        return f"weak watchlist predictive signal at lag {lag}"
+    return "no formal predictive relationship detected"
+
+
+def _granger_notes(predictor: str, lag: int, pvalue: float | None, rows: list[dict[str, str]], missing_dependency: bool) -> list[str]:
+    if missing_dependency:
+        return ["Granger causality requires statsmodels. Run pip install -r requirements.txt, then refresh drivers again."]
+    if not rows:
+        return ["No Granger causality rows available."]
+    if pvalue is None:
+        return ["Granger test did not produce valid p-values."]
+    if pvalue < 0.05:
+        return [f"Strongest formal predictor: {predictor} at lag {lag} day(s), p-value {pvalue:.4f}."]
+    return ["No statistically strong Granger predictor found at the 5% level. Treat lead/lag readings as exploratory."]
 

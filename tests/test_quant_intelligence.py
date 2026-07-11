@@ -7,6 +7,7 @@ import pandas as pd
 from nero_app.core.quant_intelligence import (
     build_cointegration_report,
     build_cross_asset_driver_report,
+    build_granger_causality_report,
     build_lead_lag_driver_report,
     build_quant_snapshot,
     information_coefficient,
@@ -120,6 +121,28 @@ class QuantIntelligenceTest(unittest.TestCase):
 
         self.assertGreaterEqual(len(report.rows), 1)
         self.assertIn(report.rows[0]["Status"], {"missing_statsmodels", "ok", "adf_failed"})
+
+    def test_granger_report_handles_empty_prices(self) -> None:
+        report = build_granger_causality_report("BTC", pd.DataFrame())
+
+        self.assertEqual(report.rows, [])
+        self.assertEqual(report.strongest_predictor, "none")
+        self.assertIn("No cross-asset price data", report.notes[0])
+
+    def test_granger_report_returns_rows_for_driver_data(self) -> None:
+        driver_returns = [0.01, -0.02, 0.03, -0.01, 0.02, 0.01, -0.03, 0.04, -0.02, 0.01] * 16
+        asset_returns = [0.0] + driver_returns[:-1]
+        driver_prices = [100.0]
+        asset_prices = [100.0]
+        for d_ret, a_ret in zip(driver_returns, asset_returns):
+            driver_prices.append(driver_prices[-1] * (1 + d_ret))
+            asset_prices.append(asset_prices[-1] * (1 + a_ret))
+        prices = pd.DataFrame({"btc": asset_prices, "ibit": driver_prices})
+
+        report = build_granger_causality_report("BTC", prices, max_lag=2, min_observations=60)
+
+        self.assertGreaterEqual(len(report.rows), 1)
+        self.assertIn(report.rows[0]["Status"], {"missing_statsmodels", "ok", "test_failed"})
 
 if __name__ == "__main__":
     unittest.main()

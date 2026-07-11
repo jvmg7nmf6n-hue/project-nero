@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_granger_causality_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -383,6 +383,19 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
                     st.dataframe(pd.DataFrame(cointegration_report.rows), use_container_width=True, hide_index=True)
                 else:
                     for note in cointegration_report.notes:
+                        st.caption(note)
+                granger_report = build_granger_causality_report(asset, driver_prices)
+                st.subheader("Granger Causality Engine")
+                if granger_report.rows:
+                    gcol_a, gcol_b, gcol_c = st.columns(3)
+                    gcol_a.metric("Best Predictor", granger_report.strongest_predictor.upper())
+                    gcol_b.metric("Best Lag", str(granger_report.strongest_lag))
+                    gcol_c.metric("Best p-value", "n/a" if granger_report.strongest_pvalue is None else f"{granger_report.strongest_pvalue:.4f}")
+                    for note in granger_report.notes:
+                        st.info(note)
+                    st.dataframe(pd.DataFrame(granger_report.rows), use_container_width=True, hide_index=True)
+                else:
+                    for note in granger_report.notes:
                         st.caption(note)
                 st.caption(driver_source)
             else:
