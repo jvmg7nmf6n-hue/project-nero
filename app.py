@@ -15,6 +15,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover
 
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
+from nero_app.core.consensus_engine import build_consensus_decision
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.historical_market_memory import (
@@ -419,6 +420,9 @@ def main() -> None:
     result = orchestrator.run(request, price_history)
     adjusted_verdict, white_house_impact = apply_white_house_modifier(asset, enriched_headline, result.verdict)
     result = result.model_copy(update={"verdict": adjusted_verdict})
+    historical_events = load_historical_events()
+    market_memory_tags = infer_environment_tags(asset=asset, news_text=enriched_headline)
+    market_memory_result = score_regime_similarity(asset, market_memory_tags, historical_events) if asset in {"BTC", "GOLD"} else None
     trade_plan = build_intraday_trade_plan(
         intraday_data.prices,
         asset=asset,
@@ -426,6 +430,15 @@ def main() -> None:
         news_sentiment=sentiment_result.overall_sentiment,
         news_score=sentiment_result.sentiment_score,
         risk_score=result.verdict.risk_score,
+    )
+    consensus_decision = build_consensus_decision(
+        verdict=result.verdict,
+        assessment=result.assessment,
+        trade_plan=trade_plan,
+        news_sentiment=sentiment_result.overall_sentiment,
+        news_score=sentiment_result.sentiment_score,
+        market_memory=market_memory_result,
+        white_house_impact=white_house_impact,
     )
     backtest = run_event_backtest(result.brain.matches, price_history)
     if test_alert_button:
@@ -538,6 +551,22 @@ def main() -> None:
         else:
             st.caption(f"Intraday source: {intraday_data.source} ({intraday_data.status})")
         st.caption("Decision support only. Nero waits for trigger confirmation and does not guarantee profit.")
+        st.subheader("Consensus Decision")
+        con_a, con_b, con_c = st.columns(3)
+        con_a.metric("Decision Class", consensus_decision.decision_class.replace("_", " "))
+        con_b.metric("Trade Quality", f"{consensus_decision.trade_quality:.0f}/100")
+        con_c.metric("Direction", consensus_decision.direction)
+        if consensus_decision.decision_class == "NO_TRADE":
+            st.info(consensus_decision.human_note)
+        elif consensus_decision.decision_class == "SCALP_ONLY":
+            st.warning(consensus_decision.human_note)
+        else:
+            st.success(consensus_decision.human_note)
+        if consensus_decision.blockers:
+            st.dataframe(pd.DataFrame({"Blocker": consensus_decision.blockers}), use_container_width=True, hide_index=True)
+        with st.expander("Consensus reasoning"):
+            st.dataframe(pd.DataFrame({"Reason": consensus_decision.reasons}), use_container_width=True, hide_index=True)
+
         col_a, col_b, col_c, col_d = st.columns(4)
         col_a.metric("Action", trade_plan.action.replace("_", " "))
         col_b.metric("Bias", trade_plan.bias)
