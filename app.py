@@ -29,6 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
+from nero_app.core.quant_intelligence import build_quant_snapshot, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -325,6 +326,36 @@ def _render_mean_reversion_tab() -> None:
         )
 
 
+
+def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, source: str) -> None:
+    st.subheader("Quant Intelligence")
+    st.caption("Statistical layer from the Gold/BTC quant toolkit: log returns, z-score, realized volatility, risk-adjusted return, and drawdown.")
+    snapshot = build_quant_snapshot(price_history, asset=asset, source=source)
+
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    col_a.metric("Regime", snapshot.regime)
+    col_b.metric("Pressure", snapshot.pressure)
+    col_c.metric("20D Z", f"{snapshot.zscore_20:.2f}")
+    col_d.metric("30D Vol", f"{snapshot.realized_vol_30d:.1%}")
+    col_e.metric("90D Sharpe", f"{snapshot.sharpe_90d:.2f}")
+
+    if snapshot.notes:
+        for note in snapshot.notes:
+            st.info(note)
+
+    st.dataframe(pd.DataFrame(quant_driver_rows(snapshot)), use_container_width=True, hide_index=True)
+    st.caption(f"Source: {snapshot.source} | Observations: {snapshot.observation_count} | Latest close: {snapshot.latest_close:,.2f}")
+
+    with st.expander("How to read this quant layer"):
+        st.markdown(
+            """
+- Z-score tells whether price is stretched versus its 20-day mean.
+- Realized volatility tells how dangerous the current environment is.
+- Sharpe/Sortino tell whether recent returns are worth the volatility.
+- Drawdown shows how deep recent downside pressure has been.
+- This is not a buy/sell signal by itself; it becomes evidence for NERO's consensus brain.
+            """.strip()
+        )
 def main() -> None:
     st.set_page_config(page_title="Project Nero", page_icon="N", layout="wide")
     _install_terminal_skin()
@@ -497,8 +528,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, quant_intel_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Quant Intel", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -694,6 +725,10 @@ def main() -> None:
 
     with market_memory_tab:
         _render_market_memory_tab(asset, enriched_headline)
+
+
+    with quant_intel_tab:
+        _render_quant_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})")
 
 
     with social_intel_tab:
