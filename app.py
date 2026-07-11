@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cross_asset_driver_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -371,6 +371,18 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
                     st.dataframe(pd.DataFrame(lead_lag_report.rows), use_container_width=True, hide_index=True)
                 else:
                     for note in lead_lag_report.notes:
+                        st.caption(note)
+                cointegration_report = build_cointegration_report(asset, driver_prices)
+                st.subheader("Cointegration Engine")
+                if cointegration_report.rows:
+                    ccol_a, ccol_b = st.columns(2)
+                    ccol_a.metric("Best Long-Run Pair", cointegration_report.strongest_pair.upper())
+                    ccol_b.metric("Best p-value", "n/a" if cointegration_report.strongest_pvalue is None else f"{cointegration_report.strongest_pvalue:.4f}")
+                    for note in cointegration_report.notes:
+                        st.info(note)
+                    st.dataframe(pd.DataFrame(cointegration_report.rows), use_container_width=True, hide_index=True)
+                else:
+                    for note in cointegration_report.notes:
                         st.caption(note)
                 st.caption(driver_source)
             else:

@@ -272,6 +272,15 @@ class LeadLagDriverReport:
     notes: list[str]
 
 
+@dataclass(frozen=True)
+class CointegrationReport:
+    asset: str
+    rows: list[dict[str, str]]
+    strongest_pair: str
+    strongest_pvalue: float | None
+    notes: list[str]
+
+
 def fetch_cross_asset_price_data(asset: str, start: str = "2024-01-01", interval: str = "1d") -> tuple[pd.DataFrame, str]:
     """Fetch cross-asset daily prices lazily. Dashboard remains usable if yfinance is absent."""
     tickers = QUANT_DRIVER_TICKERS.get(asset.upper())
@@ -451,4 +460,100 @@ def _lead_lag_notes(strongest_leader: str, lag_days: int, corr: float, rows: lis
         return ["No reliable leading driver detected. Current relationships look same-day/noisy."]
     direction = "positive" if corr > 0 else "inverse"
     return [f"Strongest lead signal: {strongest_leader} leads the asset by {lag_days} day(s) with {direction} correlation {corr:.2f}."]
+
+def engle_granger_cointegration(series_x: pd.Series, series_y: pd.Series) -> dict[str, object]:
+    frame = pd.concat([pd.to_numeric(series_x, errors="coerce"), pd.to_numeric(series_y, errors="coerce")], axis=1).dropna()
+    if len(frame) < 60:
+        return {"status": "insufficient_data", "adf_pvalue": None, "hedge_ratio": 0.0, "cointegrated_at_5pct": False}
+    try:
+        import statsmodels.api as sm
+        from statsmodels.tsa.stattools import adfuller
+    except ModuleNotFoundError:
+        return {"status": "missing_statsmodels", "adf_pvalue": None, "hedge_ratio": 0.0, "cointegrated_at_5pct": False}
+
+    x = sm.add_constant(frame.iloc[:, 0])
+    model = sm.OLS(frame.iloc[:, 1], x, missing="drop").fit()
+    hedge_ratio = float(model.params.iloc[1])
+    residuals = model.resid
+    try:
+        _adf_stat, pvalue, *_ = adfuller(residuals)
+    except (ValueError, np.linalg.LinAlgError):
+        return {"status": "adf_failed", "adf_pvalue": None, "hedge_ratio": hedge_ratio, "cointegrated_at_5pct": False}
+    return {
+        "status": "ok",
+        "adf_pvalue": float(pvalue),
+        "hedge_ratio": hedge_ratio,
+        "cointegrated_at_5pct": bool(pvalue < 0.05),
+    }
+
+
+def build_cointegration_report(asset: str, prices: pd.DataFrame, min_observations: int = 120) -> CointegrationReport:
+    if prices.empty or len(prices.columns) == 0:
+        return CointegrationReport(asset, [], "none", None, ["No cross-asset price data available for cointegration analysis."])
+    asset_key = _asset_price_column(asset, prices)
+    if asset_key not in prices.columns:
+        return CointegrationReport(asset, [], "none", None, ["No matching asset column found for cointegration analysis."])
+    clean_prices = prices.apply(pd.to_numeric, errors="coerce").ffill().dropna(how="all")
+    if len(clean_prices) < min_observations:
+        return CointegrationReport(asset, [], "none", None, ["Not enough price history for cointegration analysis."])
+
+    rows: list[dict[str, str]] = []
+    strongest_pair = "none"
+    strongest_pvalue: float | None = None
+    missing_dependency = False
+    for driver in clean_prices.columns:
+        if driver == asset_key:
+            continue
+        pair = clean_prices[[driver, asset_key]].dropna()
+        if len(pair) < min_observations:
+            continue
+        result = engle_granger_cointegration(pair[driver], pair[asset_key])
+        status = str(result["status"])
+        pvalue = result["adf_pvalue"]
+        hedge_ratio = float(result["hedge_ratio"])
+        cointegrated = bool(result["cointegrated_at_5pct"])
+        if status == "missing_statsmodels":
+            missing_dependency = True
+        if isinstance(pvalue, float) and (strongest_pvalue is None or pvalue < strongest_pvalue):
+            strongest_pvalue = pvalue
+            strongest_pair = driver
+        rows.append(
+            {
+                "Pair": f"{asset_key}/{driver}",
+                "Driver": driver,
+                "ADF p-value": "n/a" if pvalue is None else f"{pvalue:.4f}",
+                "Hedge Ratio": f"{hedge_ratio:.2f}",
+                "Cointegrated 5%": "yes" if cointegrated else "no",
+                "Status": status,
+                "Reading": _cointegration_reading(status, pvalue, cointegrated),
+            }
+        )
+
+    rows.sort(key=lambda item: 999.0 if item["ADF p-value"] == "n/a" else float(item["ADF p-value"]))
+    notes = _cointegration_notes(strongest_pair, strongest_pvalue, rows, missing_dependency)
+    return CointegrationReport(asset, rows, strongest_pair, strongest_pvalue, notes)
+
+
+def _cointegration_reading(status: str, pvalue: object, cointegrated: bool) -> str:
+    if status == "missing_statsmodels":
+        return "statsmodels missing; install requirements to run ADF test"
+    if status != "ok":
+        return "test unavailable"
+    if cointegrated:
+        return "possible long-run relationship"
+    if isinstance(pvalue, float) and pvalue < 0.15:
+        return "watchlist: near cointegration threshold"
+    return "no stable long-run relationship detected"
+
+
+def _cointegration_notes(strongest_pair: str, pvalue: float | None, rows: list[dict[str, str]], missing_dependency: bool) -> list[str]:
+    if missing_dependency:
+        return ["Cointegration requires statsmodels. Run pip install -r requirements.txt, then refresh drivers again."]
+    if not rows:
+        return ["No cointegration rows available."]
+    if pvalue is None:
+        return ["Cointegration test did not produce valid p-values."]
+    if pvalue < 0.05:
+        return [f"Strongest long-run relationship candidate: {strongest_pair} with ADF p-value {pvalue:.4f}."]
+    return ["No statistically strong cointegration found at the 5% level. Treat correlations as regime-dependent."]
 

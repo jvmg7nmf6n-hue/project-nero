@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 
 from nero_app.core.quant_intelligence import (
+    build_cointegration_report,
     build_cross_asset_driver_report,
     build_lead_lag_driver_report,
     build_quant_snapshot,
@@ -99,6 +100,26 @@ class QuantIntelligenceTest(unittest.TestCase):
         self.assertEqual(report.strongest_leader, "ibit")
         self.assertEqual(report.strongest_lag_days, 1)
         self.assertGreater(report.strongest_lead_correlation, 0.9)
+
+    def test_cointegration_report_handles_missing_or_empty_data(self) -> None:
+        report = build_cointegration_report("BTC", pd.DataFrame())
+
+        self.assertEqual(report.rows, [])
+        self.assertEqual(report.strongest_pair, "none")
+        self.assertIn("No cross-asset price data", report.notes[0])
+
+    def test_cointegration_report_returns_rows_when_dependency_missing(self) -> None:
+        prices = pd.DataFrame(
+            {
+                "btc": [100 + index * 0.5 for index in range(140)],
+                "spx": [50 + index * 0.25 for index in range(140)],
+            }
+        )
+
+        report = build_cointegration_report("BTC", prices, min_observations=60)
+
+        self.assertGreaterEqual(len(report.rows), 1)
+        self.assertIn(report.rows[0]["Status"], {"missing_statsmodels", "ok", "adf_failed"})
 
 if __name__ == "__main__":
     unittest.main()
