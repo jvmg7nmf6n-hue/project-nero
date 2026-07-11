@@ -7,6 +7,7 @@ import pandas as pd
 from nero_app.core.quant_intelligence import (
     build_cointegration_report,
     build_cross_asset_driver_report,
+    build_garch_volatility_report,
     build_granger_causality_report,
     build_lead_lag_driver_report,
     build_quant_snapshot,
@@ -144,5 +145,27 @@ class QuantIntelligenceTest(unittest.TestCase):
         self.assertGreaterEqual(len(report.rows), 1)
         self.assertIn(report.rows[0]["Status"], {"missing_statsmodels", "ok", "test_failed"})
 
+
+    def test_garch_volatility_report_handles_short_history(self) -> None:
+        report = build_garch_volatility_report(pd.DataFrame({"close": [100.0, 101.0]}), "BTC")
+
+        self.assertEqual(report.regime, "NO_DATA")
+        self.assertEqual(report.rows, [])
+
+    def test_garch_volatility_report_returns_rows(self) -> None:
+        dates = pd.date_range("2026-01-01", periods=140, freq="D")
+        closes = []
+        price = 100.0
+        for index in range(140):
+            ret = 0.01 if index % 5 else -0.015
+            price *= 1 + ret
+            closes.append(price)
+        prices = pd.DataFrame({"date": dates, "close": closes})
+
+        report = build_garch_volatility_report(prices, "BTC")
+
+        self.assertGreater(len(report.rows), 0)
+        self.assertGreaterEqual(report.conditional_vol, 0.0)
+        self.assertIn(report.regime, {"VOL_STRESS", "VOL_ELEVATED", "VOL_COMPRESSED", "VOL_NORMAL"})
 if __name__ == "__main__":
     unittest.main()

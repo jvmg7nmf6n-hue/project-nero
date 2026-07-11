@@ -5,3 +5,4 @@ streamlit>=1.36
 requests>=2.27
 yfinance>=0.2
 statsmodels>=0.14
+arch>=7.0

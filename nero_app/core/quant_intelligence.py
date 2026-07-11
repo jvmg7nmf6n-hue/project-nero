@@ -7,6 +7,19 @@ import pandas as pd
 
 
 @dataclass(frozen=True)
+class GarchVolatilityReport:
+    asset: str
+    model: str
+    conditional_vol: float
+    realized_vol_30d: float
+    realized_vol_90d: float
+    vol_ratio: float
+    regime: str
+    shock_score: float
+    rows: list[dict[str, str]]
+    notes: list[str]
+
+@dataclass(frozen=True)
 class QuantSnapshot:
     asset: str
     source: str
@@ -51,6 +64,33 @@ def realized_volatility(returns: pd.Series, window: int = 30, annualize: bool = 
     vol = pd.to_numeric(returns, errors="coerce").rolling(window).std()
     return vol * np.sqrt(252) if annualize else vol
 
+def build_garch_volatility_report(price_history: pd.DataFrame, asset: str) -> GarchVolatilityReport:
+    prices = _clean_price_history(price_history)
+    if prices.empty or len(prices) < 60:
+        return GarchVolatilityReport(asset, "none", 0.0, 0.0, 0.0, 0.0, "NO_DATA", 0.0, [], ["Not enough price history for volatility clustering analysis."])
+
+    returns = pd.to_numeric(log_returns(prices["close"]), errors="coerce").dropna()
+    if len(returns) < 60:
+        return GarchVolatilityReport(asset, "none", 0.0, 0.0, 0.0, 0.0, "NO_DATA", 0.0, [], ["Not enough returns for volatility clustering analysis."])
+
+    vol30 = _latest(realized_volatility(returns, 30))
+    vol90 = _latest(realized_volatility(returns, 90))
+    conditional_vol, model, model_note = _estimate_garch_conditional_vol(returns)
+    baseline = vol90 if vol90 > 0 else vol30
+    vol_ratio = conditional_vol / baseline if baseline > 0 else 0.0
+    shock_score = min(100.0, max(0.0, vol_ratio * 50.0))
+    regime = _classify_garch_regime(vol_ratio, conditional_vol)
+    rows = [
+        {"Signal": "Model", "Reading": model, "Meaning": "GARCH(1,1) when arch is installed; EWMA fallback otherwise."},
+        {"Signal": "Conditional Vol", "Reading": f"{conditional_vol:.1%}", "Meaning": "Forward-looking volatility estimate from recent clustering."},
+        {"Signal": "30D Realized Vol", "Reading": f"{vol30:.1%}", "Meaning": "Recent actual volatility baseline."},
+        {"Signal": "90D Realized Vol", "Reading": f"{vol90:.1%}", "Meaning": "Medium-term actual volatility baseline."},
+        {"Signal": "Vol Ratio", "Reading": f"{vol_ratio:.2f}x", "Meaning": "Conditional volatility versus medium-term baseline."},
+        {"Signal": "Shock Score", "Reading": f"{shock_score:.0f}/100", "Meaning": "Higher score means volatility clustering risk is elevated."},
+        {"Signal": "Volatility Regime", "Reading": regime, "Meaning": "NERO risk filter for trade quality and position caution."},
+    ]
+    notes = _garch_notes(regime, vol_ratio, model_note)
+    return GarchVolatilityReport(asset, model, conditional_vol, vol30, vol90, vol_ratio, regime, shock_score, rows, notes)
 
 def sharpe_ratio(returns: pd.Series, risk_free_rate: float = 0.0, periods_per_year: int = 252) -> float:
     clean = pd.to_numeric(returns, errors="coerce").dropna()
@@ -225,6 +265,60 @@ def _with_notes(snapshot: QuantSnapshot) -> QuantSnapshot:
         notes=notes,
     )
 
+
+def _estimate_garch_conditional_vol(returns: pd.Series) -> tuple[float, str, str]:
+    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    if clean.empty:
+        return 0.0, "none", "No usable returns for volatility model."
+    try:
+        from arch import arch_model
+    except ModuleNotFoundError:
+        return _ewma_conditional_vol(clean), "EWMA fallback", "arch package is not installed; using EWMA fallback instead of GARCH(1,1)."
+    try:
+        scaled = clean * 100.0
+        model = arch_model(scaled, mean="Zero", vol="GARCH", p=1, q=1, rescale=False)
+        fitted = model.fit(disp="off", show_warning=False)
+        forecast = fitted.forecast(horizon=1, reindex=False)
+        variance = float(forecast.variance.iloc[-1, 0])
+        daily_vol = np.sqrt(max(variance, 0.0)) / 100.0
+        return float(daily_vol * np.sqrt(252)), "GARCH(1,1)", "GARCH(1,1) conditional volatility estimated successfully."
+    except Exception as exc:
+        return _ewma_conditional_vol(clean), "EWMA fallback", f"GARCH fit failed ({exc.__class__.__name__}); using EWMA fallback."
+
+
+def _ewma_conditional_vol(returns: pd.Series, decay: float = 0.94) -> float:
+    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    if clean.empty:
+        return 0.0
+    variance = float(clean.var()) if not pd.isna(clean.var()) else 0.0
+    for value in clean.tail(252):
+        variance = decay * variance + (1 - decay) * float(value) ** 2
+    return float(np.sqrt(max(variance, 0.0)) * np.sqrt(252))
+
+
+def _classify_garch_regime(vol_ratio: float, conditional_vol: float) -> str:
+    if conditional_vol >= 0.90 or vol_ratio >= 1.50:
+        return "VOL_STRESS"
+    if conditional_vol >= 0.60 or vol_ratio >= 1.20:
+        return "VOL_ELEVATED"
+    if conditional_vol <= 0.25 and vol_ratio <= 0.80:
+        return "VOL_COMPRESSED"
+    return "VOL_NORMAL"
+
+
+def _garch_notes(regime: str, vol_ratio: float, model_note: str) -> list[str]:
+    notes = [model_note]
+    if regime == "VOL_STRESS":
+        notes.append("Volatility clustering is stressed; NERO should demand stronger confirmation and smaller paper risk.")
+    elif regime == "VOL_ELEVATED":
+        notes.append("Volatility is elevated versus baseline; avoid low-quality signals.")
+    elif regime == "VOL_COMPRESSED":
+        notes.append("Volatility is compressed; breakout risk can build after quiet regimes.")
+    else:
+        notes.append("Volatility clustering is near normal baseline.")
+    if vol_ratio >= 1.20:
+        notes.append(f"Conditional volatility is {vol_ratio:.2f}x the recent baseline.")
+    return notes
 
 QUANT_DRIVER_TICKERS = {
     "BTC": {

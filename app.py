@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_granger_causality_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -346,6 +346,20 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     st.dataframe(pd.DataFrame(quant_driver_rows(snapshot)), use_container_width=True, hide_index=True)
     st.caption(f"Source: {snapshot.source} | Observations: {snapshot.observation_count} | Latest close: {snapshot.latest_close:,.2f}")
 
+    garch_report = build_garch_volatility_report(price_history, asset)
+    st.subheader("GARCH Volatility Engine")
+    if garch_report.rows:
+        vcol_a, vcol_b, vcol_c, vcol_d = st.columns(4)
+        vcol_a.metric("Vol Regime", garch_report.regime)
+        vcol_b.metric("Conditional Vol", f"{garch_report.conditional_vol:.1%}")
+        vcol_c.metric("Vol Ratio", f"{garch_report.vol_ratio:.2f}x")
+        vcol_d.metric("Shock Score", f"{garch_report.shock_score:.0f}/100")
+        for note in garch_report.notes:
+            st.info(note)
+        st.dataframe(pd.DataFrame(garch_report.rows), use_container_width=True, hide_index=True)
+    else:
+        for note in garch_report.notes:
+            st.caption(note)
     st.subheader("Cross-Asset Driver Matrix")
     st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")
     if asset in {"BTC", "GOLD"}:
