@@ -295,8 +295,10 @@ def fetch_cross_asset_price_data(asset: str, start: str = "2024-01-01", interval
 
 
 def build_cross_asset_driver_report(asset: str, prices: pd.DataFrame, windows: tuple[int, ...] = (30, 60, 90)) -> CrossAssetDriverReport:
+    if prices.empty or len(prices.columns) == 0:
+        return CrossAssetDriverReport(asset, "cross-asset prices", [], "none", 0.0, ["No cross-asset price data returned by the provider."])
     asset_key = _asset_price_column(asset, prices)
-    if prices.empty or asset_key not in prices.columns:
+    if asset_key not in prices.columns:
         return CrossAssetDriverReport(asset, "cross-asset prices", [], "none", 0.0, ["No matching asset column found for cross-asset analysis."])
     returns = log_returns(prices).dropna(how="all")
     if asset_key not in returns.columns or len(returns) < min(windows):
@@ -333,16 +335,16 @@ def build_cross_asset_driver_report(asset: str, prices: pd.DataFrame, windows: t
     notes = _cross_asset_notes(strongest_driver, strongest_correlation, rows, rank_window)
     return CrossAssetDriverReport(asset, "cross-asset prices", rows, strongest_driver, strongest_correlation, notes)
 
-
 def _asset_price_column(asset: str, prices: pd.DataFrame) -> str:
+    if prices.empty or len(prices.columns) == 0:
+        return ""
     asset_upper = asset.upper()
     if asset_upper == "BTC" and "btc" in prices.columns:
         return "btc"
     if asset_upper == "GOLD" and "gold" in prices.columns:
         return "gold"
     lowered = asset.lower()
-    return lowered if lowered in prices.columns else prices.columns[0]
-
+    return lowered if lowered in prices.columns else str(prices.columns[0])
 
 def _driver_reading(correlation: float) -> str:
     if correlation >= 0.65:

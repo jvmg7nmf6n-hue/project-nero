@@ -76,6 +76,12 @@ class QuantIntelligenceTest(unittest.TestCase):
         self.assertGreater(len(report.rows), 0)
         self.assertEqual(report.strongest_driver, "spx")
         self.assertGreater(report.strongest_correlation, 0.9)
+    def test_cross_asset_driver_report_handles_empty_prices(self) -> None:
+        report = build_cross_asset_driver_report("BTC", pd.DataFrame())
+
+        self.assertEqual(report.rows, [])
+        self.assertEqual(report.strongest_driver, "none")
+        self.assertIn("No cross-asset price data", report.notes[0])
 
 if __name__ == "__main__":
     unittest.main()
