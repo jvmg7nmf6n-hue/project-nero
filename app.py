@@ -30,6 +30,11 @@ from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
+from nero_app.core.social_intelligence import (
+    filter_watchlist_for_asset,
+    load_social_watchlist,
+    summarize_social_intel,
+)
 from nero_app.core.trade_desk import build_intraday_trade_plan
 from nero_app.core.verdict_modifiers import apply_white_house_modifier
 
@@ -127,6 +132,46 @@ def _parse_rejection_counts(value: object) -> dict[str, int]:
         return {}
     return parsed if isinstance(parsed, dict) else {}
 
+
+def _render_social_intel_tab(asset: str) -> None:
+    st.subheader("Social Intelligence")
+    st.caption("Curated X/market voice watchlist. Context only until NERO has audited each voice with outcomes.")
+    watchlist = load_social_watchlist()
+    summary = summarize_social_intel(asset, watchlist)
+    filtered = filter_watchlist_for_asset(asset, watchlist)
+
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("Tracked Voices", str(summary.tracked_voices))
+    col_b.metric("Avg Reliability", f"{summary.average_reliability:.1f}/100")
+    col_c.metric("Higher-Reliability", str(summary.high_reliability_voices))
+    st.write(summary.note)
+
+    if summary.dominant_styles:
+        st.caption("Dominant styles: " + ", ".join(summary.dominant_styles))
+    if summary.caution_flags:
+        st.warning("Caution flags: " + ", ".join(summary.caution_flags[:5]))
+
+    if filtered.empty:
+        st.info("No social voices mapped to this asset yet.")
+    else:
+        visible_cols = [
+            col for col in [
+                "name", "handle", "platform", "asset_focus", "style", "role",
+                "starting_reliability", "risk_flags", "notes"
+            ] if col in filtered.columns
+        ]
+        st.dataframe(filtered[visible_cols], use_container_width=True, hide_index=True)
+
+    with st.expander("How NERO will use this later"):
+        st.markdown(
+            """
+- Collect public posts or imported post CSVs.
+- Classify asset, sentiment, timeframe, and whether a real trade plan exists.
+- Compare each post against 1h, 4h, 1d, and 7d price outcomes.
+- Build a reliability score for each voice.
+- Use social consensus only as one input, never as a direct trade command.
+            """.strip()
+        )
 
 def _render_market_memory_tab(asset: str, context_text: str) -> None:
     st.subheader("Historical Market Memory")
@@ -419,8 +464,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -600,6 +645,10 @@ def main() -> None:
 
     with market_memory_tab:
         _render_market_memory_tab(asset, enriched_headline)
+
+
+    with social_intel_tab:
+        _render_social_intel_tab(asset)
 
 
     with structure_tab:
