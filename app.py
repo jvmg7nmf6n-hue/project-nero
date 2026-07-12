@@ -43,6 +43,7 @@ from nero_app.core.social_intelligence import (
 )
 from nero_app.core.trade_desk import build_intraday_trade_plan
 from nero_app.core.trade_opportunity_scanner import PaperTradeState, ScannerInputs, TechnicalSnapshot, scan_trade_opportunity
+from nero_app.core.trade_readiness import ReadinessInputs, build_trade_readiness_report
 from nero_app.core.verdict_modifiers import apply_white_house_modifier
 
 
@@ -491,6 +492,31 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     if scanner.blocker_reason:
         st.warning(scanner.blocker_reason)
     st.code(scanner.explanation, language=None)
+
+    readiness = build_trade_readiness_report(
+        ReadinessInputs(
+            asset=asset,
+            opportunity_decision=scanner.decision,
+            opportunity_score=scanner.opportunity_score,
+            quant_score=local_consensus.score,
+            volatility_regime=garch_report.regime,
+            sentiment_score=_scanner_sentiment_score(sentiment_score),
+            has_active_paper_trade=scanner_inputs.paper_trade_state.has_open_position or scanner_inputs.paper_trade_state.has_pending_order,
+            missing_inputs=[] if sentiment_score is not None else ["news sentiment"],
+        )
+    )
+    st.subheader("Trade Readiness Engine")
+    rcol_a, rcol_b, rcol_c = st.columns(3)
+    rcol_a.metric("Readiness Score", f"{readiness.readiness_score:.0f}/100")
+    rcol_b.metric("Readiness", readiness.label)
+    rcol_c.metric("Blockers", str(len(readiness.blockers)))
+    st.info(readiness.action)
+    if readiness.blockers:
+        st.warning("; ".join(readiness.blockers))
+    for reason in readiness.reasons:
+        st.info(reason)
+    if readiness.missing_inputs:
+        st.caption("Missing inputs: " + ", ".join(readiness.missing_inputs))
 
     st.subheader("Cross-Asset Driver Matrix")
     st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")

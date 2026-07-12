@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import unittest
 
@@ -12,6 +12,7 @@ from nero_app.core.trade_opportunity_scanner import (
     TechnicalSnapshot,
     scan_trade_opportunity,
 )
+from nero_app.core.trade_readiness import ReadinessInputs, build_trade_readiness_report
 
 
 def _df(closes, volumes=None):
@@ -95,6 +96,37 @@ class NewIntelligenceModulesTest(unittest.TestCase):
 
         self.assertEqual(result.decision, "BLOCKED_BY_RISK")
         self.assertTrue(result.blocker_reason)
+
+    def test_trade_readiness_allows_only_aligned_paper_setup(self) -> None:
+        report = build_trade_readiness_report(
+            ReadinessInputs(
+                asset="BTC",
+                opportunity_decision="TRADE_ALLOWED",
+                opportunity_score=82,
+                quant_score=72,
+                volatility_regime="VOL_NORMAL",
+                sentiment_score=70,
+            )
+        )
+
+        self.assertEqual(report.label, "TRADE_READY")
+        self.assertGreaterEqual(report.readiness_score, 75)
+
+    def test_trade_readiness_blocks_active_paper_trade(self) -> None:
+        report = build_trade_readiness_report(
+            ReadinessInputs(
+                asset="BTC",
+                opportunity_decision="TRADE_ALLOWED",
+                opportunity_score=90,
+                quant_score=80,
+                volatility_regime="VOL_NORMAL",
+                sentiment_score=80,
+                has_active_paper_trade=True,
+            )
+        )
+
+        self.assertEqual(report.label, "NO_TRADE_RISK")
+        self.assertIn("active paper trade already exists", report.blockers)
 
 
 if __name__ == "__main__":
