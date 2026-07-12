@@ -376,6 +376,15 @@ class CointegrationReport:
 
 
 @dataclass(frozen=True)
+class KalmanBetaReport:
+    asset: str
+    rows: list[dict[str, str]]
+    strongest_dynamic_driver: str
+    latest_beta: float
+    beta_change: float
+    notes: list[str]
+
+@dataclass(frozen=True)
 class GrangerCausalityReport:
     asset: str
     rows: list[dict[str, str]]
@@ -493,6 +502,75 @@ def _cross_asset_notes(strongest_driver: str, strongest_correlation: float, rows
         notes.append("Inverse linkage means this driver is applying opposite pressure in the current regime.")
     return notes
 
+def kalman_dynamic_beta(asset_returns: pd.Series, driver_returns: pd.Series, process_variance: float = 1e-5, observation_variance: float = 1e-3) -> pd.Series:
+    frame = pd.concat([pd.to_numeric(asset_returns, errors="coerce"), pd.to_numeric(driver_returns, errors="coerce")], axis=1).dropna()
+    if len(frame) < 10:
+        return pd.Series(dtype=float)
+    y = frame.iloc[:, 0]
+    x = frame.iloc[:, 1]
+    beta = 0.0
+    variance = 1.0
+    values: list[float] = []
+    index_values = []
+    for idx, x_value, y_value in zip(frame.index, x, y):
+        x_float = float(x_value)
+        y_float = float(y_value)
+        variance += process_variance
+        innovation_variance = x_float * x_float * variance + observation_variance
+        kalman_gain = variance * x_float / innovation_variance if innovation_variance else 0.0
+        beta = beta + kalman_gain * (y_float - beta * x_float)
+        variance = (1 - kalman_gain * x_float) * variance
+        values.append(float(beta))
+        index_values.append(idx)
+    return pd.Series(values, index=index_values)
+
+
+def build_kalman_beta_report(asset: str, prices: pd.DataFrame, min_observations: int = 90) -> KalmanBetaReport:
+    if prices.empty or len(prices.columns) == 0:
+        return KalmanBetaReport(asset, [], "none", 0.0, 0.0, ["No cross-asset price data available for Kalman dynamic beta analysis."])
+    asset_key = _asset_price_column(asset, prices)
+    if asset_key not in prices.columns:
+        return KalmanBetaReport(asset, [], "none", 0.0, 0.0, ["No matching asset column found for Kalman dynamic beta analysis."])
+    returns = log_returns(prices).dropna(how="all")
+    if asset_key not in returns.columns or len(returns) < min_observations:
+        return KalmanBetaReport(asset, [], "none", 0.0, 0.0, ["Not enough return history for Kalman dynamic beta analysis."])
+
+    rows: list[dict[str, str]] = []
+    strongest_driver = "none"
+    strongest_latest_beta = 0.0
+    strongest_change = 0.0
+    for driver in returns.columns:
+        if driver == asset_key:
+            continue
+        clean = returns[[asset_key, driver]].dropna()
+        if len(clean) < min_observations:
+            continue
+        beta_series = kalman_dynamic_beta(clean[asset_key], clean[driver])
+        if beta_series.empty:
+            continue
+        latest_beta = float(beta_series.iloc[-1])
+        previous_window = beta_series.iloc[-min(30, len(beta_series))]
+        beta_change = latest_beta - float(previous_window)
+        stability = float(beta_series.tail(min(30, len(beta_series))).std()) if len(beta_series) > 1 else 0.0
+        rows.append(
+            {
+                "Driver": driver,
+                "Latest Beta": f"{latest_beta:.2f}",
+                "30D Beta Change": f"{beta_change:+.2f}",
+                "Beta Stability": f"{stability:.2f}",
+                "Regime": _kalman_beta_regime(latest_beta, beta_change, stability),
+                "Reading": _kalman_beta_reading(driver, latest_beta, beta_change, stability),
+            }
+        )
+        if abs(beta_change) > abs(strongest_change) or (abs(beta_change) == abs(strongest_change) and abs(latest_beta) > abs(strongest_latest_beta)):
+            strongest_driver = driver
+            strongest_latest_beta = latest_beta
+            strongest_change = beta_change
+
+    rows.sort(key=lambda item: abs(float(item.get("30D Beta Change", "0").replace("+", "") or 0)), reverse=True)
+    notes = _kalman_beta_notes(strongest_driver, strongest_latest_beta, strongest_change, rows)
+    return KalmanBetaReport(asset, rows, strongest_driver, strongest_latest_beta, strongest_change, notes)
+
 def build_lead_lag_driver_report(asset: str, prices: pd.DataFrame, max_lag: int = 5, min_observations: int = 60) -> LeadLagDriverReport:
     if prices.empty or len(prices.columns) == 0:
         return LeadLagDriverReport(asset, [], "none", 0, 0.0, ["No cross-asset price data available for lead/lag analysis."])
@@ -542,6 +620,40 @@ def build_lead_lag_driver_report(asset: str, prices: pd.DataFrame, max_lag: int 
     notes = _lead_lag_notes(strongest_leader, strongest_lag_days, strongest_lead_correlation, rows)
     return LeadLagDriverReport(asset, rows, strongest_leader, strongest_lag_days, strongest_lead_correlation, notes)
 
+
+def _kalman_beta_regime(latest_beta: float, beta_change: float, stability: float) -> str:
+    if abs(latest_beta) < 0.20:
+        return "LOW_LINKAGE"
+    if beta_change >= 0.25:
+        return "LINKAGE_STRENGTHENING"
+    if beta_change <= -0.25:
+        return "LINKAGE_WEAKENING"
+    if stability >= 0.25:
+        return "UNSTABLE_BETA"
+    return "STABLE_LINKAGE"
+
+
+def _kalman_beta_reading(driver: str, latest_beta: float, beta_change: float, stability: float) -> str:
+    direction = "positive" if latest_beta >= 0 else "inverse"
+    if abs(latest_beta) < 0.20:
+        return f"{driver} has low dynamic linkage right now"
+    if beta_change >= 0.25:
+        return f"{driver} {direction} influence is strengthening"
+    if beta_change <= -0.25:
+        return f"{driver} {direction} influence is weakening"
+    if stability >= 0.25:
+        return f"{driver} beta is unstable; relationship is shifting"
+    return f"{driver} has stable {direction} dynamic beta"
+
+
+def _kalman_beta_notes(strongest_driver: str, latest_beta: float, beta_change: float, rows: list[dict[str, str]]) -> list[str]:
+    if not rows:
+        return ["No Kalman dynamic beta rows available."]
+    if strongest_driver == "none" or abs(beta_change) < 0.10:
+        return ["No major dynamic beta shift detected; current cross-asset relationships are not changing aggressively."]
+    direction = "strengthening" if beta_change > 0 else "weakening"
+    sign = "positive" if latest_beta >= 0 else "inverse"
+    return [f"Largest dynamic beta shift: {strongest_driver} is {direction}; latest beta {latest_beta:.2f} ({sign}), 30D change {beta_change:+.2f}."]
 
 def _safe_corr(left: pd.Series, right: pd.Series) -> float:
     value = pd.to_numeric(left, errors="coerce").corr(pd.to_numeric(right, errors="coerce"))

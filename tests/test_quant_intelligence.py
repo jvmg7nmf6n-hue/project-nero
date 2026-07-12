@@ -9,6 +9,8 @@ from nero_app.core.quant_intelligence import (
     build_cross_asset_driver_report,
     build_garch_volatility_report,
     build_granger_causality_report,
+    build_kalman_beta_report,
+    kalman_dynamic_beta,
     build_lead_lag_driver_report,
     build_quant_snapshot,
     information_coefficient,
@@ -167,5 +169,36 @@ class QuantIntelligenceTest(unittest.TestCase):
         self.assertGreater(len(report.rows), 0)
         self.assertGreaterEqual(report.conditional_vol, 0.0)
         self.assertIn(report.regime, {"VOL_STRESS", "VOL_ELEVATED", "VOL_COMPRESSED", "VOL_NORMAL"})
+
+    def test_kalman_dynamic_beta_detects_relationship(self) -> None:
+        driver = pd.Series([0.01, -0.02, 0.03, -0.01, 0.02] * 30)
+        asset = driver * 1.5
+
+        beta = kalman_dynamic_beta(asset, driver)
+
+        self.assertFalse(beta.empty)
+        self.assertGreater(float(beta.iloc[-1]), 0.5)
+
+    def test_kalman_beta_report_handles_empty_prices(self) -> None:
+        report = build_kalman_beta_report("BTC", pd.DataFrame())
+
+        self.assertEqual(report.rows, [])
+        self.assertEqual(report.strongest_dynamic_driver, "none")
+        self.assertIn("No cross-asset price data", report.notes[0])
+
+    def test_kalman_beta_report_returns_rows(self) -> None:
+        driver_returns = [0.01, -0.02, 0.03, -0.01, 0.02, 0.01, -0.03, 0.04, -0.02, 0.01] * 14
+        asset_returns = [item * 1.2 for item in driver_returns]
+        driver_prices = [100.0]
+        asset_prices = [100.0]
+        for d_ret, a_ret in zip(driver_returns, asset_returns):
+            driver_prices.append(driver_prices[-1] * (1 + d_ret))
+            asset_prices.append(asset_prices[-1] * (1 + a_ret))
+        prices = pd.DataFrame({"btc": asset_prices, "ibit": driver_prices})
+
+        report = build_kalman_beta_report("BTC", prices, min_observations=60)
+
+        self.assertGreaterEqual(len(report.rows), 1)
+        self.assertEqual(report.strongest_dynamic_driver, "ibit")
 if __name__ == "__main__":
     unittest.main()

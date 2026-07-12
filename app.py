@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -397,6 +397,19 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
                     st.dataframe(pd.DataFrame(cointegration_report.rows), use_container_width=True, hide_index=True)
                 else:
                     for note in cointegration_report.notes:
+                        st.caption(note)
+                kalman_report = build_kalman_beta_report(asset, driver_prices)
+                st.subheader("Kalman Dynamic Beta Engine")
+                if kalman_report.rows:
+                    kcol_a, kcol_b, kcol_c = st.columns(3)
+                    kcol_a.metric("Shifting Driver", kalman_report.strongest_dynamic_driver.upper())
+                    kcol_b.metric("Latest Beta", f"{kalman_report.latest_beta:.2f}")
+                    kcol_c.metric("30D Change", f"{kalman_report.beta_change:+.2f}")
+                    for note in kalman_report.notes:
+                        st.info(note)
+                    st.dataframe(pd.DataFrame(kalman_report.rows), use_container_width=True, hide_index=True)
+                else:
+                    for note in kalman_report.notes:
                         st.caption(note)
                 granger_report = build_granger_causality_report(asset, driver_prices)
                 st.subheader("Granger Causality Engine")
