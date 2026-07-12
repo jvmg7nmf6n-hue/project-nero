@@ -23,7 +23,7 @@ DEFAULT_REPORT_DIR = Path("reports")
 @dataclass(frozen=True)
 class MeanReversionConfig:
     strategy_version: str = STRATEGY_VERSION
-    assets: dict[str, str] = field(default_factory=lambda: {"BTC": "BTCUSDT", "SOL": "SOLUSDT", "PAXG": "PAXGUSDT"})
+    assets: dict[str, str] = field(default_factory=lambda: {"BTC": "BTCUSDT", "ETH": "ETHUSDT", "SOL": "SOLUSDT", "XRP": "XRPUSDT", "DOGE": "DOGEUSDT", "NEAR": "NEARUSDT", "BNB": "BNBUSDT", "PAXG": "PAXGUSDT"})
     interval: str = "1h"
     initial_equity: float = 10000.0
     risk_per_trade: float = 0.01

@@ -38,6 +38,15 @@ class MeanReversionAgentTest(unittest.TestCase):
         return pd.Series(data)
 
 
+    def test_default_config_tracks_expanded_crypto_universe(self) -> None:
+        assets = MeanReversionConfig().assets
+
+        self.assertEqual(assets["ETH"], "ETHUSDT")
+        self.assertEqual(assets["XRP"], "XRPUSDT")
+        self.assertEqual(assets["DOGE"], "DOGEUSDT")
+        self.assertEqual(assets["NEAR"], "NEARUSDT")
+        self.assertEqual(assets["BNB"], "BNBUSDT")
+
     def test_fetch_closed_candles_falls_back_when_binance_http_fails(self) -> None:
         with TemporaryDirectory() as directory:
             agent = MeanReversionAgent(config=self.config, data_dir=Path(directory) / "data", report_dir=Path(directory) / "reports", now=self.now)

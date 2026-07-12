@@ -21,7 +21,7 @@ jobs:
       - name: Run mean reversion agent
         run: python tools/nero_mean_reversion_agent.py
         env:
-          MR_ASSETS: BTC:BTCUSDT,SOL:SOLUSDT,PAXG:PAXGUSDT
+          MR_ASSETS: BTC:BTCUSDT,ETH:ETHUSDT,SOL:SOLUSDT,XRP:XRPUSDT,DOGE:DOGEUSDT,NEAR:NEARUSDT,BNB:BNBUSDT,PAXG:PAXGUSDT
           MR_FEE_BPS: "10"
           MR_SLIPPAGE_BPS: "2"
           MR_RISK_PER_TRADE: "0.01"
