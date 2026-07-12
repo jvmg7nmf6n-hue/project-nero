@@ -28,7 +28,7 @@ from nero_app.core.market_data import MarketDataClient
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
-from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
+from nero_app.core.prediction_log import append_prediction, build_prediction_truth_report, evaluate_prediction_log, load_prediction_log
 from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_consensus_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
@@ -893,7 +893,8 @@ def main() -> None:
         st.dataframe(pd.DataFrame(backtest.trades), use_container_width=True)
 
     with log_tab:
-        st.subheader("Saved Predictions")
+        st.subheader("Signal Truth Dashboard v2")
+        st.caption("NERO accountability layer: records every saved verdict, evaluates outcomes, and shows whether signals are actually working.")
         if st.button("Evaluate Pending Predictions"):
             evaluate_prediction_log(price_history)
             st.success("Prediction outcomes refreshed against the current price history.")
@@ -901,15 +902,29 @@ def main() -> None:
         if log_frame.empty:
             st.info("No saved predictions yet. Press Run Nero Verdict to save the current analysis.")
         else:
-            evaluated = log_frame[log_frame["evaluation_status"] == "evaluated"]
-            wins = int((evaluated["outcome"] == "win").sum()) if not evaluated.empty else 0
-            win_rate = wins / len(evaluated) if len(evaluated) else 0.0
-            col_a, col_b, col_c, col_d = st.columns(4)
-            col_a.metric("Saved Rows", str(len(log_frame)))
-            col_b.metric("Evaluated", str(len(evaluated)))
-            col_c.metric("Win Rate", f"{win_rate:.0%}")
-            col_d.metric("Latest Direction", str(log_frame.iloc[-1]["direction"]).upper())
-            st.dataframe(log_frame.sort_values("timestamp", ascending=False), use_container_width=True)
+            truth = build_prediction_truth_report(log_frame)
+            col_a, col_b, col_c, col_d, col_e = st.columns(5)
+            col_a.metric("Saved Signals", str(truth["total"]))
+            col_b.metric("Evaluated", str(truth["evaluated"]))
+            col_c.metric("Pending", str(truth["pending"]))
+            col_d.metric("Win Rate", f"{float(truth['win_rate']):.0%}")
+            col_e.metric("Avg Return", f"{float(truth['average_return']):.2%}")
+            hcol_a, hcol_b, hcol_c = st.columns(3)
+            hcol_a.metric("Wins", str(truth["wins"]))
+            hcol_b.metric("Misses", str(truth["misses"]))
+            hcol_c.metric("High-Conf Win Rate", f"{float(truth['high_confidence_win_rate']):.0%}")
+            for note in truth["notes"]:
+                st.info(str(note))
+            if truth["rows"]:
+                st.subheader("Truth By Asset")
+                st.dataframe(pd.DataFrame(truth["rows"]), use_container_width=True, hide_index=True)
+            st.subheader("Prediction Ledger")
+            visible_cols = [
+                "timestamp", "asset", "direction", "confidence", "risk_score", "entry_date", "entry_close",
+                "target_date", "evaluation_status", "exit_date", "exit_close", "actual_return", "outcome", "headline",
+            ]
+            visible_cols = [column for column in visible_cols if column in log_frame.columns]
+            st.dataframe(log_frame.sort_values("timestamp", ascending=False)[visible_cols], use_container_width=True, hide_index=True)
 
 
 if __name__ == "__main__":

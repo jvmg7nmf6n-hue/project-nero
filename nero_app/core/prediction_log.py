@@ -152,3 +152,105 @@ def evaluate_prediction_log(prices: pd.DataFrame, path: Path = DEFAULT_LOG_PATH)
 
     frame.to_csv(path, index=False)
     return frame
+
+
+def build_prediction_truth_report(frame: pd.DataFrame, asset: str | None = None) -> dict[str, object]:
+    if frame.empty:
+        return {
+            "total": 0,
+            "evaluated": 0,
+            "pending": 0,
+            "wins": 0,
+            "misses": 0,
+            "neutral": 0,
+            "win_rate": 0.0,
+            "average_return": 0.0,
+            "high_confidence_win_rate": 0.0,
+            "rows": [],
+            "notes": ["No prediction records are available yet."],
+        }
+
+    report_frame = frame.copy()
+    if asset:
+        report_frame = report_frame[report_frame.get("asset", pd.Series(dtype=str)).astype(str).str.upper() == asset.upper()]
+    if report_frame.empty:
+        return {
+            "total": 0,
+            "evaluated": 0,
+            "pending": 0,
+            "wins": 0,
+            "misses": 0,
+            "neutral": 0,
+            "win_rate": 0.0,
+            "average_return": 0.0,
+            "high_confidence_win_rate": 0.0,
+            "rows": [],
+            "notes": [f"No prediction records found for {asset}."],
+        }
+
+    report_frame["evaluation_status"] = report_frame.get("evaluation_status", pd.Series(dtype=str)).fillna("").astype(str)
+    report_frame["outcome"] = report_frame.get("outcome", pd.Series(dtype=str)).fillna("").astype(str).str.lower()
+    report_frame["actual_return_num"] = pd.to_numeric(report_frame.get("actual_return", pd.Series(dtype=float)), errors="coerce")
+    report_frame["confidence_num"] = pd.to_numeric(report_frame.get("confidence", pd.Series(dtype=float)), errors="coerce")
+
+    evaluated = report_frame[report_frame["evaluation_status"] == "evaluated"]
+    pending = report_frame[report_frame["evaluation_status"].isin(["pending", ""])]
+    wins = int((evaluated["outcome"] == "win").sum()) if not evaluated.empty else 0
+    misses = int((evaluated["outcome"] == "miss").sum()) if not evaluated.empty else 0
+    neutral = int((evaluated["outcome"] == "neutral").sum()) if not evaluated.empty else 0
+    scored = wins + misses
+    win_rate = wins / scored if scored else 0.0
+    average_return = float(evaluated["actual_return_num"].dropna().mean()) if not evaluated.empty and not evaluated["actual_return_num"].dropna().empty else 0.0
+    high_conf = evaluated[evaluated["confidence_num"] >= 0.60]
+    high_conf_scored = high_conf[high_conf["outcome"].isin(["win", "miss"])]
+    high_conf_win_rate = float((high_conf_scored["outcome"] == "win").sum() / len(high_conf_scored)) if len(high_conf_scored) else 0.0
+
+    rows: list[dict[str, object]] = []
+    for asset_name, group in report_frame.groupby("asset", dropna=False):
+        group_eval = group[group["evaluation_status"] == "evaluated"]
+        group_wins = int((group_eval["outcome"] == "win").sum()) if not group_eval.empty else 0
+        group_misses = int((group_eval["outcome"] == "miss").sum()) if not group_eval.empty else 0
+        group_scored = group_wins + group_misses
+        rows.append(
+            {
+                "Asset": asset_name,
+                "Total": int(len(group)),
+                "Evaluated": int(len(group_eval)),
+                "Pending": int(group["evaluation_status"].isin(["pending", ""]).sum()),
+                "Wins": group_wins,
+                "Misses": group_misses,
+                "Win Rate": f"{(group_wins / group_scored if group_scored else 0.0):.0%}",
+                "Avg Return": f"{(group_eval['actual_return_num'].dropna().mean() if not group_eval.empty and not group_eval['actual_return_num'].dropna().empty else 0.0):.2%}",
+                "Avg Confidence": f"{(group['confidence_num'].dropna().mean() if not group['confidence_num'].dropna().empty else 0.0):.0%}",
+            }
+        )
+
+    notes = _prediction_truth_notes(scored, win_rate, high_conf_win_rate, len(pending))
+    return {
+        "total": int(len(report_frame)),
+        "evaluated": int(len(evaluated)),
+        "pending": int(len(pending)),
+        "wins": wins,
+        "misses": misses,
+        "neutral": neutral,
+        "win_rate": float(win_rate),
+        "average_return": average_return,
+        "high_confidence_win_rate": high_conf_win_rate,
+        "rows": rows,
+        "notes": notes,
+    }
+
+
+def _prediction_truth_notes(scored: int, win_rate: float, high_confidence_win_rate: float, pending: int) -> list[str]:
+    notes: list[str] = []
+    if scored < 20:
+        notes.append("Insufficient sample: wait for at least 20-30 evaluated directional predictions before trusting accuracy.")
+    if scored:
+        notes.append(f"Directional prediction win rate is {win_rate:.0%} across {scored} evaluated win/miss calls.")
+    if high_confidence_win_rate:
+        notes.append(f"High-confidence prediction win rate is {high_confidence_win_rate:.0%}; compare this against the overall win rate.")
+    if pending:
+        notes.append(f"{pending} prediction(s) are still pending evaluation.")
+    if not notes:
+        notes.append("No evaluated directional predictions yet.")
+    return notes
