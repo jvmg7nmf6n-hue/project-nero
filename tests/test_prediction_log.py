@@ -4,7 +4,10 @@ import unittest
 
 import pandas as pd
 
-from nero_app.core.prediction_log import build_prediction_truth_report
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from nero_app.core.prediction_log import build_prediction_truth_report, evaluate_prediction_log
 
 
 class PredictionTruthReportTest(unittest.TestCase):
@@ -35,5 +38,29 @@ class PredictionTruthReportTest(unittest.TestCase):
         self.assertEqual(len(report["rows"]), 2)
 
 
+    def test_evaluator_only_scores_selected_asset(self) -> None:
+        prices = pd.DataFrame(
+            [
+                {"date": "2026-07-11", "close": 4100.0},
+                {"date": "2026-07-12", "close": 4110.0},
+            ]
+        )
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "prediction_log.csv"
+            path.write_text(
+                "timestamp,asset,headline,direction,confidence,risk_score,thematic_score,momentum_score,rsi,fair_value_gap,liquidity_sweep,data_source,entry_date,entry_close,horizon_days,target_date,evaluation_status,exit_date,exit_close,actual_return,outcome\n"
+                "2026-07-10T10:00:00,BTC,test,neutral,0.35,0.5,0.1,0.1,50,none,none,test,2026-07-10,64000,1,2026-07-11,pending,,,,\n"
+                "2026-07-10T10:00:00,GOLD,test,neutral,0.35,0.5,0.1,0.1,50,none,none,test,2026-07-10,4000,1,2026-07-11,pending,,,,\n",
+                encoding="utf-8",
+            )
+
+            frame = evaluate_prediction_log(prices, path=path, asset="GOLD")
+
+        btc = frame[frame["asset"] == "BTC"].iloc[0]
+        gold = frame[frame["asset"] == "GOLD"].iloc[0]
+        self.assertEqual(btc["evaluation_status"], "pending")
+        self.assertEqual(gold["evaluation_status"], "evaluated")
 if __name__ == "__main__":
     unittest.main()
+
+

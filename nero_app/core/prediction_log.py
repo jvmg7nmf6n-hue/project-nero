@@ -106,10 +106,11 @@ def load_prediction_log(path: Path = DEFAULT_LOG_PATH) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=LOG_COLUMNS)
 
 
-def evaluate_prediction_log(prices: pd.DataFrame, path: Path = DEFAULT_LOG_PATH) -> pd.DataFrame:
+def evaluate_prediction_log(prices: pd.DataFrame, path: Path = DEFAULT_LOG_PATH, asset: str | None = None) -> pd.DataFrame:
     frame = load_prediction_log(path)
     if frame.empty or prices.empty:
         return frame
+    asset_filter = asset.strip().upper() if asset else ""
     text_columns = ["entry_date", "target_date", "evaluation_status", "exit_date", "outcome"]
     for column in text_columns:
         frame[column] = frame[column].fillna("").astype(str)
@@ -120,6 +121,8 @@ def evaluate_prediction_log(prices: pd.DataFrame, path: Path = DEFAULT_LOG_PATH)
     price_frame["date"] = pd.to_datetime(price_frame["date"]).dt.date
 
     for index, row in frame.iterrows():
+        if asset_filter and str(row.get("asset", "")).upper() != asset_filter:
+            continue
         if str(row.get("evaluation_status", "")) not in {"pending", ""}:
             continue
         if not row.get("target_date") or not row.get("entry_close"):
@@ -254,3 +257,5 @@ def _prediction_truth_notes(scored: int, win_rate: float, high_confidence_win_ra
     if not notes:
         notes.append("No evaluated directional predictions yet.")
     return notes
+
+

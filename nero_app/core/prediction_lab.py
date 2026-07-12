@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,7 +40,7 @@ def run_nero_core_prediction_lab(
 
     for asset in [item.strip().upper() for item in assets if item.strip()]:
         market_data = market_client.load(asset=asset, prefer_live=True, days=365, twelve_data_api_key=twelve_data_api_key)
-        evaluate_prediction_log(market_data.prices, path=prediction_log_path)
+        evaluate_prediction_log(market_data.prices, path=prediction_log_path, asset=asset)
         evaluated_total = _evaluated_count(prediction_log_path)
         if market_data.prices.empty or _already_recorded_today(asset, horizon_days, market_data.prices, prediction_log_path):
             continue
@@ -120,3 +120,4 @@ def _evaluated_count(path: Path) -> int:
     if frame.empty:
         return 0
     return int((frame["evaluation_status"] == "evaluated").sum())
+

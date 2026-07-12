@@ -18,6 +18,8 @@ from nero_app.core.backtester import run_event_backtest
 from nero_app.core.consensus_engine import build_consensus_decision
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
+from nero_app.core.etf_flow_intelligence import fetch_etf_flow_score
+from nero_app.core.gold_real_yield import fetch_gold_real_yield_score
 from nero_app.core.historical_market_memory import (
     format_regime_report,
     infer_environment_tags,
@@ -40,6 +42,7 @@ from nero_app.core.social_intelligence import (
     summarize_social_intel,
 )
 from nero_app.core.trade_desk import build_intraday_trade_plan
+from nero_app.core.trade_opportunity_scanner import PaperTradeState, ScannerInputs, TechnicalSnapshot, scan_trade_opportunity
 from nero_app.core.verdict_modifiers import apply_white_house_modifier
 
 
@@ -327,7 +330,56 @@ def _render_mean_reversion_tab() -> None:
 
 
 
-def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, source: str) -> None:
+def _scanner_sentiment_score(score: float | None) -> float | None:
+    if score is None:
+        return None
+    try:
+        value = float(score)
+    except (TypeError, ValueError):
+        return None
+    if -10 <= value <= 10:
+        return (value + 10.0) * 5.0
+    return value
+
+
+def _scanner_technical_snapshot(snapshot, garch_report, price_history: pd.DataFrame) -> TechnicalSnapshot:
+    if snapshot.trend_20d > 0 and snapshot.trend_60d > 0:
+        trend = "UP"
+    elif snapshot.trend_20d < 0 and snapshot.trend_60d < 0:
+        trend = "DOWN"
+    else:
+        trend = "SIDEWAYS"
+    regime_map = {"VOL_COMPRESSED": "LOW", "VOL_NORMAL": "NORMAL", "VOL_ELEVATED": "HIGH", "VOL_STRESS": "EXTREME"}
+    close = pd.to_numeric(price_history.get("close", pd.Series(dtype=float)), errors="coerce").dropna() if not price_history.empty else pd.Series(dtype=float)
+    above_ma20 = None
+    above_ma200 = None
+    if len(close) >= 20:
+        above_ma20 = bool(close.iloc[-1] > close.rolling(20).mean().iloc[-1])
+    if len(close) >= 200:
+        above_ma200 = bool(close.iloc[-1] > close.rolling(200).mean().iloc[-1])
+    return TechnicalSnapshot(
+        trend=trend,
+        rsi=None,
+        zscore=snapshot.zscore_20,
+        volatility_regime=regime_map.get(garch_report.regime, "NORMAL"),
+        price_above_ma20=above_ma20,
+        price_above_ma200=above_ma200,
+    )
+
+
+def _scanner_paper_trade_state(asset: str) -> PaperTradeState:
+    frame = load_demo_trades()
+    if frame.empty:
+        return PaperTradeState(asset=asset)
+    active = frame[(frame["asset"].astype(str).str.upper() == asset.upper()) & (frame["status"].astype(str).isin(["pending", "open"]))]
+    return PaperTradeState(
+        has_open_position=bool((active["status"].astype(str) == "open").any()) if not active.empty else False,
+        has_pending_order=bool((active["status"].astype(str) == "pending").any()) if not active.empty else False,
+        asset=asset,
+    )
+
+
+def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, source: str, sentiment_score: float | None = None) -> None:
     st.subheader("Quant Intelligence")
     st.caption("Statistical layer from the Gold/BTC quant toolkit: log returns, z-score, realized volatility, risk-adjusted return, and drawdown.")
     snapshot = build_quant_snapshot(price_history, asset=asset, source=source)
@@ -369,6 +421,77 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     for note in local_consensus.notes:
         st.info(note)
     st.dataframe(pd.DataFrame(local_consensus.rows), use_container_width=True, hide_index=True)
+    st.subheader("Trade Opportunity Scanner")
+    st.caption("Explains why NERO should trade, wait, or block risk using quant, sentiment, ETF-flow/real-yield, and paper-trade state.")
+    external_score = None
+    external_label = "not loaded"
+    external_rows: list[dict[str, object]] = []
+    external_notes: list[str] = []
+    if asset == "BTC":
+        if st.button("Refresh ETF flow proxy", key="refresh_etf_flow_proxy"):
+            etf_report = fetch_etf_flow_score()
+            external_score = etf_report.etf_flow_score if etf_report.etf_flow_label != "DATA_INSUFFICIENT" else None
+            external_label = etf_report.etf_flow_label
+            external_rows = etf_report.evidence_frame().to_dict("records")
+            external_notes = etf_report.notes
+            ecol_a, ecol_b, ecol_c = st.columns(3)
+            ecol_a.metric("ETF Flow Score", f"{etf_report.etf_flow_score:.0f}/100")
+            ecol_b.metric("ETF Label", etf_report.etf_flow_label)
+            ecol_c.metric("Dominant ETF", etf_report.dominant_etf or "none")
+    elif asset == "GOLD":
+        if st.button("Refresh Gold real-yield proxy", key="refresh_gold_real_yield_proxy"):
+            real_yield_report = fetch_gold_real_yield_score()
+            external_score = real_yield_report.real_yield_score if real_yield_report.real_yield_label != "DATA_INSUFFICIENT" else None
+            external_label = real_yield_report.real_yield_label
+            external_rows = [real_yield_report.as_dict()]
+            external_notes = real_yield_report.notes
+            rcol_a, rcol_b, rcol_c, rcol_d = st.columns(4)
+            rcol_a.metric("Real Yield Score", f"{real_yield_report.real_yield_score:.0f}/100")
+            rcol_b.metric("Macro Label", real_yield_report.real_yield_label)
+            rcol_c.metric("Est. Real Yield", "n/a" if real_yield_report.estimated_real_yield is None else f"{real_yield_report.estimated_real_yield:.2f}%")
+            rcol_d.metric("DXY Pressure", real_yield_report.dxy_pressure or "unknown")
+    else:
+        st.caption("ETF flow is BTC-specific and real-yield scoring is Gold-specific; scanner will use local quant evidence only for this asset.")
+
+    if external_notes:
+        for note in external_notes:
+            st.info(str(note))
+    if external_rows:
+        with st.expander(f"External evidence: {external_label}"):
+            st.dataframe(pd.DataFrame(external_rows), use_container_width=True, hide_index=True)
+
+    scanner_inputs = ScannerInputs(
+        asset=asset,
+        quant_consensus_score=local_consensus.score,
+        sentiment_score=_scanner_sentiment_score(sentiment_score),
+        etf_flow_score=external_score if asset == "BTC" else None,
+        real_yield_score=external_score if asset == "GOLD" else None,
+        sharpe_90d=snapshot.sharpe_90d,
+        technical=_scanner_technical_snapshot(snapshot, garch_report, price_history),
+        paper_trade_state=_scanner_paper_trade_state(asset),
+    )
+    scanner = scan_trade_opportunity(scanner_inputs)
+    scol_a, scol_b, scol_c = st.columns(3)
+    scol_a.metric("Opportunity Score", f"{scanner.opportunity_score:.0f}/100")
+    scol_b.metric("Decision", scanner.decision)
+    scol_c.metric("Direction Bias", scanner.direction_bias)
+    pass_col, fail_col, near_col = st.columns(3)
+    with pass_col:
+        st.markdown("**Passed**")
+        for item in scanner.passed_conditions or ["none"]:
+            st.caption(item)
+    with fail_col:
+        st.markdown("**Failed**")
+        for item in scanner.failed_conditions or ["none"]:
+            st.caption(item)
+    with near_col:
+        st.markdown("**Near Miss**")
+        for item in scanner.near_miss_conditions or ["none"]:
+            st.caption(item)
+    if scanner.blocker_reason:
+        st.warning(scanner.blocker_reason)
+    st.code(scanner.explanation, language=None)
+
     st.subheader("Cross-Asset Driver Matrix")
     st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")
     if asset in {"BTC", "GOLD"}:
@@ -832,7 +955,7 @@ def main() -> None:
 
 
     with quant_intel_tab:
-        _render_quant_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})")
+        _render_quant_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})", sentiment_result.sentiment_score)
 
 
     with social_intel_tab:
@@ -896,8 +1019,8 @@ def main() -> None:
         st.subheader("Signal Truth Dashboard v2")
         st.caption("NERO accountability layer: records every saved verdict, evaluates outcomes, and shows whether signals are actually working.")
         if st.button("Evaluate Pending Predictions"):
-            evaluate_prediction_log(price_history)
-            st.success("Prediction outcomes refreshed against the current price history.")
+            evaluate_prediction_log(price_history, asset=asset)
+            st.success("Prediction outcomes refreshed for the selected asset only.")
         log_frame = load_prediction_log()
         if log_frame.empty:
             st.info("No saved predictions yet. Press Run Nero Verdict to save the current analysis.")
