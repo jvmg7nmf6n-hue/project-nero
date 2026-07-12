@@ -12,6 +12,7 @@ from nero_app.core.quant_intelligence import (
     build_kalman_beta_report,
     kalman_dynamic_beta,
     build_lead_lag_driver_report,
+    build_quant_consensus_report,
     build_quant_snapshot,
     information_coefficient,
     log_returns,
@@ -200,5 +201,19 @@ class QuantIntelligenceTest(unittest.TestCase):
 
         self.assertGreaterEqual(len(report.rows), 1)
         self.assertEqual(report.strongest_dynamic_driver, "ibit")
+
+    def test_quant_consensus_report_scores_snapshot(self) -> None:
+        dates = pd.date_range("2026-01-01", periods=140, freq="D")
+        closes = [100.0 + index for index in range(140)]
+        prices = pd.DataFrame({"date": dates, "close": closes})
+        snapshot = build_quant_snapshot(prices, asset="BTC", source="test")
+        garch = build_garch_volatility_report(prices, "BTC")
+
+        report = build_quant_consensus_report(snapshot, garch)
+
+        self.assertGreaterEqual(report.score, 0.0)
+        self.assertLessEqual(report.score, 100.0)
+        self.assertTrue(report.rows)
+        self.assertIn(report.label, {"QUANT_SUPPORTIVE", "QUANT_MILD_SUPPORT", "QUANT_NEUTRAL", "QUANT_WEAK", "QUANT_HOSTILE"})
 if __name__ == "__main__":
     unittest.main()

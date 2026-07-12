@@ -20,6 +20,15 @@ class GarchVolatilityReport:
     notes: list[str]
 
 @dataclass(frozen=True)
+class QuantConsensusReport:
+    asset: str
+    score: float
+    label: str
+    bias: str
+    rows: list[dict[str, str]]
+    notes: list[str]
+
+@dataclass(frozen=True)
 class QuantSnapshot:
     asset: str
     source: str
@@ -165,6 +174,131 @@ def build_quant_snapshot(price_history: pd.DataFrame, asset: str, source: str = 
     )
     return _with_notes(snapshot)
 
+
+def build_quant_consensus_report(
+    snapshot: QuantSnapshot,
+    garch_report: GarchVolatilityReport | None = None,
+    driver_report: CrossAssetDriverReport | None = None,
+    kalman_report: KalmanBetaReport | None = None,
+    granger_report: GrangerCausalityReport | None = None,
+) -> QuantConsensusReport:
+    score = 50.0
+    rows: list[dict[str, str]] = []
+
+    trend_score = 0.0
+    if snapshot.trend_20d > 0 and snapshot.trend_60d > 0:
+        trend_score = 12.0
+    elif snapshot.trend_20d < 0 and snapshot.trend_60d < 0:
+        trend_score = -12.0
+    elif snapshot.trend_20d > 0:
+        trend_score = 5.0
+    elif snapshot.trend_20d < 0:
+        trend_score = -5.0
+    score += trend_score
+    rows.append({"Component": "Trend", "Impact": f"{trend_score:+.0f}", "Reading": f"20D {snapshot.trend_20d:.1%}, 60D {snapshot.trend_60d:.1%}", "Meaning": "Aligned trend improves quant environment; aligned downside weakens it."})
+
+    risk_quality_score = 0.0
+    if snapshot.sharpe_90d > 0.75:
+        risk_quality_score = 10.0
+    elif snapshot.sharpe_90d > 0.25:
+        risk_quality_score = 5.0
+    elif snapshot.sharpe_90d < -0.75:
+        risk_quality_score = -10.0
+    elif snapshot.sharpe_90d < 0:
+        risk_quality_score = -5.0
+    score += risk_quality_score
+    rows.append({"Component": "Risk-adjusted Return", "Impact": f"{risk_quality_score:+.0f}", "Reading": f"90D Sharpe {snapshot.sharpe_90d:.2f}", "Meaning": "Positive Sharpe means recent returns paid for volatility."})
+
+    stretch_score = 0.0
+    if abs(snapshot.zscore_20) >= 2.5:
+        stretch_score = -8.0
+    elif abs(snapshot.zscore_20) >= 2.0:
+        stretch_score = -5.0
+    elif abs(snapshot.zscore_20) <= 1.0:
+        stretch_score = 3.0
+    score += stretch_score
+    rows.append({"Component": "Stretch", "Impact": f"{stretch_score:+.0f}", "Reading": f"20D Z {snapshot.zscore_20:.2f}", "Meaning": "Extreme stretch reduces signal quality unless confirmed by other modules."})
+
+    vol_score = 0.0
+    if garch_report is not None:
+        if garch_report.regime == "VOL_STRESS":
+            vol_score = -15.0
+        elif garch_report.regime == "VOL_ELEVATED":
+            vol_score = -8.0
+        elif garch_report.regime == "VOL_NORMAL":
+            vol_score = 5.0
+        elif garch_report.regime == "VOL_COMPRESSED":
+            vol_score = 2.0
+        score += vol_score
+        rows.append({"Component": "Volatility", "Impact": f"{vol_score:+.0f}", "Reading": f"{garch_report.regime}, shock {garch_report.shock_score:.0f}/100", "Meaning": "Normal volatility supports cleaner signals; stress volatility penalizes them."})
+
+    driver_score = 0.0
+    if driver_report is not None and driver_report.rows:
+        corr = driver_report.strongest_correlation
+        if abs(corr) >= 0.65:
+            driver_score = 8.0
+        elif abs(corr) >= 0.35:
+            driver_score = 4.0
+        score += driver_score
+        rows.append({"Component": "Cross-asset Driver", "Impact": f"{driver_score:+.0f}", "Reading": f"{driver_report.strongest_driver} corr {corr:.2f}", "Meaning": "A clear dominant driver makes the regime easier to interpret."})
+
+    kalman_score = 0.0
+    if kalman_report is not None and kalman_report.rows:
+        if abs(kalman_report.beta_change) >= 0.25:
+            kalman_score = -4.0
+        elif abs(kalman_report.latest_beta) >= 0.35:
+            kalman_score = 5.0
+        score += kalman_score
+        rows.append({"Component": "Dynamic Beta", "Impact": f"{kalman_score:+.0f}", "Reading": f"{kalman_report.strongest_dynamic_driver} beta {kalman_report.latest_beta:.2f}, change {kalman_report.beta_change:+.2f}", "Meaning": "Stable dynamic beta improves trust in driver readings; abrupt beta shifts reduce clarity."})
+
+    granger_score = 0.0
+    if granger_report is not None and granger_report.rows and granger_report.strongest_pvalue is not None:
+        if granger_report.strongest_pvalue < 0.05:
+            granger_score = 8.0
+        elif granger_report.strongest_pvalue < 0.15:
+            granger_score = 3.0
+        score += granger_score
+        rows.append({"Component": "Predictive Evidence", "Impact": f"{granger_score:+.0f}", "Reading": f"{granger_report.strongest_predictor} p={granger_report.strongest_pvalue:.4f}", "Meaning": "Formal predictive evidence upgrades confidence; weak/no evidence keeps confidence modest."})
+
+    score = min(100.0, max(0.0, score))
+    label = _quant_consensus_label(score)
+    bias = _quant_consensus_bias(snapshot, score)
+    notes = _quant_consensus_notes(score, label, rows)
+    return QuantConsensusReport(snapshot.asset, score, label, bias, rows, notes)
+
+def _quant_consensus_label(score: float) -> str:
+    if score >= 70:
+        return "QUANT_SUPPORTIVE"
+    if score >= 55:
+        return "QUANT_MILD_SUPPORT"
+    if score >= 45:
+        return "QUANT_NEUTRAL"
+    if score >= 30:
+        return "QUANT_WEAK"
+    return "QUANT_HOSTILE"
+
+
+def _quant_consensus_bias(snapshot: QuantSnapshot, score: float) -> str:
+    if score < 45:
+        return "NO_TRADE_FILTER"
+    if snapshot.trend_20d > 0 and snapshot.trend_60d > 0:
+        return "LONG_BIAS_IF_CONFIRMED"
+    if snapshot.trend_20d < 0 and snapshot.trend_60d < 0:
+        return "SHORT_RISK_OR_AVOID_LONGS"
+    return "WAIT_FOR_CONFIRMATION"
+
+
+def _quant_consensus_notes(score: float, label: str, rows: list[dict[str, str]]) -> list[str]:
+    notes = [f"Final quant environment: {label} at {score:.0f}/100."]
+    if score >= 70:
+        notes.append("Quant evidence is broadly supportive, but NERO still needs news, regime, and trade-trigger confirmation.")
+    elif score < 45:
+        notes.append("Quant evidence is weak; NERO should avoid forcing trades unless other modules provide exceptional confirmation.")
+    else:
+        notes.append("Quant evidence is mixed; use it as a filter, not as a standalone trade signal.")
+    if not rows:
+        notes.append("Consensus has limited inputs; refresh cross-asset drivers for a fuller score.")
+    return notes
 
 def quant_driver_rows(snapshot: QuantSnapshot) -> list[dict[str, str]]:
     return [

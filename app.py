@@ -29,7 +29,7 @@ from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, evaluate_prediction_log, load_prediction_log
-from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
+from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_consensus_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.social_intelligence import (
@@ -360,6 +360,15 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     else:
         for note in garch_report.notes:
             st.caption(note)
+    local_consensus = build_quant_consensus_report(snapshot, garch_report)
+    st.subheader("Quant Consensus Score")
+    qcol_a, qcol_b, qcol_c = st.columns(3)
+    qcol_a.metric("Quant Score", f"{local_consensus.score:.0f}/100")
+    qcol_b.metric("Quant Label", local_consensus.label)
+    qcol_c.metric("Bias", local_consensus.bias)
+    for note in local_consensus.notes:
+        st.info(note)
+    st.dataframe(pd.DataFrame(local_consensus.rows), use_container_width=True, hide_index=True)
     st.subheader("Cross-Asset Driver Matrix")
     st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")
     if asset in {"BTC", "GOLD"}:
@@ -424,6 +433,15 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
                 else:
                     for note in granger_report.notes:
                         st.caption(note)
+                full_consensus = build_quant_consensus_report(snapshot, garch_report, driver_report, kalman_report, granger_report)
+                st.subheader("Full Quant Consensus")
+                fqcol_a, fqcol_b, fqcol_c = st.columns(3)
+                fqcol_a.metric("Full Quant Score", f"{full_consensus.score:.0f}/100")
+                fqcol_b.metric("Full Label", full_consensus.label)
+                fqcol_c.metric("Full Bias", full_consensus.bias)
+                for note in full_consensus.notes:
+                    st.info(note)
+                st.dataframe(pd.DataFrame(full_consensus.rows), use_container_width=True, hide_index=True)
                 st.caption(driver_source)
             else:
                 st.warning("Cross-asset driver matrix is not available yet.")
