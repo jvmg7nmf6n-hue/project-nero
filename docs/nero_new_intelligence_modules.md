@@ -25,33 +25,40 @@ app_integration_snippet.py   # copy into app.py
 **What it does:** Estimates whether BTC's price action is backed by
 institutional spot-ETF demand (IBIT, FBTC, GBTC, BITB, ARKB, HODL).
 
-**Why a proxy:** there is no free real-time API for ETF
-creations/redemptions. The engine instead builds a transparent proxy
-signal from price + volume + correlation:
+**Real flow mode:** if you have an ETF-flow provider/export, set either
+`BTC_ETF_FLOW_CSV_PATH` or `BTC_ETF_FLOW_CSV_URL`. The CSV should include
+`date`, `ticker`/`fund`/`symbol`, and either `flow_usd` or `flow_musd`
+(USD millions). In this mode NERO scores actual net ETF inflow/outflow
+instead of inferring it from market behavior.
+
+**Proxy fallback:** if no real flow source is configured, NERO falls back
+to a transparent price/volume proxy:
 - abnormal volume (20-day rolling z-score)
 - 5-day return
 - rolling correlation with BTC
 
-Each ETF gets a `flow_proxy_reading` (`INFLOW_LIKELY` /
-`OUTFLOW_LIKELY` / `NEUTRAL` / `INSUFFICIENT`); these roll up into an
-`etf_flow_score` (0–100) and a label from `STRONG_INFLOW_PRESSURE` down
+Each ETF gets a `flow_proxy_reading` or actual-flow reading
+(`INFLOW_LIKELY` / `OUTFLOW_LIKELY` / `NEUTRAL` / `INSUFFICIENT`);
+these roll up into an
+`etf_flow_score` (0-100) and a label from `STRONG_INFLOW_PRESSURE` down
 to `DATA_INSUFFICIENT`.
 
 **Interpreting the score:**
-- 75–100 `STRONG_INFLOW_PRESSURE` — BTC move looks well-supported by ETF demand.
-- 60–74 `MODERATE_INFLOW_PRESSURE` — some institutional tailwind.
-- 41–59 `NEUTRAL_FLOW` — no clear signal either way.
-- ≤40 `OUTFLOW_PRESSURE` — BTC move looks unsupported / at risk of fading.
-- `DATA_INSUFFICIENT` — not enough history to trust the read; don't act on it.
+- 75-100 `STRONG_INFLOW_PRESSURE` - BTC move looks well-supported by ETF demand.
+- 60-74 `MODERATE_INFLOW_PRESSURE` - some institutional tailwind.
+- 41-59 `NEUTRAL_FLOW` - no clear signal either way.
+- <=40 `OUTFLOW_PRESSURE` - BTC move looks unsupported / at risk of fading.
+- `DATA_INSUFFICIENT` - not enough history to trust the read; don't act on it.
 
-**Limitations:** this is price/volume behavior, not confirmed
-creations/redemptions. Treat as directional context, one input among
-several — never the sole reason to trade.
+**Limitations:** actual-flow mode depends on the coverage, delay, and
+cleanliness of the configured provider. Proxy mode is price/volume
+behavior, not confirmed creations/redemptions. Treat either reading as
+directional context, one input among several - never the sole reason to
+trade.
 
 **Core function:** `compute_etf_flow_score(etf_price_data, btc_price_data)`
 is pure and network-free (tested with synthetic DataFrames).
-`fetch_etf_flow_score()` wraps it with a `yfinance` pull and never
-raises — any network/data failure degrades to `DATA_INSUFFICIENT`.
+`compute_actual_etf_flow_score(flow_data)` scores provider/exported net-flow rows. `fetch_etf_flow_score()` tries the configured actual CSV path/URL first, then falls back to a `yfinance` proxy pull, and never raises - any network/data failure degrades to `DATA_INSUFFICIENT`.
 
 ## 2. Gold Real Yield Engine
 

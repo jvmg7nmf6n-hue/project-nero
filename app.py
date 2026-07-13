@@ -468,7 +468,7 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     external_rows: list[dict[str, object]] = []
     external_notes: list[str] = []
     if asset == "BTC":
-        if st.button("Refresh ETF flow proxy", key="refresh_etf_flow_proxy"):
+        if st.button("Refresh ETF flow", key="refresh_etf_flow_proxy"):
             etf_report = fetch_etf_flow_score()
             external_score = etf_report.etf_flow_score if etf_report.etf_flow_label != "DATA_INSUFFICIENT" else None
             external_label = etf_report.etf_flow_label
@@ -478,6 +478,7 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
             ecol_a.metric("ETF Flow Score", f"{etf_report.etf_flow_score:.0f}/100")
             ecol_b.metric("ETF Label", etf_report.etf_flow_label)
             ecol_c.metric("Dominant ETF", etf_report.dominant_etf or "none")
+            st.caption("ETF flow source: " + ("actual net-flow CSV/API" if not etf_report.is_proxy else "price/volume proxy fallback"))
     elif asset == "GOLD":
         if st.button("Refresh Gold real-yield proxy", key="refresh_gold_real_yield_proxy"):
             real_yield_report = fetch_gold_real_yield_score()

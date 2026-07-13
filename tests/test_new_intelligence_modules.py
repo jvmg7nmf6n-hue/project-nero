@@ -4,7 +4,7 @@ import unittest
 
 import pandas as pd
 
-from nero_app.core.etf_flow_intelligence import compute_etf_flow_score
+from nero_app.core.etf_flow_intelligence import compute_actual_etf_flow_score, compute_etf_flow_score
 from nero_app.core.gold_real_yield import compute_gold_real_yield_score
 from nero_app.core.trade_opportunity_scanner import (
     PaperTradeState,
@@ -38,6 +38,24 @@ class NewIntelligenceModulesTest(unittest.TestCase):
         self.assertGreaterEqual(report.etf_flow_score, 60.0)
         self.assertIn(report.etf_flow_label, {"MODERATE_INFLOW_PRESSURE", "STRONG_INFLOW_PRESSURE"})
         self.assertEqual(report.dominant_etf, "IBIT")
+
+
+    def test_actual_etf_flow_scores_real_inflows(self) -> None:
+        flows = pd.DataFrame(
+            [
+                {"date": "2026-07-10", "ticker": "IBIT", "flow_musd": 350},
+                {"date": "2026-07-10", "ticker": "FBTC", "flow_musd": 150},
+                {"date": "2026-07-10", "ticker": "GBTC", "flow_musd": -50},
+            ]
+        )
+
+        report = compute_actual_etf_flow_score(flows, lookback_days=1)
+
+        self.assertFalse(report.is_proxy)
+        self.assertEqual(report.etf_flow_label, "MODERATE_INFLOW_PRESSURE")
+        self.assertEqual(report.dominant_etf, "IBIT")
+        self.assertGreater(report.etf_flow_score, 60)
+        self.assertIn("actual", report.evidence_frame()["data_type"].unique())
 
     def test_etf_flow_handles_missing_data(self) -> None:
         report = compute_etf_flow_score({}, None, etf_tickers=["IBIT"])

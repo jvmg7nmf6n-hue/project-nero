@@ -30,6 +30,9 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
+from io import StringIO
+import os
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -60,6 +63,9 @@ class EtfEvidenceRow:
     correlation_with_btc: Optional[float]
     return_5d_pct: Optional[float]
     flow_proxy_reading: str  # INFLOW_LIKELY / OUTFLOW_LIKELY / NEUTRAL / INSUFFICIENT
+    actual_flow_usd: Optional[float] = None
+    flow_date: Optional[str] = None
+    data_type: str = "proxy"  # proxy / actual
 
     def as_dict(self) -> Dict:
         return dataclasses.asdict(self)
@@ -80,6 +86,7 @@ class EtfFlowResult:
                 columns=[
                     "ticker", "latest_close", "latest_volume", "volume_zscore",
                     "correlation_with_btc", "return_5d_pct", "flow_proxy_reading",
+                    "actual_flow_usd", "flow_date", "data_type",
                 ]
             )
         return pd.DataFrame([row.as_dict() for row in self.evidence])
@@ -159,6 +166,140 @@ def _classify_single_etf(
         return "INFLOW_LIKELY"
     return "NEUTRAL"
 
+
+
+
+# --------------------------------------------------------------------------- #
+# Actual ETF flow scoring (CSV/API-fed, no proxy assumptions)
+# --------------------------------------------------------------------------- #
+
+def compute_actual_etf_flow_score(flow_data: pd.DataFrame, lookback_days: int = 5) -> EtfFlowResult:
+    """Compute BTC ETF flow score from actual net-flow rows.
+
+    Expected columns are flexible but must include a date, ticker/fund, and one
+    net-flow column. Supported flow units: USD or USD millions.
+    """
+    notes: List[str] = []
+    if flow_data is None or flow_data.empty:
+        return EtfFlowResult(0.0, "DATA_INSUFFICIENT", None, [], ["No actual ETF flow rows provided."], is_proxy=False)
+
+    frame = _normalise_actual_flow_frame(flow_data)
+    if frame.empty:
+        return EtfFlowResult(
+            0.0,
+            "DATA_INSUFFICIENT",
+            None,
+            [],
+            ["Actual ETF flow data could not be parsed. Required: date, ticker/fund, flow_usd or flow_musd."],
+            is_proxy=False,
+        )
+
+    latest_date = frame["date"].max()
+    cutoff = latest_date - pd.Timedelta(days=max(1, lookback_days) - 1)
+    window = frame[frame["date"] >= cutoff].copy()
+    if window.empty:
+        return EtfFlowResult(0.0, "DATA_INSUFFICIENT", None, [], ["No actual ETF flow rows in lookback window."], is_proxy=False)
+
+    by_ticker = window.groupby("ticker", as_index=False)["flow_usd"].sum()
+    total_flow = float(by_ticker["flow_usd"].sum())
+    dominant = None
+    if not by_ticker.empty:
+        dominant_row = by_ticker.iloc[by_ticker["flow_usd"].abs().argmax()]
+        dominant = str(dominant_row["ticker"])
+
+    score = _actual_flow_score(total_flow)
+    label = _actual_flow_label(score)
+    evidence = [
+        EtfEvidenceRow(
+            ticker=str(row["ticker"]),
+            latest_close=None,
+            latest_volume=None,
+            volume_zscore=None,
+            correlation_with_btc=None,
+            return_5d_pct=None,
+            flow_proxy_reading=_actual_flow_reading(float(row["flow_usd"])),
+            actual_flow_usd=round(float(row["flow_usd"]), 2),
+            flow_date=latest_date.date().isoformat(),
+            data_type="actual",
+        )
+        for _, row in by_ticker.sort_values("flow_usd", key=lambda s: s.abs(), ascending=False).iterrows()
+    ]
+    notes.append(f"Actual BTC ETF net flow used: {total_flow:,.0f} USD over the last {lookback_days} calendar day(s).")
+    notes.append("This is actual net-flow input, not the price/volume proxy. Treat provider coverage and timing as a data-quality dependency.")
+    return EtfFlowResult(round(score, 2), label, dominant, evidence, notes, is_proxy=False)
+
+
+def _normalise_actual_flow_frame(flow_data: pd.DataFrame) -> pd.DataFrame:
+    frame = flow_data.copy()
+    frame.columns = [str(col).strip().lower().replace(" ", "_") for col in frame.columns]
+    date_col = _first_existing(frame, ["date", "day", "as_of", "as_of_date"])
+    ticker_col = _first_existing(frame, ["ticker", "fund", "symbol", "etf"])
+    usd_col = _first_existing(frame, ["flow_usd", "net_flow_usd", "netflow_usd", "usd", "flow"])
+    musd_col = _first_existing(frame, ["flow_musd", "net_flow_musd", "flow_usd_millions", "usd_millions", "million_usd", "flow_million_usd"])
+    if not date_col or not ticker_col or (not usd_col and not musd_col):
+        return pd.DataFrame(columns=["date", "ticker", "flow_usd"])
+    out = pd.DataFrame()
+    out["date"] = pd.to_datetime(frame[date_col], errors="coerce")
+    out["ticker"] = frame[ticker_col].astype(str).str.upper().str.strip()
+    raw_flow = frame[usd_col] if usd_col else frame[musd_col]
+    flow = pd.to_numeric(raw_flow.astype(str).str.replace(",", "", regex=False).str.replace("$", "", regex=False), errors="coerce")
+    if musd_col and not usd_col:
+        flow = flow * 1_000_000.0
+    out["flow_usd"] = flow
+    out = out.dropna(subset=["date", "flow_usd"])
+    out = out[out["ticker"] != ""]
+    return out.sort_values("date").reset_index(drop=True)
+
+
+def _first_existing(frame: pd.DataFrame, columns: list[str]) -> str | None:
+    for column in columns:
+        if column in frame.columns:
+            return column
+    return None
+
+
+def _actual_flow_score(total_flow_usd: float) -> float:
+    # Scale around +/- $1B net flow as strong pressure. This stays bounded and transparent.
+    billions = total_flow_usd / 1_000_000_000.0
+    return float(np.clip(50.0 + billions * 35.0, 0.0, 100.0))
+
+
+def _actual_flow_label(score: float) -> str:
+    if score >= 75:
+        return "STRONG_INFLOW_PRESSURE"
+    if score >= 60:
+        return "MODERATE_INFLOW_PRESSURE"
+    if score > 40:
+        return "NEUTRAL_FLOW"
+    return "OUTFLOW_PRESSURE"
+
+
+def _actual_flow_reading(flow_usd: float) -> str:
+    if flow_usd > 25_000_000:
+        return "INFLOW_ACTUAL"
+    if flow_usd < -25_000_000:
+        return "OUTFLOW_ACTUAL"
+    return "NEUTRAL_ACTUAL"
+
+
+def fetch_actual_etf_flow_score(csv_path: str | None = None, csv_url: str | None = None, lookback_days: int = 5) -> EtfFlowResult:
+    """Fetch actual ETF net-flow data from a configured CSV path or URL."""
+    csv_path = csv_path or os.getenv("BTC_ETF_FLOW_CSV_PATH", "").strip()
+    csv_url = csv_url or os.getenv("BTC_ETF_FLOW_CSV_URL", "").strip()
+    try:
+        if csv_path:
+            path = Path(csv_path).expanduser()
+            if not path.exists():
+                return EtfFlowResult(0.0, "DATA_INSUFFICIENT", None, [], [f"BTC_ETF_FLOW_CSV_PATH not found: {path}"], is_proxy=False)
+            return compute_actual_etf_flow_score(pd.read_csv(path), lookback_days=lookback_days)
+        if csv_url:
+            import requests
+            response = requests.get(csv_url, timeout=20)
+            response.raise_for_status()
+            return compute_actual_etf_flow_score(pd.read_csv(StringIO(response.text)), lookback_days=lookback_days)
+    except Exception as exc:  # pragma: no cover - defensive external I/O
+        return EtfFlowResult(0.0, "DATA_INSUFFICIENT", None, [], [f"Actual ETF flow fetch failed: {exc}"], is_proxy=False)
+    return EtfFlowResult(0.0, "DATA_INSUFFICIENT", None, [], ["No actual ETF flow CSV path or URL configured."], is_proxy=False)
 
 # --------------------------------------------------------------------------- #
 # Core scoring function (pure, no network)
@@ -312,6 +453,10 @@ def fetch_etf_flow_score(
     note. Not covered by unit tests (network I/O); tests exercise
     compute_etf_flow_score() directly with synthetic data.
     """
+    actual = fetch_actual_etf_flow_score()
+    if actual.etf_flow_label != "DATA_INSUFFICIENT":
+        return actual
+
     tickers = etf_tickers or DEFAULT_ETF_TICKERS
     try:
         import yfinance as yf  # local import: optional dependency
@@ -344,4 +489,6 @@ def fetch_etf_flow_score(
             ["No ETF data could be fetched from yfinance."],
         )
 
-    return compute_etf_flow_score(etf_data, btc_data, tickers)
+    proxy = compute_etf_flow_score(etf_data, btc_data, tickers)
+    proxy.notes = actual.notes + proxy.notes
+    return proxy
