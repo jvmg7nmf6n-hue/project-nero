@@ -45,6 +45,7 @@ from nero_app.core.social_intelligence import (
 )
 from nero_app.core.trade_desk import build_intraday_trade_plan
 from nero_app.core.trade_opportunity_scanner import PaperTradeState, ScannerInputs, TechnicalSnapshot, scan_trade_opportunity
+from nero_app.core.trade_path import TradePathInput, build_trade_path_report
 from nero_app.core.trade_readiness import ReadinessInputs, build_trade_readiness_report
 from nero_app.core.verdict_modifiers import apply_white_house_modifier
 
