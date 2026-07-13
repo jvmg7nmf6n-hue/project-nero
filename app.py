@@ -331,9 +331,9 @@ def _render_mean_reversion_tab() -> None:
         )
 
 
-def _render_strategy_audit_tab() -> None:
+def _render_strategy_audit_tab(compact: bool = False) -> None:
     st.subheader("Strategy Performance Auditor")
-    st.caption("Proof layer: compares paper-trading outcomes, prediction truth, rejection reasons, and sample quality.")
+    st.caption("Proof layer: paper-trading outcomes, prediction truth, rejection reasons, and sample quality.")
     audit = build_strategy_performance_audit()
     col_a, col_b, col_c, col_d, col_e = st.columns(5)
     col_a.metric("Audit Score", f"{audit.score:.0f}/100")
@@ -341,16 +341,16 @@ def _render_strategy_audit_tab() -> None:
     col_c.metric("Closed Trades", str(audit.total_closed_trades))
     col_d.metric("Evaluated Signals", str(audit.evaluated_signals))
     col_e.metric("Best Asset", audit.best_asset.upper())
+    st.metric("Top Setup Blocker", audit.top_blocker)
     if audit.insufficient_sample:
         st.warning("Insufficient sample: collect at least 20-30 closed trades/signals before treating results as reliable evidence.")
     for note in audit.notes:
         st.info(note)
-    st.metric("Top Setup Blocker", audit.top_blocker)
-    audit_frame = pd.DataFrame(audit.rows)
-    if audit_frame.empty:
-        st.error("Strategy audit data files were not found or contained no readable rows.")
+    if compact:
+        with st.expander("Open full strategy audit rows"):
+            _render_strategy_audit_rows(audit)
     else:
-        st.dataframe(audit_frame, use_container_width=True, hide_index=True)
+        _render_strategy_audit_rows(audit)
     with st.expander("Strategy audit data sources"):
         source_rows = [
             {"File": "mean_reversion_report.csv", "Path": str(DEFAULT_MEAN_REVERSION_REPORT_PATH), "Exists": DEFAULT_MEAN_REVERSION_REPORT_PATH.exists()},
@@ -358,7 +358,17 @@ def _render_strategy_audit_tab() -> None:
             {"File": "evaluations.csv", "Path": str(DEFAULT_EVALUATIONS_PATH), "Exists": DEFAULT_EVALUATIONS_PATH.exists()},
             {"File": "prediction_log.csv", "Path": str(DEFAULT_PREDICTION_LOG_PATH), "Exists": DEFAULT_PREDICTION_LOG_PATH.exists()},
         ]
-        st.dataframe(pd.DataFrame(source_rows), use_container_width=True, hide_index=True)
+        st.table(pd.DataFrame(source_rows))
+
+
+def _render_strategy_audit_rows(audit) -> None:
+    if not audit.rows:
+        st.error("Strategy audit data files were found, but no readable audit rows were produced.")
+        return
+    audit_frame = pd.DataFrame(audit.rows)
+    st.table(audit_frame)
+    with st.expander("Raw audit payload"):
+        st.json(audit.as_dict())
 
 def _scanner_sentiment_score(score: float | None) -> float | None:
     if score is None:
@@ -1001,6 +1011,8 @@ def main() -> None:
             st.info("No demo trades yet. Nero records each LONG/SHORT signal as pending, then activates it when the trigger is touched.")
         else:
             st.dataframe(demo_frame.sort_values("opened_at", ascending=False), use_container_width=True)
+        st.divider()
+        _render_strategy_audit_tab(compact=True)
 
     with mean_reversion_tab:
         _render_mean_reversion_tab()
