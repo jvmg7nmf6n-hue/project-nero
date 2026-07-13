@@ -1,26 +1,38 @@
 {
-  "BTC:WAIT_SHORT_TRIGGER:63577.38": {
-    "cooldown": 1
+  "BTC:WAIT_SHORT_TRIGGER:61732.24": {
+    "cooldown": 7
   },
   "BTC:WAIT_SHORT_TRIGGER:63578.05": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "BTC:WAIT_SHORT_TRIGGER:63578.91": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:AVAX:rsi_high": {
-    "cooldown": 6
+    "cooldown": 5
+  },
+  "scanner:AVAX:rsi_low": {
+    "cooldown": 7
   },
   "scanner:LTC:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:LTC:rsi_low": {
-    "cooldown": 5
+    "cooldown": 4
+  },
+  "scanner:SHIB:rsi_low": {
+    "cooldown": 7
   },
   "scanner:SHIB:volume": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:SOL:rsi_low": {
-    "cooldown": 5
+    "cooldown": 4
+  },
+  "scanner:XRP:breakdown": {
+    "cooldown": 7
+  },
+  "scanner:XRP:rsi_low": {
+    "cooldown": 7
   }
 }
