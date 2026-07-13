@@ -34,6 +34,7 @@ from nero_app.core.prediction_log import append_prediction, build_prediction_tru
 from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_consensus_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
+from nero_app.core.strategy_performance_auditor import build_strategy_performance_audit
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -330,6 +331,22 @@ def _render_mean_reversion_tab() -> None:
         )
 
 
+def _render_strategy_audit_tab() -> None:
+    st.subheader("Strategy Performance Auditor")
+    st.caption("Proof layer: compares paper-trading outcomes, prediction truth, rejection reasons, and sample quality.")
+    audit = build_strategy_performance_audit()
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    col_a.metric("Audit Score", f"{audit.score:.0f}/100")
+    col_b.metric("Grade", audit.grade)
+    col_c.metric("Closed Trades", str(audit.total_closed_trades))
+    col_d.metric("Evaluated Signals", str(audit.evaluated_signals))
+    col_e.metric("Best Asset", audit.best_asset.upper())
+    if audit.insufficient_sample:
+        st.warning("Insufficient sample: collect at least 20-30 closed trades/signals before treating results as reliable evidence.")
+    for note in audit.notes:
+        st.info(note)
+    st.metric("Top Setup Blocker", audit.top_blocker)
+    st.dataframe(pd.DataFrame(audit.rows), use_container_width=True, hide_index=True)
 
 def _scanner_sentiment_score(score: float | None) -> float | None:
     if score is None:
@@ -781,8 +798,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, market_memory_tab, quant_intel_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Market Memory", "Quant Intel", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, market_memory_tab, quant_intel_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Market Memory", "Quant Intel", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
