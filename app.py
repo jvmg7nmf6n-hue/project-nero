@@ -421,6 +421,115 @@ def _scanner_paper_trade_state(asset: str) -> PaperTradeState:
     )
 
 
+
+def _render_trade_path_tab(asset: str, price_history: pd.DataFrame, source: str, sentiment_score: float | None = None) -> None:
+    st.subheader("Next Trade Path")
+    st.caption("Plain trader roadmap: what blocks the setup, what must improve, and when NERO should check again.")
+    snapshot = build_quant_snapshot(price_history, asset=asset, source=source)
+    garch_report = build_garch_volatility_report(price_history, asset)
+    local_consensus = build_quant_consensus_report(snapshot, garch_report)
+
+    external_score = None
+    external_label = "not loaded"
+    external_notes: list[str] = []
+    if asset == "BTC":
+        if st.button("Refresh ETF flow for trade path", key="trade_path_refresh_etf"):
+            etf_report = fetch_etf_flow_score()
+            external_score = etf_report.etf_flow_score if etf_report.etf_flow_label != "DATA_INSUFFICIENT" else None
+            external_label = etf_report.etf_flow_label
+            external_notes = etf_report.notes
+            st.caption("ETF flow source: " + ("actual net-flow CSV/API" if not etf_report.is_proxy else "price/volume proxy fallback"))
+    elif asset == "GOLD":
+        if st.button("Refresh real-yield for trade path", key="trade_path_refresh_real_yield"):
+            real_yield_report = fetch_gold_real_yield_score()
+            external_score = real_yield_report.real_yield_score if real_yield_report.real_yield_label != "DATA_INSUFFICIENT" else None
+            external_label = real_yield_report.real_yield_label
+            external_notes = real_yield_report.notes
+            st.caption("Real-yield source: " + ("official CSV/API" if not real_yield_report.is_proxy else "yfinance proxy fallback"))
+
+    for note in external_notes:
+        st.info(str(note))
+
+    scanner_inputs = ScannerInputs(
+        asset=asset,
+        quant_consensus_score=local_consensus.score,
+        sentiment_score=_scanner_sentiment_score(sentiment_score),
+        etf_flow_score=external_score if asset == "BTC" else None,
+        real_yield_score=external_score if asset == "GOLD" else None,
+        sharpe_90d=snapshot.sharpe_90d,
+        technical=_scanner_technical_snapshot(snapshot, garch_report, price_history),
+        paper_trade_state=_scanner_paper_trade_state(asset),
+    )
+    scanner = scan_trade_opportunity(scanner_inputs)
+    readiness = build_trade_readiness_report(
+        ReadinessInputs(
+            asset=asset,
+            opportunity_decision=scanner.decision,
+            opportunity_score=scanner.opportunity_score,
+            quant_score=local_consensus.score,
+            volatility_regime=garch_report.regime,
+            sentiment_score=_scanner_sentiment_score(sentiment_score),
+            has_active_paper_trade=scanner_inputs.paper_trade_state.has_open_position or scanner_inputs.paper_trade_state.has_pending_order,
+            missing_inputs=[] if sentiment_score is not None else ["news sentiment"],
+        )
+    )
+    trade_path = build_trade_path_report(
+        TradePathInput(
+            asset=asset,
+            readiness_label=readiness.label,
+            readiness_score=readiness.readiness_score,
+            opportunity_decision=scanner.decision,
+            opportunity_score=scanner.opportunity_score,
+            direction_bias=scanner.direction_bias,
+            quant_score=local_consensus.score,
+            external_score=external_score,
+            external_label=external_label,
+            sentiment_score=_scanner_sentiment_score(sentiment_score),
+            volatility_regime=garch_report.regime,
+            blockers=readiness.blockers,
+            failed_conditions=scanner.failed_conditions,
+            near_miss_conditions=scanner.near_miss_conditions,
+            has_active_paper_trade=scanner_inputs.paper_trade_state.has_open_position or scanner_inputs.paper_trade_state.has_pending_order,
+        )
+    )
+
+    pcol_a, pcol_b, pcol_c, pcol_d = st.columns(4)
+    pcol_a.metric("Path", trade_path.path_label)
+    pcol_b.metric("Readiness", readiness.label)
+    pcol_c.metric("Readiness Score", f"{readiness.readiness_score:.0f}/100")
+    pcol_d.metric("Opportunity", f"{scanner.opportunity_score:.0f}/100")
+    st.info(trade_path.action)
+    st.warning("Direction: " + scanner.direction_bias + " | Next check: " + trade_path.next_check)
+
+    col_a, col_b, col_c = st.columns(3)
+    with col_a:
+        st.markdown("**Required Confirmations**")
+        for item in trade_path.missing_confirmations or ["none"]:
+            st.caption(item)
+    with col_b:
+        st.markdown("**Watch Triggers**")
+        for item in trade_path.watch_triggers or ["none"]:
+            st.caption(item)
+    with col_c:
+        st.markdown("**Why Not Yet**")
+        for item in trade_path.blocker_explanations or readiness.blockers or scanner.failed_conditions or ["none"]:
+            st.caption(item)
+
+    st.subheader("Underlying Gate Scores")
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {"Gate": "Quant Consensus", "Reading": f"{local_consensus.score:.0f}/100", "Status": local_consensus.label},
+                {"Gate": "Volatility", "Reading": garch_report.regime, "Status": f"shock {garch_report.shock_score:.0f}/100"},
+                {"Gate": "External", "Reading": "not loaded" if external_score is None else f"{external_score:.0f}/100", "Status": external_label},
+                {"Gate": "Opportunity", "Reading": f"{scanner.opportunity_score:.0f}/100", "Status": scanner.decision},
+                {"Gate": "Readiness", "Reading": f"{readiness.readiness_score:.0f}/100", "Status": readiness.label},
+            ]
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
+
 def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, source: str, sentiment_score: float | None = None) -> None:
     st.subheader("Quant Intelligence")
     st.caption("Statistical layer from the Gold/BTC quant toolkit: log returns, z-score, realized volatility, risk-adjusted return, and drawdown.")
@@ -843,8 +952,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, market_memory_tab, quant_intel_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Market Memory", "Quant Intel", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, market_memory_tab, quant_intel_tab, trade_path_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Market Memory", "Quant Intel", "Trade Path", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1046,6 +1155,9 @@ def main() -> None:
 
     with quant_intel_tab:
         _render_quant_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})", sentiment_result.sentiment_score)
+
+    with trade_path_tab:
+        _render_trade_path_tab(asset, price_history, f"{market_data.source} ({market_data.status})", sentiment_result.sentiment_score)
 
 
     with social_intel_tab:
