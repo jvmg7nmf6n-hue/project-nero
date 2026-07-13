@@ -15,6 +15,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover
 
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
+from nero_app.core.btc_structural_models import build_btc_structural_report
 from nero_app.core.consensus_engine import build_consensus_decision
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
@@ -559,6 +560,25 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
     if readiness.missing_inputs:
         st.caption("Missing inputs: " + ", ".join(readiness.missing_inputs))
 
+    if asset == "BTC":
+        st.subheader("BTC Structural Models")
+        latest_btc_price = None
+        if isinstance(price_history, pd.DataFrame) and not price_history.empty:
+            for price_col in ("close", "Close"):
+                if price_col in price_history.columns:
+                    closes = pd.to_numeric(price_history[price_col], errors="coerce").dropna()
+                    if not closes.empty:
+                        latest_btc_price = float(closes.iloc[-1])
+                    break
+        structural = build_btc_structural_report(current_price=latest_btc_price)
+        bcol_a, bcol_b, bcol_c, bcol_d = st.columns(4)
+        bcol_a.metric("Structural Score", f"{structural.structural_score:.0f}/100")
+        bcol_b.metric("Label", structural.structural_label)
+        bcol_c.metric("Stock-to-Flow", "n/a" if structural.stock_to_flow is None else f"{structural.stock_to_flow:.1f}")
+        bcol_d.metric("Blocks to Halving", f"{structural.blocks_to_halving:,}")
+        for note in structural.notes:
+            st.info(note)
+        st.dataframe(pd.DataFrame(structural.rows()), use_container_width=True, hide_index=True)
     st.subheader("Cross-Asset Driver Matrix")
     st.caption("Optional live driver map: DXY, SPX/Nasdaq, ETF proxies, MSTR/COIN/miners for BTC; DXY/yields/miners/ETF proxies for Gold.")
     if asset in {"BTC", "GOLD"}:

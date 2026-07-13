@@ -167,3 +167,19 @@ All outputs are research estimates for paper trading only. Several
 figures are explicitly-labeled proxies built from public price/volume
 data, not official institutional flow or FRED data. Nothing here is
 financial advice, and no score or label implies a guaranteed outcome.
+## 4. BTC Structural Models
+
+**What it does:** adds a supply-side lens for BTC: block subsidy,
+estimated issued supply, annual issuance, stock-to-flow, blocks to next
+halving, and optional miner cost-floor context.
+
+**Optional configuration:** set `BTC_BLOCK_HEIGHT` for a precise chain
+height and `BTC_MINER_COST_FLOOR` if you maintain a miner cost-floor
+estimate. If block height is blank, NERO estimates it from the Bitcoin
+genesis timestamp and 10-minute block cadence.
+
+**Use in NERO:** this is structural context only. High stock-to-flow or a
+near halving can support a broader BTC thesis, while price below a miner
+cost floor warns of stress. It is not a standalone buy/sell signal and it
+must be confirmed by quant consensus, sentiment, ETF flow, volatility,
+and paper-trade accountability.
