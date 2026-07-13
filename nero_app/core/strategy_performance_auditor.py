@@ -1,4 +1,4 @@
-﻿"""Strategy performance auditor for Project Nero.
+"""Strategy performance auditor for Project Nero.
 
 The auditor is a proof layer: it summarizes whether NERO's paper strategies
 have enough sample size and whether current results are reliable enough to use
@@ -155,7 +155,13 @@ def _best_asset(frame: pd.DataFrame) -> str:
 def _top_rejection_reason(report: pd.DataFrame, evaluations: pd.DataFrame) -> str:
     counts: dict[str, int] = {}
     if not report.empty and "rejected_setup_counts" in report.columns:
-        for raw in report["rejected_setup_counts"].fillna(""):
+        report_source = report
+        if "asset" in report.columns:
+            combined = report[report["asset"].astype(str).str.upper() == "COMBINED"]
+            if not combined.empty:
+                # Use the combined row when present; summing it with per-asset rows double-counts blockers.
+                report_source = combined
+        for raw in report_source["rejected_setup_counts"].fillna(""):
             try:
                 parsed = json.loads(str(raw)) if str(raw).strip() else {}
             except json.JSONDecodeError:
