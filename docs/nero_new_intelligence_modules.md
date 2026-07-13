@@ -68,7 +68,8 @@ real yields are historically gold-supportive; rising real yields plus
 dollar strength are historically a headwind.
 
 **Two modes:**
-- **Official mode** — pass real nominal-yield and breakeven-inflation
+- **Official configured mode** - set `GOLD_REAL_YIELD_CSV_PATH` or `GOLD_REAL_YIELD_CSV_URL` with CSV columns like `date,DGS10,T10YIE` or `date,real_yield`. NERO uses this first when available.
+- **Official function mode** — pass real nominal-yield and breakeven-inflation
   series (e.g. from FRED: `DGS10`, `T10YIE`) → precise real yield.
 - **Proxy mode** — pass `^TNX` (yield proxy, auto-divided by 10) and
   `TIP` (inflation-protected bond ETF, used via price momentum as a

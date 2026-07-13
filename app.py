@@ -480,7 +480,7 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
             ecol_c.metric("Dominant ETF", etf_report.dominant_etf or "none")
             st.caption("ETF flow source: " + ("actual net-flow CSV/API" if not etf_report.is_proxy else "price/volume proxy fallback"))
     elif asset == "GOLD":
-        if st.button("Refresh Gold real-yield proxy", key="refresh_gold_real_yield_proxy"):
+        if st.button("Refresh Gold real-yield", key="refresh_gold_real_yield_proxy"):
             real_yield_report = fetch_gold_real_yield_score()
             external_score = real_yield_report.real_yield_score if real_yield_report.real_yield_label != "DATA_INSUFFICIENT" else None
             external_label = real_yield_report.real_yield_label
@@ -491,6 +491,7 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
             rcol_b.metric("Macro Label", real_yield_report.real_yield_label)
             rcol_c.metric("Est. Real Yield", "n/a" if real_yield_report.estimated_real_yield is None else f"{real_yield_report.estimated_real_yield:.2f}%")
             rcol_d.metric("DXY Pressure", real_yield_report.dxy_pressure or "unknown")
+            st.caption("Real-yield source: " + ("official CSV/API" if not real_yield_report.is_proxy else "yfinance proxy fallback"))
     else:
         st.caption("ETF flow is BTC-specific and real-yield scoring is Gold-specific; scanner will use local quant evidence only for this asset.")
 

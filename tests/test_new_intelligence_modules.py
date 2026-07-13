@@ -5,7 +5,7 @@ import unittest
 import pandas as pd
 
 from nero_app.core.etf_flow_intelligence import compute_actual_etf_flow_score, compute_etf_flow_score
-from nero_app.core.gold_real_yield import compute_gold_real_yield_score
+from nero_app.core.gold_real_yield import compute_actual_gold_real_yield_score, compute_gold_real_yield_score
 from nero_app.core.trade_opportunity_scanner import (
     PaperTradeState,
     ScannerInputs,
@@ -63,6 +63,21 @@ class NewIntelligenceModulesTest(unittest.TestCase):
         self.assertEqual(report.etf_flow_label, "DATA_INSUFFICIENT")
         self.assertEqual(report.etf_flow_score, 0.0)
 
+    def test_actual_gold_real_yield_scores_official_rows(self) -> None:
+        rows = pd.DataFrame(
+            [
+                {"date": "2026-07-08", "DGS10": 4.2, "T10YIE": 2.2},
+                {"date": "2026-07-09", "DGS10": 4.1, "T10YIE": 2.3},
+                {"date": "2026-07-10", "DGS10": 2.9, "T10YIE": 2.6},
+            ]
+        )
+
+        report = compute_actual_gold_real_yield_score(rows)
+
+        self.assertFalse(report.is_proxy)
+        self.assertEqual(report.real_yield_label, "GOLD_MACRO_NEUTRAL")
+        self.assertAlmostEqual(report.estimated_real_yield, 0.3)
+        self.assertIn("Official real-yield input", " ".join(report.notes))
     def test_gold_real_yield_supportive_when_real_yield_negative(self) -> None:
         nominal = _series([1.0] * 30)
         breakeven = _series([3.0] * 30)
