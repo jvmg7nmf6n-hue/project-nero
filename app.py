@@ -34,7 +34,7 @@ from nero_app.core.prediction_log import append_prediction, build_prediction_tru
 from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_consensus_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
-from nero_app.core.strategy_performance_auditor import build_strategy_performance_audit
+from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PATH, DEFAULT_EVALUATIONS_PATH, DEFAULT_MEAN_REVERSION_REPORT_PATH, DEFAULT_PREDICTION_LOG_PATH, build_strategy_performance_audit
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -346,7 +346,19 @@ def _render_strategy_audit_tab() -> None:
     for note in audit.notes:
         st.info(note)
     st.metric("Top Setup Blocker", audit.top_blocker)
-    st.dataframe(pd.DataFrame(audit.rows), use_container_width=True, hide_index=True)
+    audit_frame = pd.DataFrame(audit.rows)
+    if audit_frame.empty:
+        st.error("Strategy audit data files were not found or contained no readable rows.")
+    else:
+        st.dataframe(audit_frame, use_container_width=True, hide_index=True)
+    with st.expander("Strategy audit data sources"):
+        source_rows = [
+            {"File": "mean_reversion_report.csv", "Path": str(DEFAULT_MEAN_REVERSION_REPORT_PATH), "Exists": DEFAULT_MEAN_REVERSION_REPORT_PATH.exists()},
+            {"File": "closed_trades.csv", "Path": str(DEFAULT_CLOSED_TRADES_PATH), "Exists": DEFAULT_CLOSED_TRADES_PATH.exists()},
+            {"File": "evaluations.csv", "Path": str(DEFAULT_EVALUATIONS_PATH), "Exists": DEFAULT_EVALUATIONS_PATH.exists()},
+            {"File": "prediction_log.csv", "Path": str(DEFAULT_PREDICTION_LOG_PATH), "Exists": DEFAULT_PREDICTION_LOG_PATH.exists()},
+        ]
+        st.dataframe(pd.DataFrame(source_rows), use_container_width=True, hide_index=True)
 
 def _scanner_sentiment_score(score: float | None) -> float | None:
     if score is None:

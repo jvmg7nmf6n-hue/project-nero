@@ -15,8 +15,13 @@ from typing import Any
 
 import pandas as pd
 
-from nero_app.core.mean_reversion_agent import DEFAULT_DATA_DIR, DEFAULT_REPORT_DIR
-from nero_app.core.prediction_log import DEFAULT_LOG_PATH, build_prediction_truth_report, load_prediction_log
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MEAN_REVERSION_REPORT_PATH = PROJECT_ROOT / 'reports' / 'mean_reversion_report.csv'
+DEFAULT_CLOSED_TRADES_PATH = PROJECT_ROOT / 'nero_app' / 'data' / 'mean_reversion' / 'trades' / 'closed_trades.csv'
+DEFAULT_EVALUATIONS_PATH = PROJECT_ROOT / 'nero_app' / 'data' / 'mean_reversion' / 'trades' / 'evaluations.csv'
+DEFAULT_PREDICTION_LOG_PATH = PROJECT_ROOT / 'nero_app' / 'data' / 'prediction_log.csv'
+
+from nero_app.core.prediction_log import build_prediction_truth_report, load_prediction_log
 
 
 @dataclass(frozen=True)
@@ -37,10 +42,10 @@ class StrategyAuditReport:
 
 
 def build_strategy_performance_audit(
-    mean_reversion_report_path: Path = DEFAULT_REPORT_DIR / "mean_reversion_report.csv",
-    closed_trades_path: Path = DEFAULT_DATA_DIR / "trades" / "closed_trades.csv",
-    evaluations_path: Path = DEFAULT_DATA_DIR / "trades" / "evaluations.csv",
-    prediction_log_path: Path = DEFAULT_LOG_PATH,
+    mean_reversion_report_path: Path = DEFAULT_MEAN_REVERSION_REPORT_PATH,
+    closed_trades_path: Path = DEFAULT_CLOSED_TRADES_PATH,
+    evaluations_path: Path = DEFAULT_EVALUATIONS_PATH,
+    prediction_log_path: Path = DEFAULT_PREDICTION_LOG_PATH,
 ) -> StrategyAuditReport:
     mr_report = _read_csv(mean_reversion_report_path)
     closed_trades = _read_csv(closed_trades_path)
