@@ -30,6 +30,7 @@ from nero_app.core.historical_market_memory import (
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.mobile_alerts import format_trade_alert, send_email_alert
 from nero_app.core.news_feed import NewsFeedClient
+from nero_app.core.nero_chat import NeroChatContext, SUGGESTED_QUESTIONS, answer_nero_chat
 from nero_app.core.orchestrator import NeroOrchestrator
 from nero_app.core.prediction_log import append_prediction, build_prediction_truth_report, evaluate_prediction_log, load_prediction_log
 from nero_app.core.quant_intelligence import build_cointegration_report, build_cross_asset_driver_report, build_garch_volatility_report, build_granger_causality_report, build_kalman_beta_report, build_lead_lag_driver_report, build_quant_consensus_report, build_quant_snapshot, fetch_cross_asset_price_data, quant_driver_rows
@@ -433,6 +434,43 @@ def _render_strategy_test_lab_tab() -> None:
             json_path = report_dir / f"strategy_lab_{candidate_id}.json"
             rows.append({"Algo": candidate_id, "CSV": str(csv_path), "CSV Exists": csv_path.exists(), "JSON Exists": json_path.exists()})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+
+def _load_strategy_lab_rows() -> list[dict[str, object]]:
+    summary_path = STRATEGY_LAB_REPORT_DIR / "strategy_lab_summary.csv"
+    if not summary_path.exists():
+        return []
+    try:
+        return pd.read_csv(summary_path).to_dict("records")
+    except (pd.errors.EmptyDataError, OSError, UnicodeDecodeError):
+        return []
+
+
+def _render_nero_chat_tab(context: NeroChatContext) -> None:
+    st.subheader("NERO Chat")
+    st.caption("Ask NERO in simple language. It explains current dashboard readings; it does not place real orders.")
+    col_a, col_b, col_c = st.columns(3)
+    col_a.metric("Asset", context.asset)
+    col_b.metric("Consensus", context.consensus_class.replace("_", " "), f"{context.consensus_quality:.0f}/100")
+    col_c.metric("Trade Desk", context.trade_action.replace("_", " "))
+    if "nero_chat_messages" not in st.session_state:
+        st.session_state.nero_chat_messages = [
+            {"role": "assistant", "content": answer_nero_chat("summary", context)}
+        ]
+    with st.expander("Suggested questions", expanded=False):
+        st.dataframe(pd.DataFrame({"Question": SUGGESTED_QUESTIONS}), use_container_width=True, hide_index=True)
+    for message in st.session_state.nero_chat_messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+    question = st.chat_input("Ask NERO: trade lena chahiye, risk kya hai, next trigger kya hai...")
+    if question:
+        st.session_state.nero_chat_messages.append({"role": "user", "content": question})
+        answer = answer_nero_chat(question, context)
+        st.session_state.nero_chat_messages.append({"role": "assistant", "content": answer})
+        st.rerun()
+    if st.button("Reset NERO Chat"):
+        st.session_state.nero_chat_messages = [{"role": "assistant", "content": answer_nero_chat("summary", context)}]
+        st.rerun()
 
 def _render_strategy_audit_rows(audit) -> None:
     if not audit.rows:
@@ -1023,8 +1061,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1235,6 +1273,36 @@ def main() -> None:
 
     with trade_path_tab:
         _render_trade_path_tab(asset, price_history, f"{market_data.source} ({market_data.status})", sentiment_result.sentiment_score)
+
+    chat_context = NeroChatContext(
+        asset=asset,
+        data_status=market_data.status,
+        verdict_direction=result.verdict.direction,
+        verdict_confidence=result.verdict.confidence,
+        risk_score=result.verdict.risk_score,
+        trade_action=trade_plan.action,
+        trade_bias=trade_plan.bias,
+        trade_confidence=trade_plan.confidence,
+        entry_trigger=trade_plan.entry_trigger,
+        stop_loss=trade_plan.stop_loss,
+        take_profit_1=trade_plan.take_profit_1,
+        take_profit_2=trade_plan.take_profit_2,
+        invalidation=trade_plan.invalidation,
+        consensus_class=consensus_decision.decision_class,
+        consensus_quality=consensus_decision.trade_quality,
+        consensus_direction=consensus_decision.direction,
+        sentiment=sentiment_result.overall_sentiment,
+        sentiment_score=sentiment_result.sentiment_score,
+        confluence_score=result.assessment.confluence_score,
+        market_regime=result.assessment.market_regime,
+        volatility_regime=result.assessment.volatility_regime,
+        blockers=consensus_decision.blockers,
+        reasons=consensus_decision.reasons,
+        test_lab=_load_strategy_lab_rows(),
+    )
+    with chat_tab:
+        _render_nero_chat_tab(chat_context)
+
 
 
     with social_intel_tab:
