@@ -1,0 +1,40 @@
+﻿name: Nero Strategy TEST Lab
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  strategy-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run strategy lab agent
+        run: python tools/nero_strategy_lab_agent.py
+        env:
+          MR_ASSETS: BTC:BTCUSDT,ETH:ETHUSDT,SOL:SOLUSDT,XRP:XRPUSDT,DOGE:DOGEUSDT,NEAR:NEARUSDT,BNB:BNBUSDT,PAXG:PAXGUSDT
+          SLAB_FEE_BPS: "10"
+          SLAB_SLIPPAGE_BPS: "2"
+          SLAB_RISK_PER_TRADE: "0.01"
+          SLAB_DAILY_LOSS_GUARD_R: "-3"
+          SLAB_MAX_NOTIONAL_PCT: "1"
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      - name: Save strategy lab records
+        run: |
+          git config user.name "nero-strategy-lab"
+          git config user.email "actions@users.noreply.github.com"
+          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json
+          git commit -m "Update strategy lab records" || echo "no strategy lab changes"
+          git pull --rebase origin main || true
+          git push || echo "nothing to push"

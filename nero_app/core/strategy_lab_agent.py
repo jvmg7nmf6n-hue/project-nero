@@ -1,0 +1,415 @@
+﻿"""Parallel Strategy Lab Agent for Project Nero.
+
+Runs multiple research-only paper strategies side by side. No real orders,
+no exchange trading keys, no auto-promotion of strategy rules.
+"""
+
+from __future__ import annotations
+
+import csv
+import dataclasses
+from dataclasses import dataclass
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+from nero_app.core.mean_reversion_agent import (
+    MeanReversionAgent,
+    MeanReversionConfig,
+    add_indicators,
+    apply_slippage,
+    load_assets_from_env,
+    report_row,
+)
+
+STRATEGY_LAB_VERSION = "strategy-lab-v1.0.0"
+DEFAULT_LAB_DIR = Path(__file__).resolve().parents[1] / "data" / "strategy_lab"
+DEFAULT_REPORT_DIR = Path("reports")
+
+
+@dataclass(frozen=True)
+class CandidateSpec:
+    candidate_id: str
+    family: str
+    title: str
+    rsi_entry_below: float = 35.0
+    lower_bb_buffer_atr: float = 0.0
+    require_ma200: bool = True
+    target_mode: str = "FROZEN_MA20"  # FROZEN_MA20 / FIXED_1R / FIXED_125R
+    atr_stop_multiple: float = 1.5
+    breakout_lookback: int = 20
+    quant_gate: float | None = None
+
+
+CANDIDATES: dict[str, CandidateSpec] = {
+    "MR_RELAXED_PULLBACK_V1": CandidateSpec(
+        candidate_id="MR_RELAXED_PULLBACK_V1",
+        family="Mean Reversion",
+        title="Relaxed pullback",
+        rsi_entry_below=40.0,
+        lower_bb_buffer_atr=0.25,
+    ),
+    "MR_REGIME_FILTER_V1": CandidateSpec(
+        candidate_id="MR_REGIME_FILTER_V1",
+        family="Mean Reversion",
+        title="Regime-filtered pullback",
+        rsi_entry_below=35.0,
+        lower_bb_buffer_atr=0.1,
+        require_ma200=True,
+    ),
+    "MR_DEEP_VALUE_V1": CandidateSpec(
+        candidate_id="MR_DEEP_VALUE_V1",
+        family="Mean Reversion",
+        title="Deep value pullback",
+        rsi_entry_below=30.0,
+        lower_bb_buffer_atr=0.0,
+    ),
+    "MR_TARGET_1R_V1": CandidateSpec(
+        candidate_id="MR_TARGET_1R_V1",
+        family="Exit Logic",
+        title="Fixed 1R target",
+        rsi_entry_below=35.0,
+        lower_bb_buffer_atr=0.0,
+        target_mode="FIXED_1R",
+    ),
+    "BREAKOUT_MOMENTUM_V1": CandidateSpec(
+        candidate_id="BREAKOUT_MOMENTUM_V1",
+        family="Momentum",
+        title="20-bar breakout momentum",
+        rsi_entry_below=100.0,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.2,
+        breakout_lookback=20,
+    ),
+}
+
+
+@dataclass(frozen=True)
+class StrategyLabRunSummary:
+    evaluated: int
+    entries: int
+    exits: int
+    alerts: list[str]
+    candidate_count: int
+
+
+class CandidatePaperAgent(MeanReversionAgent):
+    def __init__(self, spec: CandidateSpec, config: MeanReversionConfig, data_dir: Path, report_dir: Path, now: datetime | None = None) -> None:
+        self.spec = spec
+        super().__init__(config=config, data_dir=data_dir, report_dir=report_dir, now=now)
+
+    def process_asset(self, asset: str, symbol: str, candles: pd.DataFrame, state: dict[str, Any]) -> dict[str, Any]:
+        enriched = add_indicators(candles, self.config)
+        enriched["breakout_high"] = enriched["high"].shift(1).rolling(self.spec.breakout_lookback).max()
+        last_seen = int(state.get("last_evaluated_close_time", 0))
+        rows = enriched[enriched["close_time"] > last_seen].copy()
+        rows = rows.dropna(subset=["rsi", "bb_lower", "ma20", "ma200", "atr"])
+        rows = rows.sort_values("close_time")
+        entries = 0
+        exits = 0
+        evaluated = 0
+        alerts: list[str] = []
+
+        for _, candle in rows.iterrows():
+            candle_time = int(candle["close_time"])
+            state = self._reset_daily_guard_if_needed(state, candle)
+            exit_event = self._maybe_exit(asset, symbol, candle, state)
+            if exit_event:
+                exits += 1
+                alerts.append(f"{self.spec.candidate_id} {asset}: {exit_event['exit_reason']} net={exit_event['net_pnl']:.2f} R={exit_event['r_multiple']:.2f}")
+
+            evaluation = self._evaluate_entry(asset, symbol, candle, state)
+            self._append_rows(self.trade_dir / "evaluations.csv", [evaluation])
+            evaluated += 1
+            if evaluation["passed"]:
+                entry_event = self._enter_trade(asset, symbol, candle, state)
+                if entry_event:
+                    entries += 1
+                    alerts.append(f"{self.spec.candidate_id} {asset}: PAPER_ENTRY entry={entry_event['entry_price']:.4f} target={entry_event['target']:.4f}")
+            state["last_evaluated_close_time"] = candle_time
+
+        return {"state": state, "evaluated": evaluated, "entries": entries, "exits": exits, "alerts": alerts}
+
+    def _evaluate_entry(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any]:
+        reasons: list[str] = []
+        if state.get("open_trade"):
+            reasons.append("OPEN_TRADE_EXISTS")
+        if float(state.get("daily_r", 0.0)) <= self.config.daily_loss_guard_r:
+            reasons.append("DAILY_LOSS_GUARD")
+
+        if self.spec.family == "Momentum":
+            breakout_high = candle.get("breakout_high")
+            if pd.isna(breakout_high) or float(candle["close"]) <= float(breakout_high):
+                reasons.append("CLOSE_NOT_ABOVE_BREAKOUT_HIGH")
+            if float(candle["close"]) <= float(candle["ma200"]):
+                reasons.append("CLOSE_NOT_ABOVE_MA200")
+            if float(candle["rsi"]) < 50:
+                reasons.append("RSI_NOT_MOMENTUM_SUPPORTIVE")
+        else:
+            if float(candle["rsi"]) >= self.spec.rsi_entry_below:
+                reasons.append(f"RSI_NOT_BELOW_{int(self.spec.rsi_entry_below)}")
+            lower_threshold = float(candle["bb_lower"]) + self.spec.lower_bb_buffer_atr * float(candle["atr"])
+            if float(candle["close"]) >= lower_threshold:
+                reasons.append("CLOSE_NOT_NEAR_OR_BELOW_LOWER_BB")
+            if self.spec.require_ma200 and float(candle["close"]) <= float(candle["ma200"]):
+                reasons.append("CLOSE_NOT_ABOVE_MA200")
+            if self.spec.target_mode == "FROZEN_MA20" and float(candle["ma20"]) <= float(candle["close"]):
+                reasons.append("TARGET_NOT_ABOVE_ENTRY")
+
+        passed = not reasons
+        return {
+            "timestamp": self.now.isoformat(),
+            "candidate_id": self.spec.candidate_id,
+            "asset": asset,
+            "symbol": symbol,
+            "strategy_version": self.config.strategy_version,
+            "candle_close_time": int(candle["close_time"]),
+            "candle_time": candle["date"].isoformat(),
+            "open": float(candle["open"]),
+            "high": float(candle["high"]),
+            "low": float(candle["low"]),
+            "close": float(candle["close"]),
+            "rsi": float(candle["rsi"]),
+            "ma20": float(candle["ma20"]),
+            "bb_lower": float(candle["bb_lower"]),
+            "ma200": float(candle["ma200"]),
+            "atr": float(candle["atr"]),
+            "passed": passed,
+            "rejection_reasons": "|".join(reasons),
+        }
+
+    def _enter_trade(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
+        if state.get("open_trade"):
+            return None
+        equity = float(state.get("equity", self.config.initial_equity))
+        raw_entry = float(candle["close"])
+        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "buy")
+        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
+        risk_per_unit = entry_price - stop_loss
+        if risk_per_unit <= 0:
+            return None
+        if self.spec.target_mode == "FIXED_1R":
+            target = entry_price + risk_per_unit
+            target_mode = "FIXED_1R"
+        elif self.spec.target_mode == "FIXED_125R":
+            target = entry_price + 1.25 * risk_per_unit
+            target_mode = "FIXED_125R"
+        else:
+            target = float(candle["ma20"])
+            target_mode = "FROZEN_MA20"
+        reward_per_unit = target - entry_price
+        if reward_per_unit <= 0:
+            return None
+        risk_dollars = equity * self.config.risk_per_trade
+        quantity = risk_dollars / risk_per_unit
+        max_notional = equity * self.config.max_notional_pct
+        notional = quantity * entry_price
+        if notional > max_notional:
+            quantity = max_notional / entry_price
+            notional = max_notional
+            risk_dollars = quantity * risk_per_unit
+        fees = notional * self.config.fee_bps / 10000.0
+        trade_id = f"SLAB-{self.spec.candidate_id}-{asset}-{int(candle['close_time'])}"
+        trade = {
+            "trade_id": trade_id,
+            "candidate_id": self.spec.candidate_id,
+            "family": self.spec.family,
+            "asset": asset,
+            "symbol": symbol,
+            "strategy_version": self.config.strategy_version,
+            "status": "OPEN",
+            "opened_at": candle["date"].isoformat(),
+            "open_close_time": int(candle["close_time"]),
+            "entry_price": entry_price,
+            "stop_loss": stop_loss,
+            "target": target,
+            "target_mode": target_mode,
+            "quantity": quantity,
+            "notional": notional,
+            "risk_dollars": risk_dollars,
+            "entry_fee": fees,
+            "entry_slippage_bps": self.config.slippage_bps,
+            "planned_reward_r": reward_per_unit / risk_per_unit,
+            "entry_rsi": float(candle["rsi"]),
+            "entry_ma20": float(candle["ma20"]),
+            "entry_bb_lower": float(candle["bb_lower"]),
+            "entry_ma200": float(candle["ma200"]),
+            "entry_atr": float(candle["atr"]),
+        }
+        state["open_trade"] = trade
+        self._append_rows(self.trade_dir / "trade_events.csv", [{**trade, "event": "ENTRY", "timestamp": self.now.isoformat()}])
+        return trade
+
+    def write_report(self) -> None:
+        trades_path = self.trade_dir / "closed_trades.csv"
+        evaluations_path = self.trade_dir / "evaluations.csv"
+        trades = _safe_read_csv(trades_path)
+        evaluations = _safe_read_csv(evaluations_path)
+        rows = []
+        assets = sorted(set(self.config.assets.keys()) | set(trades["asset"].unique() if not trades.empty and "asset" in trades else []))
+        for asset in assets:
+            rows.append(_candidate_report_row(self.spec, asset, trades[trades["asset"] == asset] if not trades.empty and "asset" in trades else pd.DataFrame(), evaluations))
+        rows.append(_candidate_report_row(self.spec, "COMBINED", trades, evaluations))
+        report = pd.DataFrame(rows)
+        report.to_csv(self.report_dir / f"strategy_lab_{self.spec.candidate_id}.csv", index=False)
+        (self.report_dir / f"strategy_lab_{self.spec.candidate_id}.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
+
+def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None = None) -> StrategyLabRunSummary:
+    now = now or datetime.now(timezone.utc)
+    assets = assets or load_assets_from_env(default=MeanReversionConfig().assets)
+    evaluated = entries = exits = 0
+    alerts: list[str] = []
+    base_config = MeanReversionConfig(
+        assets=assets,
+        fee_bps=float(os.getenv("SLAB_FEE_BPS", os.getenv("MR_FEE_BPS", "10"))),
+        slippage_bps=float(os.getenv("SLAB_SLIPPAGE_BPS", os.getenv("MR_SLIPPAGE_BPS", "2"))),
+        risk_per_trade=float(os.getenv("SLAB_RISK_PER_TRADE", "0.01")),
+        daily_loss_guard_r=float(os.getenv("SLAB_DAILY_LOSS_GUARD_R", "-3")),
+        max_notional_pct=float(os.getenv("SLAB_MAX_NOTIONAL_PCT", "1")),
+    )
+    lab_dir = Path(os.getenv("STRATEGY_LAB_DATA_DIR", str(DEFAULT_LAB_DIR)))
+    report_dir = Path(os.getenv("STRATEGY_LAB_REPORT_DIR", str(DEFAULT_REPORT_DIR)))
+    selected = _selected_candidates()
+    for spec in selected:
+        config = dataclasses.replace(
+            base_config,
+            strategy_version=f"{STRATEGY_LAB_VERSION}:{spec.candidate_id}",
+            rsi_entry_below=spec.rsi_entry_below,
+            atr_stop_multiple=spec.atr_stop_multiple,
+        )
+        agent = CandidatePaperAgent(spec=spec, config=config, data_dir=lab_dir / spec.candidate_id, report_dir=report_dir, now=now)
+        summary = agent.run(list(assets.keys()))
+        evaluated += summary.evaluated
+        entries += summary.entries
+        exits += summary.exits
+        alerts.extend(summary.alerts)
+    write_strategy_lab_summary(report_dir, selected)
+    return StrategyLabRunSummary(evaluated=evaluated, entries=entries, exits=exits, alerts=alerts, candidate_count=len(selected))
+
+
+def write_strategy_lab_summary(report_dir: Path = DEFAULT_REPORT_DIR, candidates: list[CandidateSpec] | None = None) -> pd.DataFrame:
+    report_dir = Path(report_dir)
+    candidates = candidates or list(CANDIDATES.values())
+    rows: list[dict[str, Any]] = []
+    for spec in candidates:
+        path = report_dir / f"strategy_lab_{spec.candidate_id}.csv"
+        frame = _safe_read_csv(path)
+        if frame.empty:
+            rows.append(_empty_summary_row(spec))
+            continue
+        combined = frame[frame["asset"].astype(str).str.upper() == "COMBINED"] if "asset" in frame else pd.DataFrame()
+        row = combined.iloc[0].to_dict() if not combined.empty else frame.iloc[0].to_dict()
+        rows.append(_summary_row(spec, row))
+    summary = pd.DataFrame(rows)
+    if not summary.empty:
+        summary = summary.sort_values(["rating_score", "total_trades"], ascending=False)
+    report_dir.mkdir(parents=True, exist_ok=True)
+    summary.to_csv(report_dir / "strategy_lab_summary.csv", index=False)
+    (report_dir / "strategy_lab_summary.json").write_text(json.dumps(summary.to_dict("records"), indent=2), encoding="utf-8")
+    return summary
+
+
+def _candidate_report_row(spec: CandidateSpec, asset: str, trades: pd.DataFrame, evaluations: pd.DataFrame) -> dict[str, Any]:
+    row = report_row(asset, trades, evaluations)
+    row["candidate_id"] = spec.candidate_id
+    row["family"] = spec.family
+    row["title"] = spec.title
+    row["rating"] = _rating(row)
+    row["rating_score"] = _rating_score(row)
+    return row
+
+
+def _rating_score(row: dict[str, Any]) -> float:
+    trades = int(row.get("total_trades", 0) or 0)
+    expectancy = float(row.get("expectancy_r", 0.0) or 0.0)
+    pf = float(row.get("profit_factor", 0.0) or 0.0)
+    drawdown = abs(float(row.get("max_drawdown", 0.0) or 0.0))
+    score = 40 + min(20, trades) + max(-20, min(25, expectancy * 15)) + max(-10, min(20, (pf - 1) * 10 if pf else -10)) - min(20, drawdown * 100)
+    if trades < 20:
+        score -= 10
+    return round(max(0.0, min(100.0, score)), 2)
+
+
+def _rating(row: dict[str, Any]) -> str:
+    trades = int(row.get("total_trades", 0) or 0)
+    score = _rating_score(row)
+    if trades < 20:
+        return "INSUFFICIENT_SAMPLE"
+    if score >= 75:
+        return "PROMOTE_CANDIDATE"
+    if score >= 60:
+        return "KEEP_TESTING"
+    if score >= 45:
+        return "WATCHLIST"
+    return "REJECT_OR_REWORK"
+
+
+def _summary_row(spec: CandidateSpec, row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "candidate_id": spec.candidate_id,
+        "family": spec.family,
+        "title": spec.title,
+        "total_trades": int(float(row.get("total_trades", 0) or 0)),
+        "win_rate": float(row.get("win_rate", 0.0) or 0.0),
+        "expectancy_r": float(row.get("expectancy_r", 0.0) or 0.0),
+        "profit_factor": float(row.get("profit_factor", 0.0) or 0.0),
+        "max_drawdown": float(row.get("max_drawdown", 0.0) or 0.0),
+        "net_pnl": float(row.get("net_pnl", 0.0) or 0.0),
+        "rating_score": float(row.get("rating_score", 0.0) or 0.0),
+        "rating": str(row.get("rating", "INSUFFICIENT_SAMPLE")),
+        "insufficient_sample": _bool_value(row.get("insufficient_sample", True)),
+    }
+
+
+def _bool_value(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y"}
+    return bool(value)
+
+
+def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
+    return {
+        "candidate_id": spec.candidate_id,
+        "family": spec.family,
+        "title": spec.title,
+        "total_trades": 0,
+        "win_rate": 0.0,
+        "expectancy_r": 0.0,
+        "profit_factor": 0.0,
+        "max_drawdown": 0.0,
+        "net_pnl": 0.0,
+        "rating_score": 0.0,
+        "rating": "INSUFFICIENT_SAMPLE",
+        "insufficient_sample": True,
+    }
+
+
+def _selected_candidates() -> list[CandidateSpec]:
+    raw = os.getenv("STRATEGY_LAB_CANDIDATES", "").strip()
+    if not raw:
+        return list(CANDIDATES.values())
+    selected = []
+    for item in raw.split(","):
+        spec = CANDIDATES.get(item.strip().upper())
+        if spec:
+            selected.append(spec)
+    return selected or list(CANDIDATES.values())
+
+
+def _safe_read_csv(path: Path) -> pd.DataFrame:
+    if not path.exists() or path.stat().st_size == 0:
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
+

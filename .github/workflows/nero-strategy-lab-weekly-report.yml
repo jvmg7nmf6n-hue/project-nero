@@ -1,0 +1,38 @@
+﻿name: Nero Strategy TEST Lab Weekly Report
+
+on:
+  schedule:
+    - cron: "0 11 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  strategy-lab-weekly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Build and send weekly report
+        run: python tools/nero_strategy_lab_weekly_report.py
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+      - name: Save strategy lab weekly report
+        run: |
+          git config user.name "nero-strategy-lab-report"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/strategy_lab_weekly_report.txt reports/strategy_lab_summary.csv reports/strategy_lab_summary.json
+          git commit -m "Update strategy lab weekly report" || echo "no strategy lab report changes"
+          git pull --rebase origin main || true
+          git push || echo "nothing to push"
