@@ -1,5 +1,19 @@
 [
   {
+    "candidate_id": "BREAKOUT_MOMENTUM_V1",
+    "family": "Momentum",
+    "title": "20-bar breakout momentum",
+    "total_trades": 2,
+    "win_rate": 0.5,
+    "expectancy_r": -0.0778814684856306,
+    "profit_factor": 0.6800066793036306,
+    "max_drawdown": 0.0,
+    "net_pnl": -36.016372295928804,
+    "rating_score": 27.63,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  },
+  {
     "candidate_id": "MR_RELAXED_PULLBACK_V1",
     "family": "Mean Reversion",
     "title": "Relaxed pullback",
@@ -10,20 +24,6 @@
     "max_drawdown": -0.0191156083407253,
     "net_pnl": -128.66691809364858,
     "rating_score": 22.02,
-    "rating": "INSUFFICIENT_SAMPLE",
-    "insufficient_sample": true
-  },
-  {
-    "candidate_id": "BREAKOUT_MOMENTUM_V1",
-    "family": "Momentum",
-    "title": "20-bar breakout momentum",
-    "total_trades": 1,
-    "win_rate": 0.0,
-    "expectancy_r": -1.12553512734422,
-    "profit_factor": 0.0,
-    "max_drawdown": 0.0,
-    "net_pnl": -112.553512734422,
-    "rating_score": 4.12,
     "rating": "INSUFFICIENT_SAMPLE",
     "insufficient_sample": true
   },
