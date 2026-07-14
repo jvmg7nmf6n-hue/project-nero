@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 
 import pandas as pd
+import streamlit.components.v1 as components
 
 try:
     import streamlit as st
@@ -121,6 +122,118 @@ def _render_news_ticker(news_result) -> None:
     )
 
 
+def _render_opening_market_deck(asset: str, market_data, intraday_data, trade_plan, sentiment_result, active_timeframe: str) -> None:
+    """TradingView-style opening command deck for the selected market."""
+    candles = intraday_data.prices.copy()
+    if candles.empty:
+        candles = market_data.prices.copy()
+    if candles.empty:
+        st.info("Opening market deck is waiting for candle data.")
+        return
+
+    candles = candles.sort_values("date").tail(240).copy()
+    for column in ["open", "high", "low", "close", "volume"]:
+        candles[column] = pd.to_numeric(candles[column], errors="coerce")
+    candles = candles.dropna(subset=["open", "high", "low", "close"])
+    if candles.empty:
+        st.info("Opening market deck could not parse candle data.")
+        return
+
+    latest = candles.iloc[-1]
+    previous = candles.iloc[-2] if len(candles) > 1 else latest
+    last_close = float(latest["close"])
+    prev_close = float(previous["close"])
+    candle_change = last_close - prev_close
+    candle_change_pct = (candle_change / prev_close * 100) if prev_close else 0.0
+    session_start = float(candles.iloc[0]["close"])
+    session_change_pct = ((last_close - session_start) / session_start * 100) if session_start else 0.0
+    price_color = "#26a69a" if candle_change >= 0 else "#ef5350"
+    spread = max(last_close * 0.00035, 0.01)
+    symbol = asset if asset in {"GOLD", "OIL", "FDX"} else f"{asset}USDT"
+    default_ws_symbol = symbol if symbol.endswith("USDT") else "BTCUSDT"
+    source_text = f"{intraday_data.source} ({intraday_data.status})"
+    initial_rows = [
+        {
+            "t": str(row["date"])[5:16],
+            "time": str(row["date"]),
+            "o": round(float(row["open"]), 6),
+            "h": round(float(row["high"]), 6),
+            "l": round(float(row["low"]), 6),
+            "c": round(float(row["close"]), 6),
+            "v": round(float(row.get("volume", 0.0) or 0.0), 3),
+        }
+        for _, row in candles.iterrows()
+    ]
+    payload = json.dumps(initial_rows)
+    stat_cards = "".join(
+        f'<div class="nero-card"><span>{label}</span><strong>{value}</strong></div>'
+        for label, value in [
+            ("OPEN", f'{float(latest["open"]):,.4f}'),
+            ("HIGH", f'{float(latest["high"]):,.4f}'),
+            ("LOW", f'{float(latest["low"]):,.4f}'),
+            ("CLOSE", f"{last_close:,.4f}"),
+            ("VOLUME", f'{float(latest.get("volume", 0.0) or 0.0):,.2f}'),
+            ("SESSION", f"{session_change_pct:+.2f}%"),
+        ]
+    )
+    html = f"""
+    <div id="tvxApp" class="tvx-shell" data-theme="dark">
+      <div class="tvx-topbar">
+        <div class="tvx-symbolbox"><select id="tvxSymbol"><option>BTCUSDT</option><option>ETHUSDT</option><option>SOLUSDT</option><option>BNBUSDT</option><option>XRPUSDT</option><option>DOGEUSDT</option><option>NEARUSDT</option><option>PAXGUSDT</option></select><span id="tvxSource">{source_text}</span><span id="tvxConnection" class="tvx-conn">server fallback ready</span></div>
+        <div id="tvxFrames" class="tvx-frames"><button data-i="1m">1m</button><button data-i="5m">5m</button><button data-i="15m">15m</button><button data-i="1h">1H</button><button data-i="4h">4H</button><button data-i="1d">1D</button><button data-i="1w">1W</button></div>
+        <div class="tvx-tools"><button id="tvxIndicatorBtn">+ Indicator</button><button id="tvxCompareBtn">Compare</button><button id="tvxAlertBtn">Alert</button><button id="tvxReplayBtn">Replay</button><button id="tvxScaleBtn">Scale Auto</button><button id="tvxUndoBtn">Undo</button><button id="tvxRedoBtn">Redo</button><button id="tvxFullBtn">Fullscreen</button><button id="tvxShotBtn">Screenshot</button><button id="tvxThemeBtn">Theme</button></div>
+        <div class="tvx-actions"><button class="trade">Trade</button><button class="publish">Publish</button></div>
+      </div>
+      <div class="tvx-readout"><div id="tvxLivePrice" class="tvx-live-price" style="color:{price_color}">{last_close:,.4f}<small>{candle_change:+,.4f} / {candle_change_pct:+.2f}%</small></div>{stat_cards}</div>
+      <div class="tvx-grid">
+        <div id="tvxLeftTools" class="tvx-leftbar"><button data-tool="cursor">CUR</button><button data-tool="trend">TL</button><button data-tool="hline">HL</button><button data-tool="ray">RAY</button><button data-tool="fib">FIB</button><button data-tool="box">BOX</button><button data-tool="text">TXT</button><button data-tool="brush">BR</button><button data-tool="magnet">MAG</button><button data-tool="lock">LOCK</button><button data-tool="eye">EYE</button><button data-tool="trash">DEL</button></div>
+        <div class="tvx-chart-stack">
+          <div class="tvx-overlay"><div class="tvx-legend"><b id="tvxEma9" style="color:#f0b90b">EMA 9</b><b id="tvxEma21" style="color:#2962ff">EMA 21</b><span id="tvxHoverText">Move mouse over candles</span></div><div class="tvx-order"><div id="tvxSell" class="sell">SELL<br><b>{last_close-spread/2:,.4f}</b></div><div id="tvxBuy" class="buy">BUY<br><b>{last_close+spread/2:,.4f}</b></div><em id="tvxSpread">spread {spread:,.4f}</em></div><div id="tvxFloatTape" class="tvx-float-tape"></div><div id="tvxTip" class="tvx-tip"></div><div id="tvxToast" class="tvx-toast"></div></div>
+          <canvas id="tvxPriceCanvas"></canvas>
+          <div class="tvx-subpane"><div class="tvx-sublegend">MACD close 12 26 9 <b id="tvxMacdText">loading</b></div><canvas id="tvxMacdCanvas"></canvas></div>
+        </div>
+        <div class="tvx-rightbar"><button>WL</button><button>AL</button><button>CHAT</button><button>NEWS</button><button>CAL</button><button>SCR</button><button>HOT</button><button>BELL</button><button>TREE</button></div>
+        <div class="tvx-sidepanel"><div class="tvx-mini"><span>NERO Bias</span><b>{trade_plan.bias}</b></div><div class="tvx-mini"><span>Action</span><b>{trade_plan.action.replace('_', ' ')}</b></div><div class="tvx-mini"><span>AI Sentiment</span><b>{sentiment_result.overall_sentiment} ({sentiment_result.sentiment_score}/10)</b></div><div class="tvx-mini"><span>Risk Guard</span><b>{trade_plan.status}</b></div><label class="tvx-qty">Order Type<select id="tvxOrderType"><option>Market</option><option>Limit</option></select></label><label class="tvx-qty">Risk %<input id="tvxRiskPct" type="number" value="1" min="0" step="0.1"></label><label class="tvx-qty">Qty<input id="tvxQty" type="number" value="1" min="0" step="0.01"></label><button id="tvxSubmitOrder">Submit simulated order</button><div id="tvxOrders" class="tvx-orders"><b>Open orders</b></div></div>
+      </div>
+      <div class="tvx-bottombar"><span>1D</span><span>5D</span><span>1M</span><span>3M</span><span>6M</span><span>YTD</span><span>1Y</span><span>5Y</span><span>All</span><div id="tvxReplay" class="tvx-replay"><button id="tvxBack">Step</button><button id="tvxPlay">Play</button><button id="tvxFwd">Next</button><select id="tvxSpeed"><option>1x</option><option>2x</option><option>4x</option></select></div><b id="tvxClock">UTC --:--:--</b><em>Auto scale A | Log L | Expand</em></div>
+      <div id="tvxIndicatorModal" class="tvx-modal"><div><h3>Add Indicator</h3><input id="tvxIndicatorSearch" placeholder="Search MA, EMA, RSI, MACD, BB, Volume, Stochastic, ATR"><label><input type="checkbox" checked data-ind="ema9"> EMA 9</label><label><input type="checkbox" checked data-ind="ema21"> EMA 21</label><label><input type="checkbox" checked data-ind="macd"> MACD</label><label><input type="checkbox" data-ind="rsi"> RSI 14</label><label><input type="checkbox" data-ind="volume"> Volume</label><button id="tvxCloseIndicators">Close</button></div></div>
+      <div id="tvxAlertModal" class="tvx-modal"><div><h3>Price Alert</h3><input id="tvxAlertPrice" type="number" step="0.01" placeholder="Alert price"><button id="tvxSaveAlert">Save alert</button><button id="tvxCloseAlert">Close</button></div></div>
+    </div>
+    <style>
+      * {{ box-sizing:border-box; }} .tvx-shell {{ font-family:Inter,Arial,sans-serif; color:#d6dde8; background:#0b0f16; border:1px solid #1c2531; border-radius:10px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.32); }} .tvx-shell[data-theme="light"] {{ background:#f6f8fb; color:#172033; }}
+      .tvx-topbar,.tvx-readout,.tvx-bottombar {{ display:flex; align-items:center; gap:8px; border-bottom:1px solid #1c2531; background:#101722; padding:8px 10px; }} .tvx-shell[data-theme="light"] .tvx-topbar,.tvx-shell[data-theme="light"] .tvx-readout,.tvx-shell[data-theme="light"] .tvx-bottombar {{ background:#ffffff; }}
+      .tvx-symbolbox {{ min-width:220px; }} .tvx-symbolbox select {{ background:#0d131c; color:#f4f7fb; border:1px solid #263244; border-radius:7px; padding:7px 9px; font-weight:900; }} .tvx-symbolbox span {{ display:block; color:#8fa1b7; font-size:10px; max-width:360px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }} .tvx-conn {{ color:#f0b90b!important; }}
+      .tvx-frames,.tvx-tools,.tvx-actions,.tvx-replay {{ display:flex; gap:5px; flex-wrap:wrap; }} button,.tvx-frames button,.tvx-tools button,.tvx-actions button,.tvx-leftbar button,.tvx-rightbar button {{ background:#0d131c; color:#9eb0c5; border:1px solid #263244; border-radius:6px; padding:5px 8px; font-size:11px; transition:all .15s; }} button:hover {{ border-color:#f0b90b; color:#f0b90b; }} .tvx-frames .active,.tvx-leftbar .active {{ background:#f0b90b; color:#080c12; border-color:#f0b90b; font-weight:900; }} .tvx-actions {{ margin-left:auto; }} .tvx-actions .trade {{ background:#2962ff; color:white; border-color:#2962ff; }} .tvx-actions .publish {{ background:#26a69a; color:white; border-color:#26a69a; }}
+      .tvx-live-price {{ min-width:185px; font-size:25px; font-weight:900; font-variant-numeric:tabular-nums; }} .tvx-live-price small {{ display:block; font-size:11px; }} .nero-card {{ background:#101722; border:1px solid #1c2531; border-radius:8px; padding:7px 10px; min-width:105px; }} .nero-card span {{ display:block; color:#8fa1b7; font-size:9px; font-weight:900; }} .nero-card strong {{ color:#f4f7fb; font-size:14px; font-variant-numeric:tabular-nums; }}
+      .tvx-grid {{ display:grid; grid-template-columns:44px minmax(0,1fr) 40px 190px; min-height:1000px; }} .tvx-leftbar,.tvx-rightbar {{ display:flex; flex-direction:column; gap:6px; padding:8px 6px; background:#0d131c; border-right:1px solid #1c2531; }} .tvx-rightbar {{ border-right:0; border-left:1px solid #1c2531; }} .tvx-leftbar button,.tvx-rightbar button {{ padding:7px 4px; font-size:9px; }}
+      .tvx-chart-stack {{ position:relative; min-height:1000px; background:#080c12; }} #tvxPriceCanvas {{ width:100%; height:780px; display:block; }} .tvx-subpane {{ height:220px; border-top:1px solid #1c2531; position:relative; background:#090e15; }} #tvxMacdCanvas {{ width:100%; height:220px; display:block; }} .tvx-sublegend {{ position:absolute; left:12px; top:8px; z-index:3; font-size:11px; color:#8fa1b7; background:rgba(8,12,18,.75); border:1px solid rgba(255,255,255,.07); padding:5px 8px; border-radius:7px; }}
+      .tvx-overlay {{ position:absolute; inset:0 0 220px 0; z-index:4; pointer-events:none; }} .tvx-legend {{ position:absolute; left:12px; top:10px; display:flex; gap:10px; align-items:center; font-size:11px; background:rgba(8,12,18,.72); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:6px 8px; backdrop-filter:blur(8px); }} .tvx-order {{ position:absolute; left:12px; top:54px; width:190px; display:grid; grid-template-columns:1fr 1fr; gap:7px; }} .tvx-order div {{ color:white; text-align:center; border-radius:8px; padding:8px 5px; font-size:11px; font-weight:900; }} .tvx-order .sell {{ background:#ef5350; }} .tvx-order .buy {{ background:#26a69a; }} .tvx-order em {{ grid-column:1/3; text-align:center; font-style:normal; font-size:10px; color:#8fa1b7; }}
+      .tvx-float-tape {{ position:absolute; right:12px; top:52px; display:flex; flex-direction:column; gap:4px; font-size:11px; font-variant-numeric:tabular-nums; }} .tvx-float-tape div {{ background:rgba(17,23,34,.72); border:1px solid rgba(255,255,255,.06); padding:3px 6px; border-radius:6px; animation:floatPulse 1.8s infinite alternate; }} @keyframes floatPulse {{ from {{ opacity:.72; transform:translateX(0); }} to {{ opacity:1; transform:translateX(-3px); }} }} .tvx-tip,.tvx-toast {{ position:absolute; display:none; background:rgba(13,19,28,.95); border:1px solid #2a3443; border-radius:8px; padding:7px 9px; font-size:11px; color:#d6dde8; box-shadow:0 12px 26px rgba(0,0,0,.35); }} .tvx-toast {{ right:12px; bottom:14px; display:block; opacity:0; transition:.2s; }}
+      .tvx-sidepanel {{ background:#0d131c; border-left:1px solid #1c2531; padding:10px; }} .tvx-mini {{ display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid #1c2531; padding:9px 0; }} .tvx-mini span {{ color:#8fa1b7; font-size:11px; }} .tvx-mini b {{ color:#f4f7fb; font-size:12px; text-align:right; }} .tvx-qty {{ display:grid; gap:5px; margin-top:10px; font-size:11px; color:#8fa1b7; }} .tvx-qty input,.tvx-qty select,.tvx-modal input {{ background:#080c12; color:#d6dde8; border:1px solid #263244; border-radius:7px; padding:7px; }} .tvx-orders {{ margin-top:10px; display:grid; gap:5px; font-size:11px; }} .tvx-orders div {{ border:1px solid #263244; border-radius:7px; padding:5px; }}
+      .tvx-bottombar {{ border-top:1px solid #1c2531; border-bottom:0; font-size:11px; color:#8fa1b7; }} .tvx-bottombar span {{ padding:5px 7px; border:1px solid #263244; border-radius:6px; }} .tvx-bottombar b {{ margin-left:auto; color:#d6dde8; }} .tvx-bottombar em {{ font-style:normal; color:#8fa1b7; }} .tvx-modal {{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:9; background:rgba(0,0,0,.45); }} .tvx-modal>div {{ background:#101722; border:1px solid #263244; border-radius:10px; padding:16px; display:grid; gap:9px; min-width:280px; }} .tvx-modal label {{ display:block; font-size:12px; }}
+      @media(max-width:1000px) {{ .tvx-grid {{ grid-template-columns:38px 1fr; }} .tvx-rightbar,.tvx-sidepanel {{ display:none; }} .tvx-topbar,.tvx-readout {{ flex-wrap:wrap; }} .tvx-actions {{ margin-left:0; }} }}
+    </style>
+    <script>
+      let candles = {payload}; let symbol=localStorage.getItem('neroChartSymbol')||'{default_ws_symbol}'; let interval=localStorage.getItem('neroChartInterval')||'{active_timeframe.lower().replace('h','h').replace('H','h')}'; let ws=null; let replay=false; let replayIndex=null; let playTimer=null; let alertPrice=null; let compareSeries=[]; let compareSymbol=''; let scaleMode=localStorage.getItem('neroScaleMode')||'auto'; let wsRetry=0; let wsHeartbeat=null; let indicators=JSON.parse(localStorage.getItem('neroIndicators')||'{{"ema9":true,"ema21":true,"macd":true,"rsi":false,"volume":false}}'); let drawings=JSON.parse(localStorage.getItem('neroDrawings')||'[]'); let redoStack=[]; let orders=JSON.parse(localStorage.getItem('neroOrders')||'[]'); let activeTool='cursor'; const app=document.getElementById('tvxApp'); const priceCanvas=document.getElementById('tvxPriceCanvas'); const priceCtx=priceCanvas.getContext('2d'); const macdCanvas=document.getElementById('tvxMacdCanvas'); const macdCtx=macdCanvas.getContext('2d'); const tip=document.getElementById('tvxTip'); const hoverText=document.getElementById('tvxHoverText');
+      function toast(msg){{ const t=document.getElementById('tvxToast'); t.textContent=msg; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2200); }} function setConn(msg,col='#f0b90b'){{const el=document.getElementById('tvxConnection'); el.textContent=msg; el.style.color=col;}} function rsi(values,p=14){{const out=new Array(values.length).fill(null); for(let i=p;i<values.length;i++){{let g=0,l=0; for(let j=i-p+1;j<=i;j++){{const d=values[j]-values[j-1]; if(d>=0)g+=d; else l-=d;}} const rs=l===0?100:g/l; out[i]=l===0?100:100-(100/(1+rs));}} return out;}} function ema(values,p){{const k=2/(p+1);const out=[];let prev=values[0]||0;values.forEach((v,i)=>{{prev=i===0?v:v*k+prev*(1-k);out.push(prev);}});return out;}} function fit(canvas,ctx){{const dpr=window.devicePixelRatio||1;const r=canvas.getBoundingClientRect();canvas.width=r.width*dpr;canvas.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);return r;}}
+      async function fetchKlines(sym, intv){{ localStorage.setItem('neroChartSymbol',sym); localStorage.setItem('neroChartInterval',intv); compareSeries=[]; compareSymbol=''; try{{ const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${{sym}}&interval=${{intv}}&limit=500`); if(!r.ok) throw new Error('REST '+r.status); const j=await r.json(); candles=j.map(a=>({{t:new Date(a[0]).toISOString().slice(5,16),time:new Date(a[0]).toISOString(),o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}})); document.getElementById('tvxSource').textContent=`Binance REST + WS ${{sym}} ${{intv}}`; replayIndex=null; redraw(); connectWs(sym,intv); }}catch(e){{ toast('Binance fetch failed; using NERO server candles'); redraw(); }} }}
+      function connectWs(sym,intv){{ if(ws) ws.close(); clearInterval(wsHeartbeat); setConn('connecting '+sym+' '+intv); ws=new WebSocket(`wss://stream.binance.com:9443/ws/${{sym.toLowerCase()}}@kline_${{intv}}`); ws.onopen=()=>{{wsRetry=0;setConn('live WebSocket connected','#26a69a');wsHeartbeat=setInterval(()=>{{if(ws&&ws.readyState===1) setConn('live WebSocket connected','#26a69a');}},15000);}}; ws.onmessage=e=>{{ const k=JSON.parse(e.data).k; const row={{t:new Date(k.t).toISOString().slice(5,16),time:new Date(k.t).toISOString(),o:+k.o,h:+k.h,l:+k.l,c:+k.c,v:+k.v}}; const last=candles[candles.length-1]; if(last&&last.time===row.time) candles[candles.length-1]=row; else if(!last||last.time!==row.time) candles.push(row); candles=candles.slice(-500); if(!replay) redraw(); checkAlert(row.c); }}; ws.onerror=()=>{{setConn('WebSocket delayed - using REST/server fallback','#f0b90b');toast('WebSocket delayed');}}; ws.onclose=()=>{{clearInterval(wsHeartbeat); const wait=Math.min(30000,1000*Math.pow(2,wsRetry++)); setConn('reconnecting in '+Math.round(wait/1000)+'s','#f0b90b'); setTimeout(()=>{{if(symbol===sym&&interval===intv) connectWs(sym,intv);}},wait);}}; }}
+      function drawPrice(mx=null,my=null){{ const view=replay&&replayIndex?candles.slice(0,replayIndex):candles; if(!view.length) return; const r=fit(priceCanvas,priceCtx); const w=r.width,h=r.height,pL=28,pR=82,pT=24,pB=26; priceCtx.clearRect(0,0,w,h); priceCtx.fillStyle=app.dataset.theme==='light'?'#ffffff':'#080c12'; priceCtx.fillRect(0,0,w,h); const highs=view.map(x=>x.h),lows=view.map(x=>x.l),closes=view.map(x=>x.c); const max=Math.max(...highs),min=Math.min(...lows),range=Math.max(max-min,1e-9),step=(w-pL-pR)/view.length,logMin=Math.log(Math.max(min,1e-9)),logMax=Math.log(Math.max(max,1e-9)),logRange=Math.max(logMax-logMin,1e-9),y=p=>scaleMode==="log"?pT+(logMax-Math.log(Math.max(p,1e-9)))/logRange*(h-pT-pB):pT+(max-p)/range*(h-pT-pB); priceCtx.strokeStyle='#152030'; for(let i=0;i<8;i++){{const yy=pT+i*(h-pT-pB)/7;priceCtx.beginPath();priceCtx.moveTo(pL,yy);priceCtx.lineTo(w-pR,yy);priceCtx.stroke();}} view.forEach((c,i)=>{{const x=pL+i*step+step/2,up=c.c>=c.o,col=up?'#26a69a':'#ef5350';priceCtx.strokeStyle=col;priceCtx.fillStyle=col;priceCtx.beginPath();priceCtx.moveTo(x,y(c.h));priceCtx.lineTo(x,y(c.l));priceCtx.stroke();const top=y(Math.max(c.o,c.c)),bot=y(Math.min(c.o,c.c)),bw=Math.max(2,step*.62);priceCtx.fillRect(x-bw/2,top,bw,Math.max(2,bot-top));}}); const e9=ema(closes,9),e21=ema(closes,21); if(indicators.ema9) line(e9,'#f0b90b'); if(indicators.ema21) line(e21,'#2962ff'); if(compareSeries.length) drawCompare(); function line(s,col){{priceCtx.strokeStyle=col;priceCtx.lineWidth=1.5;priceCtx.beginPath();s.forEach((p,i)=>{{const x=pL+i*step+step/2,yy=y(p);if(i===0)priceCtx.moveTo(x,yy);else priceCtx.lineTo(x,yy);}});priceCtx.stroke();}} function drawCompare(){{const series=compareSeries.slice(-view.length); if(series.length<2) return; const vals=series.map(x=>x.c),cMax=Math.max(...vals),cMin=Math.min(...vals),cRange=Math.max(cMax-cMin,1e-9); priceCtx.strokeStyle='#b388ff'; priceCtx.lineWidth=1.4; priceCtx.setLineDash([5,4]); priceCtx.beginPath(); vals.forEach((p,i)=>{{const x=pL+i*step+step/2,yy=pT+(cMax-p)/cRange*(h-pT-pB); if(i===0)priceCtx.moveTo(x,yy); else priceCtx.lineTo(x,yy);}}); priceCtx.stroke(); priceCtx.setLineDash([]); priceCtx.fillStyle='#b388ff'; priceCtx.fillText('Compare '+compareSymbol,pL+12,pT+18);}} drawings.forEach(d=>{{priceCtx.strokeStyle='#f0b90b'; priceCtx.setLineDash([6,4]); priceCtx.beginPath(); priceCtx.moveTo(pL,y(d.price)); priceCtx.lineTo(w-pR,y(d.price)); priceCtx.stroke(); priceCtx.setLineDash([]);}}); const last=view.at(-1); if(last){{const yy=y(last.c),col=last.c>=last.o?'#26a69a':'#ef5350';priceCtx.setLineDash([4,5]);priceCtx.strokeStyle=col;priceCtx.beginPath();priceCtx.moveTo(pL,yy);priceCtx.lineTo(w-pR,yy);priceCtx.stroke();priceCtx.setLineDash([]);priceCtx.fillStyle=col;priceCtx.fillRect(w-pR+8,yy-11,70,22);priceCtx.fillStyle='#081018';priceCtx.font='bold 11px Inter,Arial';priceCtx.fillText(last.c.toFixed(2),w-pR+13,yy+4);updateReadout(last,e9.at(-1),e21.at(-1));}} if(mx!==null){{const idx=Math.max(0,Math.min(view.length-1,Math.floor((mx-pL)/step)));const c=view[idx],x=pL+idx*step+step/2;priceCtx.strokeStyle='rgba(214,221,232,.45)';priceCtx.setLineDash([3,4]);priceCtx.beginPath();priceCtx.moveTo(x,pT);priceCtx.lineTo(x,h-pB);priceCtx.moveTo(pL,my);priceCtx.lineTo(w-pR,my);priceCtx.stroke();priceCtx.setLineDash([]);hoverText.textContent=`${{c.t}} O ${{c.o}} H ${{c.h}} L ${{c.l}} C ${{c.c}}`;tip.style.display='block';tip.style.left=(Math.min(mx+16,w-245))+'px';tip.style.top=(Math.max(my-62,10))+'px';tip.innerHTML=`<b>${{c.t}}</b><br>O ${{c.o}} H ${{c.h}}<br>L ${{c.l}} C ${{c.c}}`;}} }}
+      function drawMacd(){{const view=replay&&replayIndex?candles.slice(0,replayIndex):candles;const r=fit(macdCanvas,macdCtx),w=r.width,h=r.height,pL=28,pR=82,pT=22,pB=18;macdCtx.clearRect(0,0,w,h);macdCtx.fillStyle='#090e15';macdCtx.fillRect(0,0,w,h); const close=view.map(x=>x.c),step=(w-pL-pR)/Math.max(close.length,1); if(indicators.rsi){{const vals=rsi(close,14),yR=v=>pT+(100-(v??50))/100*(h-pT-pB); macdCtx.strokeStyle='#1c2531'; [30,50,70].forEach(level=>{{const yy=yR(level); macdCtx.beginPath(); macdCtx.moveTo(pL,yy); macdCtx.lineTo(w-pR,yy); macdCtx.stroke();}}); macdCtx.strokeStyle='#b388ff'; macdCtx.beginPath(); vals.forEach((v,i)=>{{if(v===null)return; const x=pL+i*step+step/2,yy=yR(v); if(i===14)macdCtx.moveTo(x,yy); else macdCtx.lineTo(x,yy);}}); macdCtx.stroke(); document.getElementById('tvxMacdText').textContent='RSI '+(vals.at(-1)?.toFixed(1) || 'n/a'); return;}} if(!indicators.macd){{macdCtx.fillStyle='#8fa1b7';macdCtx.fillText('MACD hidden from indicator menu',pL+10,pT+22);document.getElementById('tvxMacdText').textContent='hidden';return;}} const e12=ema(close,12),e26=ema(close,26),macd=e12.map((v,i)=>v-e26[i]),signal=ema(macd,9),hist=macd.map((v,i)=>v-signal[i]),scale=Math.max(...macd.map(Math.abs),...signal.map(Math.abs),...hist.map(Math.abs),1e-9),y=v=>pT+(scale-v)/(scale*2)*(h-pT-pB);macdCtx.strokeStyle='#1c2531';macdCtx.beginPath();macdCtx.moveTo(pL,y(0));macdCtx.lineTo(w-pR,y(0));macdCtx.stroke();hist.forEach((v,i)=>{{const x=pL+i*step+step/2;macdCtx.fillStyle=v>=0?'#26a69a':'#ef5350';macdCtx.fillRect(x-Math.max(2,step*.35)/2,y(Math.max(v,0)),Math.max(2,step*.35),Math.abs(y(v)-y(0)));}}); if(indicators.volume){{const maxV=Math.max(...view.map(x=>x.v),1); view.forEach((c,i)=>{{const x=pL+i*step+step/2,vh=(c.v/maxV)*(h-pT-pB)*.28; macdCtx.fillStyle='rgba(143,161,183,.28)'; macdCtx.fillRect(x-Math.max(1,step*.25)/2,h-pB-vh,Math.max(1,step*.25),vh);}});}} l(macd,'#2962ff');l(signal,'#f0b90b');function l(s,c){{macdCtx.strokeStyle=c;macdCtx.beginPath();s.forEach((v,i)=>{{const x=pL+i*step+step/2,yy=y(v);if(i===0)macdCtx.moveTo(x,yy);else macdCtx.lineTo(x,yy);}});macdCtx.stroke();}} document.getElementById('tvxMacdText').textContent=`${{macd.at(-1)?.toFixed(2)}}  ${{signal.at(-1)?.toFixed(2)}}  ${{hist.at(-1)?.toFixed(2)}}`;}}
+      function updateReadout(c,e9,e21){{const ch=c.c-c.o,p=c.o?ch/c.o*100:0,col=ch>=0?'#26a69a':'#ef5350';document.getElementById('tvxLivePrice').style.color=col;document.getElementById('tvxLivePrice').innerHTML=`${{c.c.toFixed(4)}}<small>${{ch.toFixed(4)}} / ${{p.toFixed(2)}}%</small>`;const spr=Math.max(c.c*.00035,.01);document.getElementById('tvxSell').innerHTML=`SELL<br><b>${{(c.c-spr/2).toFixed(4)}}</b>`;document.getElementById('tvxBuy').innerHTML=`BUY<br><b>${{(c.c+spr/2).toFixed(4)}}</b>`;document.getElementById('tvxSpread').textContent='spread '+spr.toFixed(4);document.getElementById('tvxEma9').textContent='EMA 9 '+(e9||0).toFixed(2);document.getElementById('tvxEma21').textContent='EMA 21 '+(e21||0).toFixed(2);}}
+      function floats(){{document.getElementById('tvxFloatTape').innerHTML=candles.slice(-10).reverse().map(c=>'<div style="color:'+(c.c>=c.o?'#26a69a':'#ef5350')+'">'+c.c.toFixed(4)+' | '+(((c.c-c.o)/c.o)*100).toFixed(2)+'%</div>').join('');}} function redraw(){{drawPrice();drawMacd();floats();renderOrders();}} function clock(){{document.getElementById('tvxClock').textContent='UTC '+new Date().toISOString().slice(11,19);}}
+      function checkAlert(px){{if(alertPrice&&((px>=alertPrice&&candles.at(-2)?.c<alertPrice)||(px<=alertPrice&&candles.at(-2)?.c>alertPrice))){{toast('Price alert triggered '+alertPrice);alertPrice=null;}}}}
+      async function toggleCompare(){{ if(compareSeries.length){{compareSeries=[];compareSymbol='';toast('Compare off');redraw();return;}} const map={{BTCUSDT:'ETHUSDT',ETHUSDT:'BTCUSDT',SOLUSDT:'BTCUSDT',BNBUSDT:'BTCUSDT',XRPUSDT:'BTCUSDT',DOGEUSDT:'BTCUSDT',NEARUSDT:'BTCUSDT',PAXGUSDT:'BTCUSDT'}}; compareSymbol=map[symbol]||'BTCUSDT'; try{{const r=await fetch(`https://api.binance.com/api/v3/klines?symbol=${{compareSymbol}}&interval=${{interval}}&limit=500`); if(!r.ok) throw new Error('REST '+r.status); const j=await r.json(); compareSeries=j.map(a=>({{c:+a[4]}})); toast('Compare '+compareSymbol+' on'); redraw();}}catch(e){{compareSeries=[];compareSymbol='';toast('Compare fetch failed');}} }}
+      function saveIndicatorState(){{localStorage.setItem('neroIndicators',JSON.stringify(indicators));}}
+      function snapshotChart(){{const a=document.createElement('a'); a.download=`nero-${{symbol}}-${{interval}}.png`; a.href=priceCanvas.toDataURL('image/png'); a.click();}}
+      document.getElementById('tvxSymbol').value=symbol; document.querySelectorAll('#tvxFrames button').forEach(b=>{{if(b.dataset.i===interval)b.classList.add('active'); b.onclick=()=>{{interval=b.dataset.i;document.querySelectorAll('#tvxFrames button').forEach(x=>x.classList.remove('active'));b.classList.add('active');fetchKlines(symbol,interval);}}}}); document.getElementById('tvxSymbol').onchange=e=>{{symbol=e.target.value;fetchKlines(symbol,interval);}}; document.getElementById('tvxThemeBtn').onclick=()=>{{app.dataset.theme=app.dataset.theme==='dark'?'light':'dark';localStorage.setItem('neroChartTheme',app.dataset.theme);redraw();}}; const savedTheme=localStorage.getItem('neroChartTheme'); if(savedTheme) app.dataset.theme=savedTheme; document.getElementById('tvxIndicatorBtn').onclick=()=>document.getElementById('tvxIndicatorModal').style.display='flex'; document.getElementById('tvxCloseIndicators').onclick=()=>document.getElementById('tvxIndicatorModal').style.display='none'; document.querySelectorAll('#tvxIndicatorModal input[data-ind]').forEach(cb=>{{cb.checked=!!indicators[cb.dataset.ind]; cb.onchange=()=>{{indicators[cb.dataset.ind]=cb.checked;saveIndicatorState();redraw();}};}}); document.getElementById('tvxCompareBtn').onclick=toggleCompare; document.getElementById('tvxScaleBtn').textContent='Scale '+scaleMode.toUpperCase(); document.getElementById('tvxScaleBtn').onclick=()=>{{scaleMode=scaleMode==='auto'?'log':scaleMode==='log'?'linear':'auto';localStorage.setItem('neroScaleMode',scaleMode);document.getElementById('tvxScaleBtn').textContent='Scale '+scaleMode.toUpperCase();redraw();}}; document.getElementById('tvxFullBtn').onclick=()=>{{ if(app.requestFullscreen) app.requestFullscreen(); }}; document.getElementById('tvxShotBtn').onclick=snapshotChart; document.getElementById('tvxUndoBtn').onclick=()=>{{const d=drawings.pop(); if(d){{redoStack.push(d);localStorage.setItem('neroDrawings',JSON.stringify(drawings));redraw();}}}}; document.getElementById('tvxRedoBtn').onclick=()=>{{const d=redoStack.pop(); if(d){{drawings.push(d);localStorage.setItem('neroDrawings',JSON.stringify(drawings));redraw();}}}}; document.getElementById('tvxAlertBtn').onclick=()=>document.getElementById('tvxAlertModal').style.display='flex'; document.getElementById('tvxCloseAlert').onclick=()=>document.getElementById('tvxAlertModal').style.display='none'; document.getElementById('tvxSaveAlert').onclick=()=>{{alertPrice=+document.getElementById('tvxAlertPrice').value;document.getElementById('tvxAlertModal').style.display='none';toast('Alert saved '+alertPrice);}};
+      document.getElementById('tvxLeftTools').onclick=e=>{{if(e.target.dataset.tool){{activeTool=e.target.dataset.tool;document.querySelectorAll('#tvxLeftTools button').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');if(activeTool==='trash'){{drawings=[];redoStack=[];localStorage.setItem('neroDrawings','[]');redraw();}}}}}}; priceCanvas.onclick=e=>{{if(activeTool==='hline'){{const r=priceCanvas.getBoundingClientRect(),yClick=e.clientY-r.top,view=candles,max=Math.max(...view.map(x=>x.h)),min=Math.min(...view.map(x=>x.l));const price=max-(yClick-24)/(r.height-50)*(max-min);drawings.push({{type:'hline',price}});redoStack=[];localStorage.setItem('neroDrawings',JSON.stringify(drawings));redraw();}}}};
+      document.getElementById('tvxSubmitOrder').onclick=()=>{{const c=candles.at(-1);orders.unshift({{symbol,side:'SIM',type:document.getElementById('tvxOrderType').value,risk:document.getElementById('tvxRiskPct').value+'%',qty:document.getElementById('tvxQty').value,price:c.c.toFixed(4),time:new Date().toLocaleTimeString()}});orders=orders.slice(0,6);localStorage.setItem('neroOrders',JSON.stringify(orders));renderOrders();toast('Simulated order added');}}; function renderOrders(){{document.getElementById('tvxOrders').innerHTML='<b>Open orders</b>'+orders.map(o=>`<div>${{o.time}} ${{o.symbol}} ${{o.type||'Market'}} risk ${{o.risk||'-'}} qty ${{o.qty}} @ ${{o.price}}</div>`).join('');}}
+      document.getElementById('tvxReplayBtn').onclick=()=>{{replay=!replay;replayIndex=replay?Math.max(30,Math.floor(candles.length*.65)):null;toast(replay?'Replay on':'Replay off');redraw();}}; document.getElementById('tvxBack').onclick=()=>{{if(replay){{replayIndex=Math.max(30,replayIndex-1);redraw();}}}}; document.getElementById('tvxFwd').onclick=()=>{{if(replay){{replayIndex=Math.min(candles.length,replayIndex+1);redraw();}}}}; document.getElementById('tvxPlay').onclick=()=>{{if(!replay){{replay=true;replayIndex=30;}} clearInterval(playTimer); playTimer=setInterval(()=>{{replayIndex=Math.min(candles.length,replayIndex+1);redraw();if(replayIndex>=candles.length)clearInterval(playTimer);}}, document.getElementById('tvxSpeed').value==='4x'?180:document.getElementById('tvxSpeed').value==='2x'?350:700);}};
+      priceCanvas.addEventListener('mousemove',e=>{{const r=priceCanvas.getBoundingClientRect();drawPrice(e.clientX-r.left,e.clientY-r.top);}}); priceCanvas.addEventListener('mouseleave',()=>{{tip.style.display='none';hoverText.textContent='Move mouse over candles';drawPrice();}}); window.addEventListener('resize',redraw); setInterval(clock,1000); redraw(); clock(); if(symbol.endsWith('USDT')) connectWs(symbol,interval);
+    </script>
+    """
+    components.html(html, height=1190, scrolling=False)
 DISCLAIMER = (
     "Project Nero is an educational research and historical probability modeling tool. "
     "It does not provide financial, investment, legal, tax, or execution advice."
@@ -957,6 +1070,26 @@ def main() -> None:
     if settings_to_save != local_settings:
         save_settings(settings_to_save)
 
+
+    OPENING_TIMEFRAME_OPTIONS = {
+        "1m": {"binance": "1m", "twelve": "1min", "candles": 500},
+        "5m": {"binance": "5m", "twelve": "5min", "candles": 500},
+        "15m": {"binance": "15m", "twelve": "15min", "candles": 500},
+        "1H": {"binance": "1h", "twelve": "1h", "candles": 500},
+        "4H": {"binance": "4h", "twelve": "4h", "candles": 500},
+        "1D": {"binance": "1d", "twelve": "1day", "candles": 365},
+        "1W": {"binance": "1w", "twelve": "1week", "candles": 260},
+    }
+    opening_timeframe_label = st.radio(
+        "Opening chart timeframe",
+        list(OPENING_TIMEFRAME_OPTIONS.keys()),
+        index=3,
+        horizontal=True,
+        key="opening_chart_timeframe",
+    )
+    opening_timeframe_config = OPENING_TIMEFRAME_OPTIONS[opening_timeframe_label]
+    opening_interval = opening_timeframe_config["twelve" if asset in {"GOLD", "OIL", "FDX"} else "binance"]
+    opening_candles = int(opening_timeframe_config["candles"])
     market_data = market_client.load(
         asset=asset,
         prefer_live=prefer_live,
@@ -966,8 +1099,8 @@ def main() -> None:
     intraday_data = market_client.load_intraday(
         asset=asset,
         prefer_live=prefer_live,
-        interval="1h",
-        candles=240,
+        interval=opening_interval,
+        candles=opening_candles,
         twelve_data_api_key=twelve_data_api_key,
     )
     price_history = market_data.prices
@@ -1060,6 +1193,8 @@ def main() -> None:
         st.warning(status_message)
     else:
         st.info(status_message)
+
+    _render_opening_market_deck(asset, market_data, intraday_data, trade_plan, sentiment_result, opening_timeframe_label)
 
     verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
         ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
