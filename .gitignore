@@ -1,8 +1,14 @@
 ﻿nero_app/data/local_settings.json
 nero_app/data/prediction_log.csv
+.streamlit/secrets.toml
+.env
+.env.*
+venv/
+.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
 .pytest_cache/
 work/
 outputs/
-.env
+local_untracked_backup_*/

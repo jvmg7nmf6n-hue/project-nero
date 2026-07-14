@@ -91,3 +91,28 @@ Then add the environment variables/secrets from the list above in Streamlit Clou
 
 `nero_app/data/local_settings.json` and `nero_app/data/prediction_log.csv` are local-only and ignored by git. On cloud, settings should come from environment variables. Prediction logs on free hosts may be ephemeral unless persistent storage or a database is added.
 
+
+### Streamlit Community Cloud
+
+Use the existing GitHub repository and set the app entry point to:
+
+```text
+app.py
+```
+
+In Streamlit Cloud, open **App settings -> Secrets** and paste the same keys shown in `.streamlit/secrets.example.toml`. Do not commit a real `.streamlit/secrets.toml` file.
+
+Minimum secrets for live data and alerts:
+
+```toml
+PREFER_LIVE = true
+USE_LATEST_NEWS = true
+MOBILE_ALERTS_ENABLED = true
+TWELVE_DATA_API_KEY = "your_twelve_data_key"
+GEMINI_API_KEY = "your_gemini_key"
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 465
+SENDER_EMAIL = "your_sender_gmail"
+EMAIL_APP_PASSWORD = "your_gmail_app_password"
+RECEIVER_EMAIL = "tareekh39@gmail.com"
+```
