@@ -1,0 +1,72 @@
+[
+  {
+    "candidate_id": "MR_RELAXED_PULLBACK_V1",
+    "family": "Mean Reversion",
+    "title": "Relaxed pullback",
+    "total_trades": 4,
+    "win_rate": 0.5,
+    "expectancy_r": -0.2505323075152609,
+    "profit_factor": 0.3693494418907361,
+    "max_drawdown": -0.0191156083407253,
+    "net_pnl": -128.66691809364858,
+    "rating_score": 22.02,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  },
+  {
+    "candidate_id": "BREAKOUT_MOMENTUM_V1",
+    "family": "Momentum",
+    "title": "20-bar breakout momentum",
+    "total_trades": 1,
+    "win_rate": 0.0,
+    "expectancy_r": -1.12553512734422,
+    "profit_factor": 0.0,
+    "max_drawdown": 0.0,
+    "net_pnl": -112.553512734422,
+    "rating_score": 4.12,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  },
+  {
+    "candidate_id": "MR_DEEP_VALUE_V1",
+    "family": "Mean Reversion",
+    "title": "Deep value pullback",
+    "total_trades": 1,
+    "win_rate": 0.0,
+    "expectancy_r": -1.1802535680328157,
+    "profit_factor": 0.0,
+    "max_drawdown": 0.0,
+    "net_pnl": -118.02535680328155,
+    "rating_score": 3.3,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  },
+  {
+    "candidate_id": "MR_REGIME_FILTER_V1",
+    "family": "Mean Reversion",
+    "title": "Regime-filtered pullback",
+    "total_trades": 2,
+    "win_rate": 0.0,
+    "expectancy_r": -1.2608200260093538,
+    "profit_factor": 0.0,
+    "max_drawdown": -0.0032169924711449,
+    "net_pnl": -204.1578765627004,
+    "rating_score": 2.77,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  },
+  {
+    "candidate_id": "MR_TARGET_1R_V1",
+    "family": "Exit Logic",
+    "title": "Fixed 1R target",
+    "total_trades": 2,
+    "win_rate": 0.0,
+    "expectancy_r": -1.2608200260093538,
+    "profit_factor": 0.0,
+    "max_drawdown": -0.0032169924711449,
+    "net_pnl": -204.1578765627004,
+    "rating_score": 2.77,
+    "rating": "INSUFFICIENT_SAMPLE",
+    "insufficient_sample": true
+  }
+]
