@@ -36,6 +36,7 @@ from nero_app.core.quant_intelligence import build_cointegration_report, build_c
 from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PATH, DEFAULT_EVALUATIONS_PATH, DEFAULT_MEAN_REVERSION_REPORT_PATH, DEFAULT_PREDICTION_LOG_PATH, build_strategy_performance_audit
+from nero_app.core.strategy_research_lab import build_strategy_research_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -362,6 +363,35 @@ def _render_strategy_audit_tab(compact: bool = False) -> None:
         ]
         st.table(pd.DataFrame(source_rows))
 
+
+
+def _render_strategy_research_lab_tab() -> None:
+    st.subheader("Strategy Research Lab")
+    st.caption("NERO's controlled self-improvement layer: proposes alternate paper-test candidates without changing live rules.")
+    report = build_strategy_research_report()
+    col_a, col_b, col_c, col_d = st.columns(4)
+    col_a.metric("Lab Score", f"{report.lab_score:.0f}/100")
+    col_b.metric("Label", report.label)
+    col_c.metric("Sample", report.sample_status)
+    col_d.metric("Current Edge", report.current_edge)
+    for note in report.notes:
+        st.info(note)
+    if report.top_blockers:
+        st.subheader("Top Strategy Blockers")
+        st.dataframe(pd.DataFrame(report.top_blockers), use_container_width=True, hide_index=True)
+    st.subheader("Candidate Algos For Forward Testing")
+    if report.candidates:
+        st.dataframe(pd.DataFrame(report.candidate_rows()), use_container_width=True, hide_index=True)
+        with st.expander("Candidate Detail"):
+            for candidate in report.candidates:
+                st.markdown(f"**{candidate.candidate_id}: {candidate.title}**")
+                st.caption(candidate.hypothesis)
+                st.caption("Changes: " + "; ".join(candidate.proposed_changes))
+                st.caption("Evidence: " + "; ".join(candidate.evidence))
+                st.caption("Risks: " + "; ".join(candidate.risks))
+    else:
+        st.info("No candidates yet. NERO needs more paper-trade and rejection data.")
+    st.warning("Safety rule: candidates are RESEARCH_ONLY. NERO must not auto-change strategy parameters without manual version approval.")
 
 def _render_strategy_audit_rows(audit) -> None:
     if not audit.rows:
@@ -952,8 +982,8 @@ def main() -> None:
     else:
         st.info(status_message)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, market_memory_tab, quant_intel_tab, trade_path_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Market Memory", "Quant Intel", "Trade Path", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Market Memory", "Quant Intel", "Trade Path", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1148,6 +1178,9 @@ def main() -> None:
 
     with mean_reversion_tab:
         _render_mean_reversion_tab()
+
+    with research_lab_tab:
+        _render_strategy_research_lab_tab()
 
     with market_memory_tab:
         _render_market_memory_tab(asset, enriched_headline)
