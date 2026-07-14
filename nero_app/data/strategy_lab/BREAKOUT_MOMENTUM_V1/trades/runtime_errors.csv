@@ -2,3 +2,4 @@ timestamp,asset,code,message
 2026-07-14T09:00:59.543583+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-14T12:56:15.785296+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-14T13:40:11.638095+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
+2026-07-14T16:57:31.170205+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
