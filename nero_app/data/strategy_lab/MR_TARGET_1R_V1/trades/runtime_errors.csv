@@ -3,7 +3,11 @@ timestamp,asset,code,message
 2026-07-14T12:56:15.785296+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-14T13:40:11.638095+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-14T16:57:31.170205+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
-2026-07-14T20:43:21.883399+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
-2026-07-14T23:37:34.652888+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
-2026-07-15T07:26:37.472047+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
-2026-07-15T12:08:07.522653+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
+2026-07-15T13:11:50.076973+00:00,BTC,ERROR,ValueError: No live fallback candles for BTC: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
+2026-07-15T13:11:50.076973+00:00,ETH,ERROR,ValueError: No live fallback candles for ETH: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
+2026-07-15T13:11:50.076973+00:00,SOL,ERROR,ValueError: No live fallback candles for SOL: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
+2026-07-15T13:11:50.076973+00:00,XRP,ERROR,ValueError: No live fallback candles for XRP: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
+2026-07-15T13:11:50.076973+00:00,DOGE,ERROR,ValueError: No live fallback candles for DOGE: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
+2026-07-15T13:11:50.076973+00:00,NEAR,ERROR,ValueError: No live fallback candles for NEAR: fallback: Binance ConnectionError; Coinbase ConnectionError
+2026-07-15T13:11:50.076973+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
+2026-07-15T13:11:50.076973+00:00,PAXG,ERROR,ValueError: No live fallback candles for PAXG: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
