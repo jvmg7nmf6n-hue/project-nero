@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import sys
@@ -31,7 +31,10 @@ def _send_ntfy(message: str) -> None:
     topic = os.getenv("NTFY_TOPIC", "").strip()
     if not topic:
         return
-    priority = "high" if any(token in message for token in ["PAPER_ENTRY", "TARGET", "SL", "ERROR"]) else "default"
+    if "ERROR" in message and os.getenv("STRATEGY_LAB_ALERT_ERRORS", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+        print("Ntfy skipped for Strategy Lab data-feed error; set STRATEGY_LAB_ALERT_ERRORS=true to enable.")
+        return
+    priority = "high" if any(token in message for token in ["PAPER_ENTRY", "TARGET", "SL"]) else "default"
     result = send_ntfy_alert(
         server_url=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
         topic=topic,
