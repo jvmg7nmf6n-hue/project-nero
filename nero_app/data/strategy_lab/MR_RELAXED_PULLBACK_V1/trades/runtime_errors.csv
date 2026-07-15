@@ -13,3 +13,4 @@ timestamp,asset,code,message
 2026-07-15T13:11:50.076973+00:00,PAXG,ERROR,ValueError: No live fallback candles for PAXG: fallback: Binance ConnectionError; Coinbase ConnectionError; Kraken ConnectionError
 2026-07-15T16:53:58.937105+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-15T20:38:51.127489+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
+2026-07-15T23:45:34.065737+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
