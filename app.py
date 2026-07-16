@@ -573,7 +573,7 @@ def _render_strategy_test_lab_tab() -> None:
             csv_path = report_dir / f"strategy_lab_{candidate_id}.csv"
             json_path = report_dir / f"strategy_lab_{candidate_id}.json"
             spec = CANDIDATES[candidate_id]
-            rows.append({"Algo": spec.display_label or candidate_id, "Bucket": spec.bucket, "Interval": spec.interval, "CSV": str(csv_path), "CSV Exists": csv_path.exists(), "JSON Exists": json_path.exists()})
+            rows.append({"Algo": getattr(spec, "display_label", "") or candidate_id, "Bucket": getattr(spec, "bucket", "OLD_TEST"), "Interval": getattr(spec, "interval", "1h"), "CSV": str(csv_path), "CSV Exists": csv_path.exists(), "JSON Exists": json_path.exists()})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 
@@ -1587,6 +1587,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
