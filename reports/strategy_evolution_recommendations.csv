@@ -1,0 +1,6 @@
+Candidate,Family,Trades,Win Rate,Expectancy R,Profit Factor,Max Drawdown,Action,Recommendation
+BREAKOUT_MOMENTUM_V1,Momentum,20,0.55,-0.056,0.803,0.055,COLLECT_MORE_DATA,Keep in shadow testing; sample is too small for strategy judgement.
+MR_RELAXED_PULLBACK_V1,Mean Reversion,8,0.5,-0.258,0.383,0.031,COLLECT_MORE_DATA,Keep in shadow testing; sample is too small for strategy judgement.
+MR_REGIME_FILTER_V1,Mean Reversion,5,0.2,-0.861,0.106,0.015,COLLECT_MORE_DATA,Keep in shadow testing; sample is too small for strategy judgement.
+MR_TARGET_1R_V1,Exit Logic,5,0.2,-0.884,0.089,0.015,COLLECT_MORE_DATA,Keep in shadow testing; sample is too small for strategy judgement.
+MR_DEEP_VALUE_V1,Mean Reversion,2,0.0,-1.18,0.0,0.012,COLLECT_MORE_DATA,Keep in shadow testing; sample is too small for strategy judgement.

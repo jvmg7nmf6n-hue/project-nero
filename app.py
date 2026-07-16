@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
@@ -39,6 +39,7 @@ from nero_app.core.schema import AnalysisRequest, AssetSymbol
 from nero_app.core.settings import load_settings, save_settings
 from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PATH, DEFAULT_EVALUATIONS_PATH, DEFAULT_MEAN_REVERSION_REPORT_PATH, DEFAULT_PREDICTION_LOG_PATH, build_strategy_performance_audit
 from nero_app.core.strategy_lab_agent import CANDIDATES, DEFAULT_REPORT_DIR as STRATEGY_LAB_REPORT_DIR, write_strategy_lab_summary
+from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
@@ -511,7 +512,7 @@ def _render_strategy_research_lab_tab() -> None:
 
 def _render_strategy_test_lab_tab() -> None:
     st.subheader("Strategy TEST Lab")
-    st.caption("Five parallel paper-test algos. No real orders. GitHub Actions records evidence so NERO can rank strategies after enough trades.")
+    st.caption("Old strategies plus new evidence candidates. No real orders. GitHub Actions records evidence so NERO can rank strategies after enough trades.")
     report_dir = STRATEGY_LAB_REPORT_DIR
     summary_path = report_dir / "strategy_lab_summary.csv"
     if summary_path.exists():
@@ -524,15 +525,41 @@ def _render_strategy_test_lab_tab() -> None:
     best = summary.sort_values(["rating_score", "total_trades"], ascending=False).iloc[0]
     total_trades = int(pd.to_numeric(summary.get("total_trades", pd.Series(dtype=float)), errors="coerce").fillna(0).sum())
     col_a, col_b, col_c, col_d, col_e = st.columns(5)
-    col_a.metric("Algos Testing", str(len(summary)))
+    active_count = int(summary.get("enabled", pd.Series([True] * len(summary))).astype(str).str.lower().ne("false").sum()) if "enabled" in summary else len(summary)
+    col_a.metric("Algos Testing", str(active_count))
     col_b.metric("Total Paper Trades", str(total_trades))
-    col_c.metric("Best Algo", str(best.get("candidate_id", "-")))
+    col_c.metric("Best Algo", str(best.get("display_label", best.get("candidate_id", "-"))))
     col_d.metric("Best Rating", str(best.get("rating", "-")))
     col_e.metric("Best Score", f"{float(best.get('rating_score', 0.0)):.0f}/100")
     if total_trades < 30:
         st.warning("Still early. Reliable ranking needs about 30-50 closed trades per algo.")
     st.info("Ratings combine win rate, expectancy, profit factor, drawdown, and sample size. Use this as evidence collection, not a standalone trade command.")
+    if "bucket" in summary:
+        st.caption("Lab groups: OLD_TEST = existing NERO algos, NEW_TEST = Claude-sweep candidates, RESEARCH_ONLY = not executed until a real engine is wired.")
+        bucket_view = summary.groupby("bucket", dropna=False).agg(
+            algos=("candidate_id", "count"),
+            trades=("total_trades", "sum"),
+            avg_score=("rating_score", "mean"),
+        ).reset_index()
+        st.dataframe(bucket_view, use_container_width=True, hide_index=True)
     display = summary.copy()
+    preferred_columns = [
+        "display_label",
+        "bucket",
+        "interval",
+        "asset_filter",
+        "family",
+        "total_trades",
+        "win_rate",
+        "expectancy_r",
+        "profit_factor",
+        "max_drawdown",
+        "net_pnl",
+        "rating_score",
+        "rating",
+        "evidence_note",
+    ]
+    display = display[[column for column in preferred_columns if column in display.columns] + [column for column in display.columns if column not in preferred_columns]]
     for column in ["win_rate", "max_drawdown"]:
         if column in display:
             display[column] = pd.to_numeric(display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.0%}")
@@ -545,9 +572,32 @@ def _render_strategy_test_lab_tab() -> None:
         for candidate_id in CANDIDATES:
             csv_path = report_dir / f"strategy_lab_{candidate_id}.csv"
             json_path = report_dir / f"strategy_lab_{candidate_id}.json"
-            rows.append({"Algo": candidate_id, "CSV": str(csv_path), "CSV Exists": csv_path.exists(), "JSON Exists": json_path.exists()})
+            spec = CANDIDATES[candidate_id]
+            rows.append({"Algo": spec.display_label or candidate_id, "Bucket": spec.bucket, "Interval": spec.interval, "CSV": str(csv_path), "CSV Exists": csv_path.exists(), "JSON Exists": json_path.exists()})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
+
+def _render_strategy_evolution_tab() -> None:
+    st.subheader("NERO Self-Evolution Lab")
+    st.caption("Loss autopsy, Strategy Doctor recommendations, and versioned shadow-test variants. No live rules are changed silently.")
+    report = build_strategy_evolution_report()
+    col_a, col_b, col_c, col_d = st.columns(4)
+    col_a.metric("Maturity", f"{report.maturity_score:.0f}/100")
+    col_b.metric("Label", report.label)
+    col_c.metric("Trades Read", str(report.total_trades))
+    col_d.metric("Losses Autopsied", str(report.total_losses))
+    for note in report.notes:
+        st.info(note)
+    if report.autopsy_rows:
+        st.subheader("Loss Autopsy")
+        st.dataframe(pd.DataFrame(report.autopsy_rows), use_container_width=True, hide_index=True)
+    if report.recommendation_rows:
+        st.subheader("Strategy Doctor")
+        st.dataframe(pd.DataFrame(report.recommendation_rows), use_container_width=True, hide_index=True)
+    if report.variant_rows:
+        st.subheader("Shadow-Test Variant Proposals")
+        st.dataframe(pd.DataFrame(report.variant_rows), use_container_width=True, hide_index=True)
+    st.warning("Autonomy safety: NERO can propose and shadow-test improvements, but production strategy changes must be versioned and audited.")
 
 def _load_strategy_lab_rows() -> list[dict[str, object]]:
     summary_path = STRATEGY_LAB_REPORT_DIR / "strategy_lab_summary.csv"
@@ -1196,8 +1246,8 @@ def main() -> None:
 
     _render_opening_market_deck(asset, market_data, intraday_data, trade_plan, sentiment_result, opening_timeframe_label)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1396,6 +1446,9 @@ def main() -> None:
     with research_lab_tab:
         _render_strategy_research_lab_tab()
 
+    with evolution_tab:
+        _render_strategy_evolution_tab()
+
     with test_lab_tab:
         _render_strategy_test_lab_tab()
 
@@ -1534,3 +1587,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+
+

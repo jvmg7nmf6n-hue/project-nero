@@ -11,10 +11,14 @@ from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_repo
 
 
 class StrategyLabAgentTest(unittest.TestCase):
-    def test_has_five_parallel_candidates(self) -> None:
-        self.assertEqual(len(CANDIDATES), 5)
+    def test_has_old_and_new_lab_candidates(self) -> None:
+        self.assertGreaterEqual(len(CANDIDATES), 11)
         self.assertIn("MR_RELAXED_PULLBACK_V1", CANDIDATES)
         self.assertIn("BREAKOUT_MOMENTUM_V1", CANDIDATES)
+        self.assertEqual(CANDIDATES["MR_RELAXED_PULLBACK_V1"].display_label, "OLD_MR_RELAXED")
+        self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].bucket, "NEW_TEST")
+        self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].interval, "12h")
+        self.assertFalse(CANDIDATES["NEW_BTC_ETH_12H_PAIR"].enabled)
 
     def test_summary_rates_candidate_after_sample(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -40,6 +44,9 @@ class StrategyLabAgentTest(unittest.TestCase):
             summary = write_strategy_lab_summary(report_dir, [candidate])
 
         self.assertEqual(summary.iloc[0]["candidate_id"], candidate.candidate_id)
+        self.assertEqual(summary.iloc[0]["display_label"], "OLD_MR_RELAXED")
+        self.assertEqual(summary.iloc[0]["bucket"], "OLD_TEST")
+        self.assertEqual(summary.iloc[0]["interval"], "1h")
         self.assertEqual(int(summary.iloc[0]["total_trades"]), 32)
         self.assertEqual(summary.iloc[0]["rating"], "KEEP_TESTING")
 

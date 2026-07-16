@@ -1,0 +1,6 @@
+Candidate,Trades,Losses,Top Loss Exit,Avg Loss R,Avg Losing Entry RSI,Avg Planned Reward R,Likely Mistake
+BREAKOUT_MOMENTUM_V1,20,9,SL,-1.213,75.29,1.25,Stop-loss cluster; likely regime/volatility filter problem.
+MR_RELAXED_PULLBACK_V1,8,4,SL,-1.257,36.01,1.36,Stop-loss cluster; likely regime/volatility filter problem.
+MR_REGIME_FILTER_V1,5,4,SL,-1.261,31.17,1.4,Stop-loss cluster; likely regime/volatility filter problem.
+MR_TARGET_1R_V1,5,4,SL,-1.261,31.17,1.0,Stop-loss hits with weak planned reward; entry needs stricter reward-to-risk gate.
+MR_DEEP_VALUE_V1,2,2,SL,-1.18,28.31,1.41,Stop-loss cluster; likely regime/volatility filter problem.

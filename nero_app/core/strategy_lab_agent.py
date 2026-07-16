@@ -36,6 +36,12 @@ class CandidateSpec:
     candidate_id: str
     family: str
     title: str
+    display_label: str = ""
+    bucket: str = "OLD_TEST"
+    asset_filter: tuple[str, ...] = ()
+    interval: str = "1h"
+    evidence_note: str = ""
+    enabled: bool = True
     rsi_entry_below: float = 35.0
     lower_bb_buffer_atr: float = 0.0
     require_ma200: bool = True
@@ -50,6 +56,7 @@ CANDIDATES: dict[str, CandidateSpec] = {
         candidate_id="MR_RELAXED_PULLBACK_V1",
         family="Mean Reversion",
         title="Relaxed pullback",
+        display_label="OLD_MR_RELAXED",
         rsi_entry_below=40.0,
         lower_bb_buffer_atr=0.25,
     ),
@@ -57,6 +64,7 @@ CANDIDATES: dict[str, CandidateSpec] = {
         candidate_id="MR_REGIME_FILTER_V1",
         family="Mean Reversion",
         title="Regime-filtered pullback",
+        display_label="OLD_MR_REGIME",
         rsi_entry_below=35.0,
         lower_bb_buffer_atr=0.1,
         require_ma200=True,
@@ -65,6 +73,7 @@ CANDIDATES: dict[str, CandidateSpec] = {
         candidate_id="MR_DEEP_VALUE_V1",
         family="Mean Reversion",
         title="Deep value pullback",
+        display_label="OLD_MR_DEEP",
         rsi_entry_below=30.0,
         lower_bb_buffer_atr=0.0,
     ),
@@ -72,6 +81,7 @@ CANDIDATES: dict[str, CandidateSpec] = {
         candidate_id="MR_TARGET_1R_V1",
         family="Exit Logic",
         title="Fixed 1R target",
+        display_label="OLD_MR_1R",
         rsi_entry_below=35.0,
         lower_bb_buffer_atr=0.0,
         target_mode="FIXED_1R",
@@ -80,11 +90,86 @@ CANDIDATES: dict[str, CandidateSpec] = {
         candidate_id="BREAKOUT_MOMENTUM_V1",
         family="Momentum",
         title="20-bar breakout momentum",
+        display_label="OLD_BREAKOUT",
         rsi_entry_below=100.0,
         require_ma200=True,
         target_mode="FIXED_125R",
         atr_stop_multiple=1.2,
         breakout_lookback=20,
+    ),
+    "NEW_BTC_12H_MR": CandidateSpec(
+        candidate_id="NEW_BTC_12H_MR",
+        family="Mean Reversion",
+        title="BTC 12h relaxed mean reversion",
+        display_label="NEW_BTC_12H_MR",
+        bucket="NEW_TEST",
+        asset_filter=("BTC",),
+        interval="12h",
+        evidence_note="Claude sweep: BTC/12h relaxed pullback positive in train and test.",
+        rsi_entry_below=40.0,
+        lower_bb_buffer_atr=0.25,
+    ),
+    "NEW_BNB_12H_TREND": CandidateSpec(
+        candidate_id="NEW_BNB_12H_TREND",
+        family="Momentum",
+        title="BNB 12h trend pullback proxy",
+        display_label="NEW_BNB_12H_TREND",
+        bucket="NEW_TEST",
+        asset_filter=("BNB",),
+        interval="12h",
+        evidence_note="Claude sweep: BNB/12h trend pullback positive in train and test. Running as current momentum proxy until dedicated pullback engine is ported.",
+        rsi_entry_below=100.0,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.2,
+        breakout_lookback=20,
+    ),
+    "NEW_BNB_12H_MR": CandidateSpec(
+        candidate_id="NEW_BNB_12H_MR",
+        family="Mean Reversion",
+        title="BNB 12h relaxed mean reversion",
+        display_label="NEW_BNB_12H_MR",
+        bucket="NEW_TEST",
+        asset_filter=("BNB",),
+        interval="12h",
+        evidence_note="Claude sweep: BNB/12h relaxed pullback positive in train and test.",
+        rsi_entry_below=40.0,
+        lower_bb_buffer_atr=0.25,
+    ),
+    "NEW_XRP_2H_MR": CandidateSpec(
+        candidate_id="NEW_XRP_2H_MR",
+        family="Mean Reversion",
+        title="XRP 2h deep-value mean reversion",
+        display_label="NEW_XRP_2H_MR",
+        bucket="NEW_TEST",
+        asset_filter=("XRP",),
+        interval="2h",
+        evidence_note="Claude sweep: XRP/2h deep-value positive in train and test.",
+        rsi_entry_below=30.0,
+        lower_bb_buffer_atr=0.0,
+    ),
+    "NEW_NEAR_2H_MR": CandidateSpec(
+        candidate_id="NEW_NEAR_2H_MR",
+        family="Mean Reversion",
+        title="NEAR 2h deep-value mean reversion",
+        display_label="NEW_NEAR_2H_MR",
+        bucket="NEW_TEST",
+        asset_filter=("NEAR",),
+        interval="2h",
+        evidence_note="Claude sweep: NEAR/2h deep-value positive in train and test.",
+        rsi_entry_below=30.0,
+        lower_bb_buffer_atr=0.0,
+    ),
+    "NEW_BTC_ETH_12H_PAIR": CandidateSpec(
+        candidate_id="NEW_BTC_ETH_12H_PAIR",
+        family="Pairs Research",
+        title="BTC-ETH 12h cointegration pair",
+        display_label="NEW_BTC_ETH_12H_PAIR",
+        bucket="RESEARCH_ONLY",
+        asset_filter=("BTC", "ETH"),
+        interval="12h",
+        evidence_note="Claude sweep: BTC-ETH/12h pair positive but weak. Kept research-only until real pair execution is wired.",
+        enabled=False,
     ),
 }
 
@@ -277,14 +362,21 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
     report_dir = Path(os.getenv("STRATEGY_LAB_REPORT_DIR", str(DEFAULT_REPORT_DIR)))
     selected = _selected_candidates()
     for spec in selected:
+        if not spec.enabled:
+            continue
+        candidate_assets = _candidate_assets(spec, assets)
+        if not candidate_assets:
+            continue
         config = dataclasses.replace(
             base_config,
+            assets=candidate_assets,
+            interval=spec.interval,
             strategy_version=f"{STRATEGY_LAB_VERSION}:{spec.candidate_id}",
             rsi_entry_below=spec.rsi_entry_below,
             atr_stop_multiple=spec.atr_stop_multiple,
         )
         agent = CandidatePaperAgent(spec=spec, config=config, data_dir=lab_dir / spec.candidate_id, report_dir=report_dir, now=now)
-        summary = agent.run(list(assets.keys()))
+        summary = agent.run(list(candidate_assets.keys()))
         evaluated += summary.evaluated
         entries += summary.entries
         exits += summary.exits
@@ -318,8 +410,14 @@ def write_strategy_lab_summary(report_dir: Path = DEFAULT_REPORT_DIR, candidates
 def _candidate_report_row(spec: CandidateSpec, asset: str, trades: pd.DataFrame, evaluations: pd.DataFrame) -> dict[str, Any]:
     row = report_row(asset, trades, evaluations)
     row["candidate_id"] = spec.candidate_id
+    row["display_label"] = spec.display_label or spec.candidate_id
+    row["bucket"] = spec.bucket
     row["family"] = spec.family
     row["title"] = spec.title
+    row["interval"] = spec.interval
+    row["asset_filter"] = ",".join(spec.asset_filter) if spec.asset_filter else "ALL"
+    row["evidence_note"] = spec.evidence_note
+    row["enabled"] = spec.enabled
     row["rating"] = _rating(row)
     row["rating_score"] = _rating_score(row)
     return row
@@ -353,8 +451,14 @@ def _rating(row: dict[str, Any]) -> str:
 def _summary_row(spec: CandidateSpec, row: dict[str, Any]) -> dict[str, Any]:
     return {
         "candidate_id": spec.candidate_id,
+        "display_label": spec.display_label or spec.candidate_id,
+        "bucket": spec.bucket,
         "family": spec.family,
         "title": spec.title,
+        "interval": spec.interval,
+        "asset_filter": ",".join(spec.asset_filter) if spec.asset_filter else "ALL",
+        "evidence_note": spec.evidence_note,
+        "enabled": spec.enabled,
         "total_trades": int(float(row.get("total_trades", 0) or 0)),
         "win_rate": float(row.get("win_rate", 0.0) or 0.0),
         "expectancy_r": float(row.get("expectancy_r", 0.0) or 0.0),
@@ -378,8 +482,14 @@ def _bool_value(value: Any) -> bool:
 def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
     return {
         "candidate_id": spec.candidate_id,
+        "display_label": spec.display_label or spec.candidate_id,
+        "bucket": spec.bucket,
         "family": spec.family,
         "title": spec.title,
+        "interval": spec.interval,
+        "asset_filter": ",".join(spec.asset_filter) if spec.asset_filter else "ALL",
+        "evidence_note": spec.evidence_note,
+        "enabled": spec.enabled,
         "total_trades": 0,
         "win_rate": 0.0,
         "expectancy_r": 0.0,
@@ -390,6 +500,13 @@ def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
         "rating": "INSUFFICIENT_SAMPLE",
         "insufficient_sample": True,
     }
+
+
+def _candidate_assets(spec: CandidateSpec, assets: dict[str, str]) -> dict[str, str]:
+    if not spec.asset_filter:
+        return dict(assets)
+    allowed = {asset.upper() for asset in spec.asset_filter}
+    return {asset: symbol for asset, symbol in assets.items() if asset.upper() in allowed}
 
 
 def _selected_candidates() -> list[CandidateSpec]:

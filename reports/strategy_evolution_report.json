@@ -1,0 +1,164 @@
+{
+  "maturity_score": 3.2,
+  "label": "DATA_COLLECTION_MODE",
+  "total_trades": 40,
+  "total_losses": 23,
+  "promote_ready": 0,
+  "notes": [
+    "NERO has 40 strategy-lab trades and 23 recorded losses for autopsy.",
+    "No strategy is changed silently; variants are SHADOW_TEST_ONLY until promotion rules are met.",
+    "Live-data-only rule remains mandatory for any decision-quality analysis.",
+    "Still below 100 trades per candidate; use recommendations as research guidance, not proof."
+  ],
+  "autopsy_rows": [
+    {
+      "Candidate": "BREAKOUT_MOMENTUM_V1",
+      "Trades": 20,
+      "Losses": 9,
+      "Top Loss Exit": "SL",
+      "Avg Loss R": -1.213,
+      "Avg Losing Entry RSI": 75.29,
+      "Avg Planned Reward R": 1.25,
+      "Likely Mistake": "Stop-loss cluster; likely regime/volatility filter problem."
+    },
+    {
+      "Candidate": "MR_RELAXED_PULLBACK_V1",
+      "Trades": 8,
+      "Losses": 4,
+      "Top Loss Exit": "SL",
+      "Avg Loss R": -1.257,
+      "Avg Losing Entry RSI": 36.01,
+      "Avg Planned Reward R": 1.36,
+      "Likely Mistake": "Stop-loss cluster; likely regime/volatility filter problem."
+    },
+    {
+      "Candidate": "MR_REGIME_FILTER_V1",
+      "Trades": 5,
+      "Losses": 4,
+      "Top Loss Exit": "SL",
+      "Avg Loss R": -1.261,
+      "Avg Losing Entry RSI": 31.17,
+      "Avg Planned Reward R": 1.4,
+      "Likely Mistake": "Stop-loss cluster; likely regime/volatility filter problem."
+    },
+    {
+      "Candidate": "MR_TARGET_1R_V1",
+      "Trades": 5,
+      "Losses": 4,
+      "Top Loss Exit": "SL",
+      "Avg Loss R": -1.261,
+      "Avg Losing Entry RSI": 31.17,
+      "Avg Planned Reward R": 1.0,
+      "Likely Mistake": "Stop-loss hits with weak planned reward; entry needs stricter reward-to-risk gate."
+    },
+    {
+      "Candidate": "MR_DEEP_VALUE_V1",
+      "Trades": 2,
+      "Losses": 2,
+      "Top Loss Exit": "SL",
+      "Avg Loss R": -1.18,
+      "Avg Losing Entry RSI": 28.31,
+      "Avg Planned Reward R": 1.41,
+      "Likely Mistake": "Stop-loss cluster; likely regime/volatility filter problem."
+    }
+  ],
+  "recommendation_rows": [
+    {
+      "Candidate": "BREAKOUT_MOMENTUM_V1",
+      "Family": "Momentum",
+      "Trades": 20,
+      "Win Rate": 0.55,
+      "Expectancy R": -0.056,
+      "Profit Factor": 0.803,
+      "Max Drawdown": 0.055,
+      "Action": "COLLECT_MORE_DATA",
+      "Recommendation": "Keep in shadow testing; sample is too small for strategy judgement."
+    },
+    {
+      "Candidate": "MR_RELAXED_PULLBACK_V1",
+      "Family": "Mean Reversion",
+      "Trades": 8,
+      "Win Rate": 0.5,
+      "Expectancy R": -0.258,
+      "Profit Factor": 0.383,
+      "Max Drawdown": 0.031,
+      "Action": "COLLECT_MORE_DATA",
+      "Recommendation": "Keep in shadow testing; sample is too small for strategy judgement."
+    },
+    {
+      "Candidate": "MR_REGIME_FILTER_V1",
+      "Family": "Mean Reversion",
+      "Trades": 5,
+      "Win Rate": 0.2,
+      "Expectancy R": -0.861,
+      "Profit Factor": 0.106,
+      "Max Drawdown": 0.015,
+      "Action": "COLLECT_MORE_DATA",
+      "Recommendation": "Keep in shadow testing; sample is too small for strategy judgement."
+    },
+    {
+      "Candidate": "MR_TARGET_1R_V1",
+      "Family": "Exit Logic",
+      "Trades": 5,
+      "Win Rate": 0.2,
+      "Expectancy R": -0.884,
+      "Profit Factor": 0.089,
+      "Max Drawdown": 0.015,
+      "Action": "COLLECT_MORE_DATA",
+      "Recommendation": "Keep in shadow testing; sample is too small for strategy judgement."
+    },
+    {
+      "Candidate": "MR_DEEP_VALUE_V1",
+      "Family": "Mean Reversion",
+      "Trades": 2,
+      "Win Rate": 0.0,
+      "Expectancy R": -1.18,
+      "Profit Factor": 0.0,
+      "Max Drawdown": 0.012,
+      "Action": "COLLECT_MORE_DATA",
+      "Recommendation": "Keep in shadow testing; sample is too small for strategy judgement."
+    }
+  ],
+  "variant_rows": [
+    {
+      "Parent": "BREAKOUT_MOMENTUM_V1",
+      "Proposed Variant": "BREAKOUT_MOMENTUM_V2",
+      "Mode": "SHADOW_TEST_ONLY",
+      "Hypothesis": "Breakout losses may shrink if NERO avoids first-break fakeouts and only accepts cleaner trend regimes.",
+      "Proposed Changes": "Add retest confirmation; require 60D trend support; block high-volatility shock regimes; target at 1.5R.",
+      "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only."
+    },
+    {
+      "Parent": "MR_RELAXED_PULLBACK_V1",
+      "Proposed Variant": "MR_RELAXED_PULLBACK_V2",
+      "Mode": "SHADOW_TEST_ONLY",
+      "Hypothesis": "Mean-reversion losses may reduce if entries wait for oversold exhaustion instead of catching falling candles.",
+      "Proposed Changes": "Tighten regime filter; require RSI recovery hook; avoid entries when MA20 target is too close after fees.",
+      "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only."
+    },
+    {
+      "Parent": "MR_REGIME_FILTER_V1",
+      "Proposed Variant": "MR_REGIME_FILTER_V2",
+      "Mode": "SHADOW_TEST_ONLY",
+      "Hypothesis": "Mean-reversion losses may reduce if entries wait for oversold exhaustion instead of catching falling candles.",
+      "Proposed Changes": "Tighten regime filter; require RSI recovery hook; avoid entries when MA20 target is too close after fees.",
+      "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only."
+    },
+    {
+      "Parent": "MR_TARGET_1R_V1",
+      "Proposed Variant": "MR_TARGET_1R_V2",
+      "Mode": "SHADOW_TEST_ONLY",
+      "Hypothesis": "Exit quality may improve if reward-to-risk is validated before entry.",
+      "Proposed Changes": "Compare fixed 1R, 1.25R, and frozen MA20 exits; reject setups with planned reward below 1.2R.",
+      "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only."
+    },
+    {
+      "Parent": "MR_DEEP_VALUE_V1",
+      "Proposed Variant": "MR_DEEP_VALUE_V2",
+      "Mode": "SHADOW_TEST_ONLY",
+      "Hypothesis": "Mean-reversion losses may reduce if entries wait for oversold exhaustion instead of catching falling candles.",
+      "Proposed Changes": "Tighten regime filter; require RSI recovery hook; avoid entries when MA20 target is too close after fees.",
+      "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only."
+    }
+  ]
+}
