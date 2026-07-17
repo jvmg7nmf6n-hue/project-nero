@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-17",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1784246400000,
-  "missed_run_count": 310,
+  "last_evaluated_close_time": 1784271600000,
+  "missed_run_count": 316,
   "open_trade": {
     "asset": "NEAR",
     "candidate_id": "MR_TARGET_1R_V1",
