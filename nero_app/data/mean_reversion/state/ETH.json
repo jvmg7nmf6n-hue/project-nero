@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-17",
   "daily_r": -1.1883895050025357,
   "equity": 9423.225896630833,
-  "last_evaluated_close_time": 1784271600000,
-  "missed_run_count": 347,
+  "last_evaluated_close_time": 1784286000000,
+  "missed_run_count": 350,
   "open_trade": {
     "asset": "ETH",
     "entry_atr": 13.508571428571438,
