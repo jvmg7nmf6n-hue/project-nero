@@ -40,9 +40,10 @@ def run_nero_core_prediction_lab(
 
     for asset in [item.strip().upper() for item in assets if item.strip()]:
         market_data = market_client.load(asset=asset, prefer_live=True, days=365, twelve_data_api_key=twelve_data_api_key)
-        evaluate_prediction_log(market_data.prices, path=prediction_log_path, asset=asset)
+        if market_data.status == "live":
+            evaluate_prediction_log(market_data.prices, path=prediction_log_path, asset=asset)
         evaluated_total = _evaluated_count(prediction_log_path)
-        if market_data.prices.empty or _already_recorded_today(asset, horizon_days, market_data.prices, prediction_log_path):
+        if market_data.status != "live" or market_data.prices.empty or _already_recorded_today(asset, horizon_days, market_data.prices, prediction_log_path):
             continue
 
         news_result = news_client.load(asset)
@@ -78,11 +79,17 @@ def write_prediction_lab_report(frame: pd.DataFrame, report_path: Path = DEFAULT
         report.to_csv(report_path, index=False)
         return report
 
-    for asset, group in frame.groupby("asset", dropna=False):
+    quality_frame = _live_prediction_rows(frame)
+    if quality_frame.empty:
+        report = pd.DataFrame(columns=["agent", "asset", "total", "evaluated", "wins", "misses", "win_rate", "pending", "excluded_sample_or_fallback"])
+        report.to_csv(report_path, index=False)
+        return report
+    for asset, group in quality_frame.groupby("asset", dropna=False):
         evaluated = group[group["evaluation_status"] == "evaluated"]
         wins = int((evaluated["outcome"] == "win").sum()) if not evaluated.empty else 0
         misses = int((evaluated["outcome"] == "miss").sum()) if not evaluated.empty else 0
         pending = int((group["evaluation_status"] == "pending").sum()) if "evaluation_status" in group else 0
+        excluded = int(((frame["asset"].astype(str) == str(asset)) & ~frame.index.isin(group.index)).sum())
         rows.append(
             {
                 "agent": "NERO_CORE",
@@ -91,13 +98,22 @@ def write_prediction_lab_report(frame: pd.DataFrame, report_path: Path = DEFAULT
                 "evaluated": int(len(evaluated)),
                 "wins": wins,
                 "misses": misses,
-                "win_rate": wins / len(evaluated) if len(evaluated) else 0.0,
+                "win_rate": wins / (wins + misses) if (wins + misses) else 0.0,
                 "pending": pending,
+                "excluded_sample_or_fallback": excluded,
             }
         )
     report = pd.DataFrame(rows).sort_values(["agent", "asset"])
     report.to_csv(report_path, index=False)
     return report
+
+
+def _live_prediction_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "data_source" not in frame:
+        return frame.copy()
+    source = frame["data_source"].fillna("").astype(str).str.lower()
+    live_mask = source.str.contains("live", na=False) & ~source.str.contains("generated sample|sample|fallback", na=False)
+    return frame[live_mask].copy()
 
 
 def _already_recorded_today(asset: str, horizon_days: int, prices: pd.DataFrame, path: Path) -> bool:

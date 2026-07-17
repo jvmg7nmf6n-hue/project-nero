@@ -188,10 +188,14 @@ def build_prediction_truth_report(frame: pd.DataFrame, asset: str | None = None)
             "average_return": 0.0,
             "high_confidence_win_rate": 0.0,
             "rows": [],
-            "notes": [f"No prediction records found for {asset}."],
+            "notes": [f"No prediction records found for {asset}."] if asset else ["No live prediction records found. Sample/fallback rows are excluded from scoring."],
         }
 
     report_frame["evaluation_status"] = report_frame.get("evaluation_status", pd.Series(dtype=str)).fillna("").astype(str)
+    if "data_source" in report_frame:
+        source = report_frame["data_source"].fillna("").astype(str).str.lower()
+        live_mask = source.str.contains("live", na=False) & ~source.str.contains("generated sample|sample|fallback", na=False)
+        report_frame = report_frame[live_mask].copy()
     report_frame["outcome"] = report_frame.get("outcome", pd.Series(dtype=str)).fillna("").astype(str).str.lower()
     report_frame["actual_return_num"] = pd.to_numeric(report_frame.get("actual_return", pd.Series(dtype=float)), errors="coerce")
     report_frame["confidence_num"] = pd.to_numeric(report_frame.get("confidence", pd.Series(dtype=float)), errors="coerce")
