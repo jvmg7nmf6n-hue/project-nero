@@ -1,86 +1,83 @@
 {
   "BTC:WAIT_SHORT_TRIGGER:62435.3": {
-    "cooldown": 5
-  },
-  "BTC:WAIT_SHORT_TRIGGER:63674.12": {
-    "cooldown": 1
+    "cooldown": 4
   },
   "GOLD:WAIT_LONG_TRIGGER:4021.91": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "GOLD:WAIT_SHORT_TRIGGER:3961.06": {
-    "cooldown": 3
+    "cooldown": 2
   },
-  "scanner:ADA:volume": {
-    "cooldown": 3
-  },
-  "scanner:AVAX:breakout": {
-    "cooldown": 6
-  },
-  "scanner:AVAX:volume": {
-    "cooldown": 3
-  },
-  "scanner:BTC:breakout": {
-    "cooldown": 6
-  },
-  "scanner:BTC:volume": {
-    "cooldown": 3
-  },
-  "scanner:DOGE:breakout": {
-    "cooldown": 6
-  },
-  "scanner:DOGE:volume": {
-    "cooldown": 6
-  },
-  "scanner:ETH:breakdown": {
-    "cooldown": 3
-  },
-  "scanner:ETH:breakout": {
-    "cooldown": 6
-  },
-  "scanner:ETH:volume": {
-    "cooldown": 3
-  },
-  "scanner:LINK:breakdown": {
-    "cooldown": 3
-  },
-  "scanner:LINK:breakout": {
-    "cooldown": 6
-  },
-  "scanner:LINK:rsi_low": {
-    "cooldown": 3
-  },
-  "scanner:LINK:volume": {
-    "cooldown": 3
-  },
-  "scanner:LTC:rsi_high": {
+  "scanner:ADA:rsi_high": {
     "cooldown": 7
   },
+  "scanner:ADA:volume": {
+    "cooldown": 2
+  },
+  "scanner:AVAX:breakout": {
+    "cooldown": 5
+  },
+  "scanner:AVAX:volume": {
+    "cooldown": 2
+  },
+  "scanner:BTC:breakout": {
+    "cooldown": 5
+  },
+  "scanner:BTC:volume": {
+    "cooldown": 2
+  },
+  "scanner:DOGE:breakout": {
+    "cooldown": 5
+  },
+  "scanner:DOGE:volume": {
+    "cooldown": 5
+  },
+  "scanner:ETH:breakdown": {
+    "cooldown": 2
+  },
+  "scanner:ETH:breakout": {
+    "cooldown": 5
+  },
+  "scanner:ETH:volume": {
+    "cooldown": 2
+  },
+  "scanner:LINK:breakdown": {
+    "cooldown": 2
+  },
+  "scanner:LINK:breakout": {
+    "cooldown": 5
+  },
+  "scanner:LINK:rsi_low": {
+    "cooldown": 2
+  },
+  "scanner:LINK:volume": {
+    "cooldown": 2
+  },
+  "scanner:LTC:rsi_high": {
+    "cooldown": 6
+  },
   "scanner:SHIB:breakdown": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "scanner:SHIB:breakout": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:SHIB:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:SOL:breakout": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:SOL:volume": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "scanner:XRP:breakdown": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "scanner:XRP:breakout": {
-    "cooldown": 6
-  },
-  "scanner:XRP:rsi_low": {
-    "cooldown": 1
+    "cooldown": 5
   },
   "scanner:XRP:volume": {
-    "cooldown": 3
+    "cooldown": 2
   }
 }
