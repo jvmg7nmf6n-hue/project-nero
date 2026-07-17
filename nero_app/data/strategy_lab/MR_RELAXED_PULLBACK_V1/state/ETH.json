@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-17",
   "daily_r": -1.1832952025875914,
   "equity": 9430.402104622815,
-  "last_evaluated_close_time": 1784271600000,
-  "missed_run_count": 316,
+  "last_evaluated_close_time": 1784286000000,
+  "missed_run_count": 319,
   "open_trade": {
     "asset": "ETH",
     "candidate_id": "MR_RELAXED_PULLBACK_V1",
