@@ -1,17 +1,23 @@
 NERO Strategy TEST Lab Weekly Report
-Report time: 2026-07-14 06:42 PM PKT
+Report time: 2026-07-17 09:02 PM PKT
 
 Executive Summary
-5-algo paper-test is active. Total closed paper trades across candidates: 12.
-Current top candidate: BREAKOUT_MOMENTUM_V1 | rating=INSUFFICIENT_SAMPLE | score=43/100.
+5-algo paper-test is active. Total closed paper trades across candidates: 71.
+Current top candidate: NEW_BTC_12H_MR | rating=INSUFFICIENT_SAMPLE | score=68/100.
 Sample warning: final algo ranking needs roughly 30-50 closed trades per candidate.
 
 Candidate Scoreboard
-- BREAKOUT_MOMENTUM_V1: trades=3, win_rate=67%, expectancy=0.29R, profit_factor=1.54, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=43/100
-- MR_RELAXED_PULLBACK_V1: trades=4, win_rate=50%, expectancy=-0.25R, profit_factor=0.37, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=22/100
-- MR_DEEP_VALUE_V1: trades=1, win_rate=0%, expectancy=-1.18R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=3/100
-- MR_REGIME_FILTER_V1: trades=2, win_rate=0%, expectancy=-1.26R, profit_factor=0.00, drawdown=-0%, rating=INSUFFICIENT_SAMPLE, score=3/100
-- MR_TARGET_1R_V1: trades=2, win_rate=0%, expectancy=-1.26R, profit_factor=0.00, drawdown=-0%, rating=INSUFFICIENT_SAMPLE, score=3/100
+- NEW_BTC_12H_MR: trades=1, win_rate=100%, expectancy=1.12R, profit_factor=79.02, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=68/100
+- BREAKOUT_MOMENTUM_V1: trades=24, win_rate=50%, expectancy=-0.16R, profit_factor=0.66, drawdown=-7%, rating=WATCHLIST, score=48/100
+- MR_RELAXED_PULLBACK_V1: trades=19, win_rate=42%, expectancy=-0.35R, profit_factor=0.43, drawdown=-8%, rating=INSUFFICIENT_SAMPLE, score=30/100
+- NEW_BNB_12H_TREND: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
+- NEW_BNB_12H_MR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
+- NEW_XRP_2H_MR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
+- NEW_NEAR_2H_MR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
+- MR_REGIME_FILTER_V1: trades=12, win_rate=25%, expectancy=-0.69R, profit_factor=0.20, drawdown=-6%, rating=INSUFFICIENT_SAMPLE, score=17/100
+- MR_TARGET_1R_V1: trades=11, win_rate=27%, expectancy=-0.70R, profit_factor=0.18, drawdown=-6%, rating=INSUFFICIENT_SAMPLE, score=16/100
+- MR_DEEP_VALUE_V1: trades=4, win_rate=0%, expectancy=-1.19R, profit_factor=0.00, drawdown=-4%, rating=INSUFFICIENT_SAMPLE, score=3/100
+- NEW_BTC_ETH_12H_PAIR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=0/100
 
 Operating Rule
 All candidates are paper-trading only. NERO must not place real orders and must not auto-promote parameters without manual version approval.
