@@ -72,6 +72,30 @@ TWELVE_DATA_SYMBOLS = {
 }
 
 
+YFINANCE_SYMBOLS = {
+    # Equity/index and crypto-linked stock drivers
+    "SPY": "SPY",
+    "QQQ": "QQQ",
+    "NVDA": "NVDA",
+    "MSTR": "MSTR",
+    "COIN": "COIN",
+    "MARA": "MARA",
+    "RIOT": "RIOT",
+    # Gold/miner proxies
+    "GLD": "GLD",
+    "GDX": "GDX",
+    "NEM": "NEM",
+    # Dollar and currency pairs
+    "DXY": "DX-Y.NYB",
+    "EURUSD": "EURUSD=X",
+    "GBPUSD": "GBPUSD=X",
+    "USDJPY": "JPY=X",
+    "USDCHF": "CHF=X",
+    "AUDUSD": "AUDUSD=X",
+    "USDCAD": "CAD=X",
+}
+
+
 @dataclass(frozen=True)
 class MarketDataResult:
     prices: pd.DataFrame
@@ -147,6 +171,18 @@ class MarketDataClient:
                 return self._fallback(f"fallback: {exc.__class__.__name__}")
             except (KeyError, TypeError, ValueError) as exc:
                 return self._fallback(f"fallback: malformed Twelve Data response ({exc.__class__.__name__})")
+
+        if prefer_live and asset in YFINANCE_SYMBOLS:
+            try:
+                symbol = YFINANCE_SYMBOLS[asset]
+                prices = self._load_yfinance_ohlc(symbol=symbol, period=_yfinance_period(days=days), interval="1d")
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"yfinance {symbol} daily candles",
+                    status="live",
+                )
+            except (ImportError, KeyError, TypeError, ValueError) as exc:
+                return self._fallback(f"fallback: yfinance {exc.__class__.__name__}")
 
         return MarketDataResult(
             prices=load_price_history(),
@@ -231,6 +267,24 @@ class MarketDataClient:
                 return self._fallback_intraday(f"fallback: {exc.__class__.__name__}")
             except (KeyError, TypeError, ValueError) as exc:
                 return self._fallback_intraday(f"fallback: malformed Twelve Data intraday response ({exc.__class__.__name__})")
+
+        if prefer_live and asset in YFINANCE_SYMBOLS:
+            try:
+                symbol = YFINANCE_SYMBOLS[asset]
+                yf_interval = _yfinance_fetch_interval(interval)
+                prices = self._load_yfinance_ohlc(
+                    symbol=symbol,
+                    period=_yfinance_intraday_period(candles=candles, interval=interval),
+                    interval=yf_interval,
+                )
+                prices = _resample_ohlc(prices, interval).tail(candles).reset_index(drop=True)
+                return MarketDataResult(
+                    prices=prices,
+                    source=f"yfinance {symbol} {interval} candles",
+                    status="live",
+                )
+            except (ImportError, KeyError, TypeError, ValueError) as exc:
+                return self._fallback_intraday(f"fallback: yfinance {exc.__class__.__name__}")
 
         return self._fallback_intraday("sample")
 
@@ -317,6 +371,32 @@ class MarketDataClient:
             lambda value: datetime.fromtimestamp(value / 1000, tz=timezone.utc).replace(tzinfo=None)
         )
         return frame[["date", "open", "high", "low", "close", "volume"]]
+
+
+    def _load_yfinance_ohlc(self, symbol: str, period: str, interval: str) -> pd.DataFrame:
+        try:
+            import yfinance as yf  # local import keeps app usable without optional provider
+        except ImportError as exc:  # pragma: no cover - exercised via caller fallback.
+            raise ImportError("yfinance is not installed") from exc
+
+        history = yf.Ticker(symbol).history(period=period, interval=interval, auto_adjust=True)
+        if history.empty:
+            raise ValueError(f"empty yfinance history for {symbol}")
+        frame = history.reset_index()
+        date_column = "Datetime" if "Datetime" in frame.columns else "Date"
+        rename = {"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume", date_column: "date"}
+        frame = frame.rename(columns=rename)
+        frame["date"] = pd.to_datetime(frame["date"], utc=True).dt.tz_convert(None)
+        for column in ["open", "high", "low", "close"]:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+        if "volume" in frame.columns:
+            frame["volume"] = pd.to_numeric(frame["volume"], errors="coerce").fillna(0.0)
+        else:
+            frame["volume"] = 0.0
+        frame = frame.dropna(subset=["date", "open", "high", "low", "close"]).sort_values("date")
+        if frame.empty:
+            raise ValueError(f"no usable yfinance candles for {symbol}")
+        return frame[["date", "open", "high", "low", "close", "volume"]].reset_index(drop=True)
 
     def _load_coinbase_candles(self, product_id: str, granularity: int, candles: int) -> pd.DataFrame:
         response = requests.get(
@@ -439,3 +519,47 @@ def _kraken_interval_minutes(interval: str) -> int:
         "4h": 240,
         "1d": 1440,
     }.get(interval, 60)
+
+
+def _yfinance_fetch_interval(interval: str) -> str:
+    return "1h" if interval in {"2h", "4h", "6h", "12h"} else interval
+
+
+def _yfinance_period(days: int) -> str:
+    return f"{max(30, min(days + 5, 3650))}d"
+
+
+def _yfinance_intraday_period(candles: int, interval: str) -> str:
+    hours_per_candle = _interval_milliseconds(interval) / 3_600_000
+    days = int(max(30, min(729, (candles * hours_per_candle / 6) + 20)))
+    return f"{days}d"
+
+
+def _interval_milliseconds(interval: str) -> int:
+    return {
+        "1m": 60_000,
+        "5m": 300_000,
+        "15m": 900_000,
+        "30m": 1_800_000,
+        "1h": 3_600_000,
+        "2h": 7_200_000,
+        "4h": 14_400_000,
+        "6h": 21_600_000,
+        "12h": 43_200_000,
+        "1d": 86_400_000,
+    }.get(interval, 3_600_000)
+
+def _resample_ohlc(prices: pd.DataFrame, interval: str) -> pd.DataFrame:
+    if interval not in {"2h", "4h", "6h", "12h"}:
+        return prices.sort_values("date").reset_index(drop=True)
+    rule = {"2h": "2h", "4h": "4h", "6h": "6h", "12h": "12h"}[interval]
+    frame = prices.copy().sort_values("date")
+    frame["date"] = pd.to_datetime(frame["date"]).dt.floor(rule)
+    grouped = frame.groupby("date", as_index=False).agg(
+        open=("open", "first"),
+        high=("high", "max"),
+        low=("low", "min"),
+        close=("close", "last"),
+        volume=("volume", "sum"),
+    )
+    return grouped.dropna(subset=["open", "high", "low", "close"]).sort_values("date").reset_index(drop=True)

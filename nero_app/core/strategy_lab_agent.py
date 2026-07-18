@@ -31,6 +31,42 @@ STRATEGY_LAB_VERSION = "strategy-lab-v1.0.0"
 DEFAULT_LAB_DIR = Path(__file__).resolve().parents[1] / "data" / "strategy_lab"
 DEFAULT_REPORT_DIR = Path("reports")
 
+STRATEGY_LAB_DEFAULT_ASSETS = {
+    # Crypto / 24-7 instruments
+    "BTC": "BTCUSDT",
+    "ETH": "ETHUSDT",
+    "SOL": "SOLUSDT",
+    "XRP": "XRPUSDT",
+    "DOGE": "DOGEUSDT",
+    "NEAR": "NEARUSDT",
+    "BNB": "BNBUSDT",
+    "PAXG": "PAXGUSDT",
+    # Stocks, ETFs and market proxies via yfinance
+    "SPY": "SPY",
+    "QQQ": "QQQ",
+    "NVDA": "NVDA",
+    "MSTR": "MSTR",
+    "COIN": "COIN",
+    "MARA": "MARA",
+    "RIOT": "RIOT",
+    "GLD": "GLD",
+    "GDX": "GDX",
+    "NEM": "NEM",
+    # Dollar and FX pairs via yfinance
+    "DXY": "DX-Y.NYB",
+    "EURUSD": "EURUSD=X",
+    "GBPUSD": "GBPUSD=X",
+    "USDJPY": "JPY=X",
+    "USDCHF": "CHF=X",
+    "AUDUSD": "AUDUSD=X",
+    "USDCAD": "CAD=X",
+}
+
+MARKET_HOURS_ASSETS = {
+    "SPY", "QQQ", "NVDA", "MSTR", "COIN", "MARA", "RIOT", "GLD", "GDX", "NEM",
+    "DXY", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD",
+}
+
 
 class TargetMode(str, Enum):
     FROZEN_MA20 = "FROZEN_MA20"
@@ -532,7 +568,7 @@ class CandidatePaperAgent(MeanReversionAgent):
 
 def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None = None) -> StrategyLabRunSummary:
     now = now or datetime.now(timezone.utc)
-    assets = assets or load_assets_from_env(default=MeanReversionConfig().assets)
+    assets = assets or load_assets_from_env(default=STRATEGY_LAB_DEFAULT_ASSETS)
     evaluated = entries = exits = 0
     alerts: list[str] = []
     base_config = MeanReversionConfig(
@@ -555,6 +591,7 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
         config = dataclasses.replace(
             base_config,
             assets=candidate_assets,
+            stale_after_minutes=_stale_after_minutes(candidate_assets),
             interval=spec.interval,
             strategy_version=f"{STRATEGY_LAB_VERSION}:{spec.candidate_id}",
             rsi_entry_below=spec.rsi_entry_below,
@@ -685,6 +722,16 @@ def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
         "rating": "INSUFFICIENT_SAMPLE",
         "insufficient_sample": True,
     }
+
+
+
+def _stale_after_minutes(assets: dict[str, str]) -> int:
+    asset_names = {asset.upper() for asset in assets}
+    if asset_names and asset_names.issubset(MARKET_HOURS_ASSETS):
+        return int(os.getenv("SLAB_MARKET_HOURS_STALE_AFTER_MINUTES", "4320"))
+    if asset_names & MARKET_HOURS_ASSETS:
+        return int(os.getenv("SLAB_MIXED_MARKET_STALE_AFTER_MINUTES", "4320"))
+    return int(os.getenv("SLAB_STALE_AFTER_MINUTES", "180"))
 
 
 def _candidate_assets(spec: CandidateSpec, assets: dict[str, str]) -> dict[str, str]:

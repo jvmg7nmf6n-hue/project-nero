@@ -173,6 +173,28 @@ class NeroCoreTest(unittest.TestCase):
         self.assertEqual(float(frame.iloc[-1]["close"]), 3318.0)
 
 
+    def test_yfinance_intraday_parser_for_stock_symbol(self) -> None:
+        history = pd.DataFrame(
+            {
+                "Open": [100.0, 101.0, 102.0],
+                "High": [101.0, 102.0, 103.0],
+                "Low": [99.0, 100.0, 101.0],
+                "Close": [100.5, 101.5, 102.5],
+                "Volume": [1000, 1100, 1200],
+            },
+            index=pd.date_range("2026-07-01 09:30", periods=3, freq="1h", tz="America/New_York", name="Datetime"),
+        )
+        ticker = Mock()
+        ticker.history.return_value = history
+
+        with patch("yfinance.Ticker", return_value=ticker):
+            result = MarketDataClient().load_intraday(asset="SPY", prefer_live=True, interval="1h", candles=30)
+
+        self.assertEqual(result.status, "live")
+        self.assertIn("yfinance SPY", result.source)
+        self.assertEqual(float(result.prices.iloc[-1]["close"]), 102.5)
+
+
     def test_mobile_alert_requires_email_credentials(self) -> None:
         result = send_email_alert("", 465, "", "", "", "hello", "hello")
 

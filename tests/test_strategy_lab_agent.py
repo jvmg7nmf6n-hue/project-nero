@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from nero_app.core.strategy_lab_agent import CANDIDATES, SignalValidator, write_strategy_lab_summary
+from nero_app.core.strategy_lab_agent import CANDIDATES, STRATEGY_LAB_DEFAULT_ASSETS, SignalValidator, write_strategy_lab_summary
 from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_report
 
 
@@ -23,6 +23,16 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
         self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
 
+
+
+    def test_strategy_lab_default_assets_include_stocks_and_currencies(self) -> None:
+        self.assertIn("SPY", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("QQQ", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("MSTR", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("DXY", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("EURUSD", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("USDJPY", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertEqual(len(STRATEGY_LAB_DEFAULT_ASSETS), 25)
 
     def test_signal_validator_keeps_family_rules_separate(self) -> None:
         mr_spec = CANDIDATES["V2_MR_RECOVERY"]
