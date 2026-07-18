@@ -67,6 +67,7 @@ KRAKEN_PAIRS = {
 
 TWELVE_DATA_SYMBOLS = {
     "GOLD": "XAU/USD",
+    "SILVER": "XAG/USD",
     "OIL": "WTI/USD",
     "FDX": "FDX",
 }
@@ -85,6 +86,12 @@ YFINANCE_SYMBOLS = {
     "GLD": "GLD",
     "GDX": "GDX",
     "NEM": "NEM",
+    # Metals and energy futures proxies
+    "GOLD_FUT": "GC=F",
+    "SILVER_FUT": "SI=F",
+    "COPPER_FUT": "HG=F",
+    "OIL_FUT": "CL=F",
+    "BRENT_FUT": "BZ=F",
     # Dollar and currency pairs
     "DXY": "DX-Y.NYB",
     "EURUSD": "EURUSD=X",

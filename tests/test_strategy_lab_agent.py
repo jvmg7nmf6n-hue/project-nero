@@ -26,13 +26,19 @@ class StrategyLabAgentTest(unittest.TestCase):
 
 
     def test_strategy_lab_default_assets_include_stocks_and_currencies(self) -> None:
+        self.assertIn("GOLD", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("SILVER", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("OIL", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("GOLD_FUT", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("COPPER_FUT", STRATEGY_LAB_DEFAULT_ASSETS)
+        self.assertIn("BRENT_FUT", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("SPY", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("QQQ", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("MSTR", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("DXY", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("EURUSD", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("USDJPY", STRATEGY_LAB_DEFAULT_ASSETS)
-        self.assertEqual(len(STRATEGY_LAB_DEFAULT_ASSETS), 25)
+        self.assertEqual(len(STRATEGY_LAB_DEFAULT_ASSETS), 33)
 
     def test_signal_validator_keeps_family_rules_separate(self) -> None:
         mr_spec = CANDIDATES["V2_MR_RECOVERY"]

@@ -41,6 +41,15 @@ STRATEGY_LAB_DEFAULT_ASSETS = {
     "NEAR": "NEARUSDT",
     "BNB": "BNBUSDT",
     "PAXG": "PAXGUSDT",
+    # Metals and energy instruments
+    "GOLD": "XAU/USD",
+    "SILVER": "XAG/USD",
+    "OIL": "WTI/USD",
+    "GOLD_FUT": "GC=F",
+    "SILVER_FUT": "SI=F",
+    "COPPER_FUT": "HG=F",
+    "OIL_FUT": "CL=F",
+    "BRENT_FUT": "BZ=F",
     # Stocks, ETFs and market proxies via yfinance
     "SPY": "SPY",
     "QQQ": "QQQ",
@@ -63,6 +72,7 @@ STRATEGY_LAB_DEFAULT_ASSETS = {
 }
 
 MARKET_HOURS_ASSETS = {
+    "GOLD", "SILVER", "OIL", "GOLD_FUT", "SILVER_FUT", "COPPER_FUT", "OIL_FUT", "BRENT_FUT",
     "SPY", "QQQ", "NVDA", "MSTR", "COIN", "MARA", "RIOT", "GLD", "GDX", "NEM",
     "DXY", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD",
 }
