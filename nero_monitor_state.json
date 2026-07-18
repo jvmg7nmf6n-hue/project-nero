@@ -1,23 +1,32 @@
 {
-  "GOLD:WAIT_LONG_TRIGGER:4023.47": {
+  "GOLD:WAIT_LONG_TRIGGER:4023.2": {
     "cooldown": 7
   },
-  "GOLD:WAIT_LONG_TRIGGER:4023.49": {
+  "GOLD:WAIT_LONG_TRIGGER:4023.47": {
     "cooldown": 6
   },
-  "GOLD:WAIT_LONG_TRIGGER:4023.52": {
+  "GOLD:WAIT_LONG_TRIGGER:4023.49": {
     "cooldown": 5
   },
-  "scanner:ADA:rsi_high": {
-    "cooldown": 2
-  },
-  "scanner:BTC:rsi_high": {
-    "cooldown": 3
-  },
-  "scanner:LTC:breakout": {
+  "GOLD:WAIT_LONG_TRIGGER:4023.52": {
     "cooldown": 4
   },
-  "scanner:LTC:rsi_high": {
+  "scanner:ADA:rsi_high": {
     "cooldown": 1
+  },
+  "scanner:AVAX:rsi_high": {
+    "cooldown": 7
+  },
+  "scanner:AVAX:volume": {
+    "cooldown": 7
+  },
+  "scanner:BTC:rsi_high": {
+    "cooldown": 2
+  },
+  "scanner:DOT:breakdown": {
+    "cooldown": 7
+  },
+  "scanner:LTC:breakout": {
+    "cooldown": 3
   }
 }
