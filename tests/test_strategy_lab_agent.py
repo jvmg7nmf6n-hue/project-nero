@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from nero_app.core.strategy_lab_agent import CANDIDATES, write_strategy_lab_summary
+from nero_app.core.strategy_lab_agent import CANDIDATES, SignalValidator, write_strategy_lab_summary
 from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_report
 
 
@@ -22,6 +22,56 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["V2_BREAKOUT_RETEST"].bucket, "V2_SHADOW")
         self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
         self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
+
+
+    def test_signal_validator_keeps_family_rules_separate(self) -> None:
+        mr_spec = CANDIDATES["V2_MR_RECOVERY"]
+        momentum_spec = CANDIDATES["V2_BREAKOUT_RETEST"]
+        candle = pd.Series(
+            {
+                "close": 95.0,
+                "low": 94.0,
+                "high": 99.0,
+                "atr": 2.0,
+                "rsi": 34.0,
+                "rsi_prev": 33.0,
+                "close_prev": 94.0,
+                "ma20": 100.0,
+                "ma200": 90.0,
+                "bb_lower": 96.0,
+                "breakout_high": 110.0,
+            }
+        )
+
+        mr_reasons, _ = SignalValidator(mr_spec).validate(candle, {}, -3.0)
+        momentum_reasons, _ = SignalValidator(momentum_spec).validate(candle, {}, -3.0)
+
+        self.assertNotIn("CLOSE_NOT_ABOVE_BREAKOUT_HIGH", mr_reasons)
+        self.assertIn("CLOSE_NOT_ABOVE_BREAKOUT_HIGH", momentum_reasons)
+        self.assertNotIn("CLOSE_NOT_NEAR_OR_BELOW_LOWER_BB", momentum_reasons)
+
+    def test_signal_validator_reward_gate_uses_spec_target(self) -> None:
+        spec = CANDIDATES["V2_MR_REWARD"]
+        candle = pd.Series(
+            {
+                "close": 95.0,
+                "low": 94.0,
+                "high": 99.0,
+                "atr": 2.0,
+                "rsi": 34.0,
+                "rsi_prev": 33.0,
+                "close_prev": 94.0,
+                "ma20": 100.0,
+                "ma200": 90.0,
+                "bb_lower": 96.0,
+                "breakout_high": 110.0,
+            }
+        )
+
+        reasons, planned_reward_r = SignalValidator(spec).validate(candle, {}, -3.0)
+
+        self.assertGreaterEqual(planned_reward_r, 1.2)
+        self.assertNotIn("PLANNED_REWARD_TOO_LOW", reasons)
 
     def test_summary_rates_candidate_after_sample(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

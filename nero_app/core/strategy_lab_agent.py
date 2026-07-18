@@ -10,6 +10,7 @@ import csv
 import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from enum import Enum
 import json
 import os
 from pathlib import Path
@@ -29,6 +30,20 @@ from nero_app.core.mean_reversion_agent import (
 STRATEGY_LAB_VERSION = "strategy-lab-v1.0.0"
 DEFAULT_LAB_DIR = Path(__file__).resolve().parents[1] / "data" / "strategy_lab"
 DEFAULT_REPORT_DIR = Path("reports")
+
+
+class TargetMode(str, Enum):
+    FROZEN_MA20 = "FROZEN_MA20"
+    FIXED_1R = "FIXED_1R"
+    FIXED_125R = "FIXED_125R"
+    FIXED_150R = "FIXED_150R"
+
+
+class StrategyFamily(str, Enum):
+    MEAN_REVERSION = "Mean Reversion"
+    MOMENTUM = "Momentum"
+    EXIT_LOGIC = "Exit Logic"
+    PAIRS_RESEARCH = "Pairs Research"
 
 
 @dataclass(frozen=True)
@@ -256,6 +271,114 @@ CANDIDATES: dict[str, CandidateSpec] = {
 }
 
 
+class SignalValidator:
+    """Family-aware entry validator for Strategy Lab candidates.
+
+    Mean-reversion and momentum candidates intentionally look for opposite
+    market behavior, so their entry checks stay separated here.
+    """
+
+    def __init__(self, spec: CandidateSpec, slippage_bps: float = 0.0) -> None:
+        self.spec = spec
+        self.slippage_bps = slippage_bps
+
+    def validate(self, candle: pd.Series, state: dict[str, Any], daily_loss_guard_r: float) -> tuple[list[str], float]:
+        reasons: list[str] = []
+        if state.get("open_trade"):
+            reasons.append("OPEN_TRADE_EXISTS")
+        if float(state.get("daily_r", 0.0)) <= daily_loss_guard_r:
+            reasons.append("DAILY_LOSS_GUARD")
+
+        close = float(candle["close"])
+        ma20 = float(candle["ma20"])
+        ma200 = float(candle["ma200"])
+        atr = float(candle["atr"])
+        atr_pct = atr / close if close else 0.0
+        planned_reward_r = self.planned_reward_r(candle)
+
+        if self.spec.max_atr_pct is not None and atr_pct > self.spec.max_atr_pct:
+            reasons.append("VOLATILITY_SHOCK")
+        if self.spec.require_trend_support and ma20 <= ma200:
+            reasons.append("TREND_SUPPORT_NOT_CONFIRMED")
+        if self.spec.min_planned_reward_r and planned_reward_r < self.spec.min_planned_reward_r:
+            reasons.append("PLANNED_REWARD_TOO_LOW")
+
+        if self._is_momentum():
+            reasons.extend(self._validate_momentum(candle))
+        elif self._is_mean_reversion_like():
+            reasons.extend(self._validate_mean_reversion(candle))
+        else:
+            reasons.append(f"UNKNOWN_FAMILY:{self.spec.family}")
+
+        return reasons, planned_reward_r
+
+    def planned_reward_r(self, candle: pd.Series) -> float:
+        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "buy")
+        risk_per_unit = self.risk_per_unit(candle)
+        if risk_per_unit <= 0:
+            return 0.0
+        target = self.target_price(candle, entry_price, risk_per_unit)
+        return max(0.0, (target - entry_price) / risk_per_unit)
+
+    def risk_per_unit(self, candle: pd.Series) -> float:
+        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "buy")
+        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
+        return entry_price - stop_loss
+
+    def target_price(self, candle: pd.Series, entry_price: float, risk_per_unit: float) -> float:
+        target_mode = _target_mode_value(self.spec.target_mode)
+        if target_mode == TargetMode.FIXED_1R.value:
+            return entry_price + risk_per_unit
+        if target_mode == TargetMode.FIXED_125R.value:
+            return entry_price + 1.25 * risk_per_unit
+        if target_mode == TargetMode.FIXED_150R.value:
+            return entry_price + 1.5 * risk_per_unit
+        return float(candle["ma20"])
+
+    def _validate_momentum(self, candle: pd.Series) -> list[str]:
+        reasons: list[str] = []
+        breakout_high = candle.get("breakout_high")
+        close = float(candle["close"])
+        if pd.isna(breakout_high) or close <= float(breakout_high):
+            reasons.append("CLOSE_NOT_ABOVE_BREAKOUT_HIGH")
+        elif self.spec.require_breakout_retest and float(candle["low"]) > float(breakout_high) * 1.003:
+            reasons.append("BREAKOUT_RETEST_NOT_CONFIRMED")
+        if self.spec.require_ma200 and close <= float(candle["ma200"]):
+            reasons.append("CLOSE_NOT_ABOVE_MA200")
+        if float(candle["rsi"]) < 50:
+            reasons.append("RSI_NOT_MOMENTUM_SUPPORTIVE")
+        return reasons
+
+    def _validate_mean_reversion(self, candle: pd.Series) -> list[str]:
+        reasons: list[str] = []
+        close = float(candle["close"])
+        if float(candle["rsi"]) >= self.spec.rsi_entry_below:
+            reasons.append(f"RSI_NOT_BELOW_{int(self.spec.rsi_entry_below)}")
+        lower_threshold = float(candle["bb_lower"]) + self.spec.lower_bb_buffer_atr * float(candle["atr"])
+        if close >= lower_threshold:
+            reasons.append("CLOSE_NOT_NEAR_OR_BELOW_LOWER_BB")
+        if self.spec.require_ma200 and close <= float(candle["ma200"]):
+            reasons.append("CLOSE_NOT_ABOVE_MA200")
+        if _target_mode_value(self.spec.target_mode) == TargetMode.FROZEN_MA20.value and float(candle["ma20"]) <= close:
+            reasons.append("TARGET_NOT_ABOVE_ENTRY")
+        if self.spec.require_rsi_recovery:
+            rsi_prev = candle.get("rsi_prev")
+            close_prev = candle.get("close_prev")
+            if pd.isna(rsi_prev) or pd.isna(close_prev) or not (float(candle["rsi"]) > float(rsi_prev) and close >= float(close_prev)):
+                reasons.append("RSI_RECOVERY_NOT_CONFIRMED")
+        return reasons
+
+    def _is_momentum(self) -> bool:
+        return self.spec.family == StrategyFamily.MOMENTUM.value
+
+    def _is_mean_reversion_like(self) -> bool:
+        return self.spec.family in {StrategyFamily.MEAN_REVERSION.value, StrategyFamily.EXIT_LOGIC.value}
+
+
+def _target_mode_value(target_mode: str | TargetMode) -> str:
+    return target_mode.value if isinstance(target_mode, TargetMode) else str(target_mode)
+
+
 @dataclass(frozen=True)
 class StrategyLabRunSummary:
     evaluated: int
@@ -306,48 +429,9 @@ class CandidatePaperAgent(MeanReversionAgent):
         return {"state": state, "evaluated": evaluated, "entries": entries, "exits": exits, "alerts": alerts}
 
     def _evaluate_entry(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any]:
-        reasons: list[str] = []
-        if state.get("open_trade"):
-            reasons.append("OPEN_TRADE_EXISTS")
-        if float(state.get("daily_r", 0.0)) <= self.config.daily_loss_guard_r:
-            reasons.append("DAILY_LOSS_GUARD")
-
+        validator = SignalValidator(self.spec, slippage_bps=self.config.slippage_bps)
+        reasons, planned_reward_r = validator.validate(candle, state, self.config.daily_loss_guard_r)
         atr_pct = float(candle.get("atr_pct", 0.0) or 0.0)
-        if self.spec.max_atr_pct is not None and atr_pct > self.spec.max_atr_pct:
-            reasons.append("VOLATILITY_SHOCK")
-        if self.spec.require_trend_support and float(candle["ma20"]) <= float(candle["ma200"]):
-            reasons.append("TREND_SUPPORT_NOT_CONFIRMED")
-
-        if self.spec.family == "Momentum":
-            breakout_high = candle.get("breakout_high")
-            if pd.isna(breakout_high) or float(candle["close"]) <= float(breakout_high):
-                reasons.append("CLOSE_NOT_ABOVE_BREAKOUT_HIGH")
-            elif self.spec.require_breakout_retest and float(candle["low"]) > float(breakout_high) * 1.003:
-                reasons.append("BREAKOUT_RETEST_NOT_CONFIRMED")
-            if float(candle["close"]) <= float(candle["ma200"]):
-                reasons.append("CLOSE_NOT_ABOVE_MA200")
-            if float(candle["rsi"]) < 50:
-                reasons.append("RSI_NOT_MOMENTUM_SUPPORTIVE")
-        else:
-            if float(candle["rsi"]) >= self.spec.rsi_entry_below:
-                reasons.append(f"RSI_NOT_BELOW_{int(self.spec.rsi_entry_below)}")
-            lower_threshold = float(candle["bb_lower"]) + self.spec.lower_bb_buffer_atr * float(candle["atr"])
-            if float(candle["close"]) >= lower_threshold:
-                reasons.append("CLOSE_NOT_NEAR_OR_BELOW_LOWER_BB")
-            if self.spec.require_ma200 and float(candle["close"]) <= float(candle["ma200"]):
-                reasons.append("CLOSE_NOT_ABOVE_MA200")
-            if self.spec.target_mode == "FROZEN_MA20" and float(candle["ma20"]) <= float(candle["close"]):
-                reasons.append("TARGET_NOT_ABOVE_ENTRY")
-            if self.spec.require_rsi_recovery:
-                rsi_prev = candle.get("rsi_prev")
-                close_prev = candle.get("close_prev")
-                if pd.isna(rsi_prev) or pd.isna(close_prev) or not (float(candle["rsi"]) > float(rsi_prev) and float(candle["close"]) >= float(close_prev)):
-                    reasons.append("RSI_RECOVERY_NOT_CONFIRMED")
-
-        planned_reward_r = self._planned_reward_r(candle)
-        if self.spec.min_planned_reward_r and planned_reward_r < self.spec.min_planned_reward_r:
-            reasons.append("PLANNED_REWARD_TOO_LOW")
-
         passed = not reasons
         return {
             "timestamp": self.now.isoformat(),
@@ -373,23 +457,8 @@ class CandidatePaperAgent(MeanReversionAgent):
             "rejection_reasons": "|".join(reasons),
         }
 
-
     def _planned_reward_r(self, candle: pd.Series) -> float:
-        raw_entry = float(candle["close"])
-        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "buy")
-        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
-        risk_per_unit = entry_price - stop_loss
-        if risk_per_unit <= 0:
-            return 0.0
-        if self.spec.target_mode == "FIXED_1R":
-            target = entry_price + risk_per_unit
-        elif self.spec.target_mode == "FIXED_125R":
-            target = entry_price + 1.25 * risk_per_unit
-        elif self.spec.target_mode == "FIXED_150R":
-            target = entry_price + 1.5 * risk_per_unit
-        else:
-            target = float(candle["ma20"])
-        return max(0.0, (target - entry_price) / risk_per_unit)
+        return SignalValidator(self.spec, slippage_bps=self.config.slippage_bps).planned_reward_r(candle)
 
     def _enter_trade(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
         if state.get("open_trade"):
@@ -401,18 +470,8 @@ class CandidatePaperAgent(MeanReversionAgent):
         risk_per_unit = entry_price - stop_loss
         if risk_per_unit <= 0:
             return None
-        if self.spec.target_mode == "FIXED_1R":
-            target = entry_price + risk_per_unit
-            target_mode = "FIXED_1R"
-        elif self.spec.target_mode == "FIXED_125R":
-            target = entry_price + 1.25 * risk_per_unit
-            target_mode = "FIXED_125R"
-        elif self.spec.target_mode == "FIXED_150R":
-            target = entry_price + 1.5 * risk_per_unit
-            target_mode = "FIXED_150R"
-        else:
-            target = float(candle["ma20"])
-            target_mode = "FROZEN_MA20"
+        target_mode = _target_mode_value(self.spec.target_mode)
+        target = SignalValidator(self.spec, slippage_bps=self.config.slippage_bps).target_price(candle, entry_price, risk_per_unit)
         reward_per_unit = target - entry_price
         if reward_per_unit <= 0:
             return None
