@@ -1,59 +1,50 @@
 {
   "BTC:WAIT_LONG_TRIGGER:64358.11": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "BTC:WAIT_LONG_TRIGGER:64358.31": {
+    "cooldown": 6
+  },
+  "BTC:WAIT_LONG_TRIGGER:64358.37": {
     "cooldown": 7
   },
   "BTC:WAIT_LONG_TRIGGER:64358.47": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "BTC:WAIT_LONG_TRIGGER:64359.31": {
-    "cooldown": 4
+    "cooldown": 3
   },
   "BTC:WAIT_LONG_TRIGGER:64361.72": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "BTC:WAIT_LONG_TRIGGER:64365.13": {
-    "cooldown": 2
-  },
-  "GOLD:WAIT_LONG_TRIGGER:4022.92": {
-    "cooldown": 4
-  },
-  "GOLD:WAIT_LONG_TRIGGER:4023.0": {
-    "cooldown": 3
-  },
-  "GOLD:WAIT_LONG_TRIGGER:4023.07": {
-    "cooldown": 2
-  },
-  "GOLD:WAIT_LONG_TRIGGER:4023.2": {
     "cooldown": 1
   },
-  "scanner:AVAX:rsi_high": {
+  "GOLD:WAIT_LONG_TRIGGER:4022.92": {
+    "cooldown": 3
+  },
+  "GOLD:WAIT_LONG_TRIGGER:4023.0": {
+    "cooldown": 2
+  },
+  "GOLD:WAIT_LONG_TRIGGER:4023.07": {
     "cooldown": 1
   },
   "scanner:AVAX:rsi_low": {
-    "cooldown": 4
-  },
-  "scanner:AVAX:volume": {
-    "cooldown": 1
-  },
-  "scanner:DOT:breakdown": {
-    "cooldown": 1
+    "cooldown": 3
   },
   "scanner:DOT:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:LTC:breakout": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:LTC:rsi_high": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:LTC:volume": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:SHIB:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
   }
 }
