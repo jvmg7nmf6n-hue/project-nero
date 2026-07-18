@@ -45,10 +45,15 @@ class CandidateSpec:
     rsi_entry_below: float = 35.0
     lower_bb_buffer_atr: float = 0.0
     require_ma200: bool = True
-    target_mode: str = "FROZEN_MA20"  # FROZEN_MA20 / FIXED_1R / FIXED_125R
+    target_mode: str = "FROZEN_MA20"  # FROZEN_MA20 / FIXED_1R / FIXED_125R / FIXED_150R
     atr_stop_multiple: float = 1.5
     breakout_lookback: int = 20
     quant_gate: float | None = None
+    require_rsi_recovery: bool = False
+    require_breakout_retest: bool = False
+    require_trend_support: bool = False
+    min_planned_reward_r: float = 0.0
+    max_atr_pct: float | None = None
 
 
 CANDIDATES: dict[str, CandidateSpec] = {
@@ -171,6 +176,83 @@ CANDIDATES: dict[str, CandidateSpec] = {
         evidence_note="Claude sweep: BTC-ETH/12h pair positive but weak. Kept research-only until real pair execution is wired.",
         enabled=False,
     ),
+
+    "V2_BREAKOUT_RETEST": CandidateSpec(
+        candidate_id="V2_BREAKOUT_RETEST",
+        family="Momentum",
+        title="Breakout retest with volatility block",
+        display_label="V2_BREAKOUT_RETEST",
+        bucket="V2_SHADOW",
+        interval="1h",
+        evidence_note="Loss autopsy: old breakout suffered fakeouts. V2 requires a cleaner retest, trend support, normal volatility, and a 1.5R target.",
+        rsi_entry_below=100.0,
+        require_ma200=True,
+        target_mode="FIXED_150R",
+        atr_stop_multiple=1.2,
+        breakout_lookback=20,
+        require_breakout_retest=True,
+        require_trend_support=True,
+        max_atr_pct=0.045,
+    ),
+    "V2_MR_RECOVERY": CandidateSpec(
+        candidate_id="V2_MR_RECOVERY",
+        family="Mean Reversion",
+        title="Mean reversion after RSI recovery",
+        display_label="V2_MR_RECOVERY",
+        bucket="V2_SHADOW",
+        interval="1h",
+        evidence_note="Loss autopsy: relaxed pullback entered falling knives. V2 waits for RSI recovery and minimum reward.",
+        rsi_entry_below=40.0,
+        lower_bb_buffer_atr=0.25,
+        require_rsi_recovery=True,
+        min_planned_reward_r=1.2,
+        max_atr_pct=0.055,
+    ),
+    "V2_MR_REGIME": CandidateSpec(
+        candidate_id="V2_MR_REGIME",
+        family="Mean Reversion",
+        title="Mean reversion with tighter regime filter",
+        display_label="V2_MR_REGIME",
+        bucket="V2_SHADOW",
+        interval="1h",
+        evidence_note="Loss autopsy: regime-filtered MR still bought weak structure. V2 requires MA20 above MA200, RSI recovery, and reward quality.",
+        rsi_entry_below=35.0,
+        lower_bb_buffer_atr=0.1,
+        require_ma200=True,
+        require_trend_support=True,
+        require_rsi_recovery=True,
+        min_planned_reward_r=1.2,
+        max_atr_pct=0.05,
+    ),
+    "V2_MR_DEEP": CandidateSpec(
+        candidate_id="V2_MR_DEEP",
+        family="Mean Reversion",
+        title="Deep value with recovery confirmation",
+        display_label="V2_MR_DEEP",
+        bucket="V2_SHADOW",
+        interval="2h",
+        evidence_note="Loss autopsy: deep value had too few but sharp losses. V2 keeps deep RSI but waits for recovery and avoids volatility shock.",
+        rsi_entry_below=30.0,
+        lower_bb_buffer_atr=0.0,
+        require_rsi_recovery=True,
+        min_planned_reward_r=1.2,
+        max_atr_pct=0.06,
+    ),
+    "V2_MR_REWARD": CandidateSpec(
+        candidate_id="V2_MR_REWARD",
+        family="Exit Logic",
+        title="Mean reversion with 1.25R reward gate",
+        display_label="V2_MR_REWARD",
+        bucket="V2_SHADOW",
+        interval="1h",
+        evidence_note="Loss autopsy: fixed 1R did not pay enough after fees. V2 requires 1.25R target and rejects weak planned reward.",
+        rsi_entry_below=35.0,
+        lower_bb_buffer_atr=0.0,
+        target_mode="FIXED_125R",
+        require_rsi_recovery=True,
+        min_planned_reward_r=1.2,
+        max_atr_pct=0.055,
+    ),
 }
 
 
@@ -191,6 +273,9 @@ class CandidatePaperAgent(MeanReversionAgent):
     def process_asset(self, asset: str, symbol: str, candles: pd.DataFrame, state: dict[str, Any]) -> dict[str, Any]:
         enriched = add_indicators(candles, self.config)
         enriched["breakout_high"] = enriched["high"].shift(1).rolling(self.spec.breakout_lookback).max()
+        enriched["rsi_prev"] = enriched["rsi"].shift(1)
+        enriched["close_prev"] = enriched["close"].shift(1)
+        enriched["atr_pct"] = enriched["atr"] / enriched["close"]
         last_seen = int(state.get("last_evaluated_close_time", 0))
         rows = enriched[enriched["close_time"] > last_seen].copy()
         rows = rows.dropna(subset=["rsi", "bb_lower", "ma20", "ma200", "atr"])
@@ -227,10 +312,18 @@ class CandidatePaperAgent(MeanReversionAgent):
         if float(state.get("daily_r", 0.0)) <= self.config.daily_loss_guard_r:
             reasons.append("DAILY_LOSS_GUARD")
 
+        atr_pct = float(candle.get("atr_pct", 0.0) or 0.0)
+        if self.spec.max_atr_pct is not None and atr_pct > self.spec.max_atr_pct:
+            reasons.append("VOLATILITY_SHOCK")
+        if self.spec.require_trend_support and float(candle["ma20"]) <= float(candle["ma200"]):
+            reasons.append("TREND_SUPPORT_NOT_CONFIRMED")
+
         if self.spec.family == "Momentum":
             breakout_high = candle.get("breakout_high")
             if pd.isna(breakout_high) or float(candle["close"]) <= float(breakout_high):
                 reasons.append("CLOSE_NOT_ABOVE_BREAKOUT_HIGH")
+            elif self.spec.require_breakout_retest and float(candle["low"]) > float(breakout_high) * 1.003:
+                reasons.append("BREAKOUT_RETEST_NOT_CONFIRMED")
             if float(candle["close"]) <= float(candle["ma200"]):
                 reasons.append("CLOSE_NOT_ABOVE_MA200")
             if float(candle["rsi"]) < 50:
@@ -245,6 +338,15 @@ class CandidatePaperAgent(MeanReversionAgent):
                 reasons.append("CLOSE_NOT_ABOVE_MA200")
             if self.spec.target_mode == "FROZEN_MA20" and float(candle["ma20"]) <= float(candle["close"]):
                 reasons.append("TARGET_NOT_ABOVE_ENTRY")
+            if self.spec.require_rsi_recovery:
+                rsi_prev = candle.get("rsi_prev")
+                close_prev = candle.get("close_prev")
+                if pd.isna(rsi_prev) or pd.isna(close_prev) or not (float(candle["rsi"]) > float(rsi_prev) and float(candle["close"]) >= float(close_prev)):
+                    reasons.append("RSI_RECOVERY_NOT_CONFIRMED")
+
+        planned_reward_r = self._planned_reward_r(candle)
+        if self.spec.min_planned_reward_r and planned_reward_r < self.spec.min_planned_reward_r:
+            reasons.append("PLANNED_REWARD_TOO_LOW")
 
         passed = not reasons
         return {
@@ -264,9 +366,30 @@ class CandidatePaperAgent(MeanReversionAgent):
             "bb_lower": float(candle["bb_lower"]),
             "ma200": float(candle["ma200"]),
             "atr": float(candle["atr"]),
+            "atr_pct": atr_pct,
+            "rsi_prev": float(candle["rsi_prev"]) if not pd.isna(candle.get("rsi_prev")) else "",
+            "planned_reward_r": planned_reward_r,
             "passed": passed,
             "rejection_reasons": "|".join(reasons),
         }
+
+
+    def _planned_reward_r(self, candle: pd.Series) -> float:
+        raw_entry = float(candle["close"])
+        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "buy")
+        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
+        risk_per_unit = entry_price - stop_loss
+        if risk_per_unit <= 0:
+            return 0.0
+        if self.spec.target_mode == "FIXED_1R":
+            target = entry_price + risk_per_unit
+        elif self.spec.target_mode == "FIXED_125R":
+            target = entry_price + 1.25 * risk_per_unit
+        elif self.spec.target_mode == "FIXED_150R":
+            target = entry_price + 1.5 * risk_per_unit
+        else:
+            target = float(candle["ma20"])
+        return max(0.0, (target - entry_price) / risk_per_unit)
 
     def _enter_trade(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
         if state.get("open_trade"):
@@ -284,6 +407,9 @@ class CandidatePaperAgent(MeanReversionAgent):
         elif self.spec.target_mode == "FIXED_125R":
             target = entry_price + 1.25 * risk_per_unit
             target_mode = "FIXED_125R"
+        elif self.spec.target_mode == "FIXED_150R":
+            target = entry_price + 1.5 * risk_per_unit
+            target_mode = "FIXED_150R"
         else:
             target = float(candle["ma20"])
             target_mode = "FROZEN_MA20"

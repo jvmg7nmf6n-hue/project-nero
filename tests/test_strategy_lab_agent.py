@@ -12,13 +12,16 @@ from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_repo
 
 class StrategyLabAgentTest(unittest.TestCase):
     def test_has_old_and_new_lab_candidates(self) -> None:
-        self.assertGreaterEqual(len(CANDIDATES), 11)
+        self.assertGreaterEqual(len(CANDIDATES), 16)
         self.assertIn("MR_RELAXED_PULLBACK_V1", CANDIDATES)
         self.assertIn("BREAKOUT_MOMENTUM_V1", CANDIDATES)
         self.assertEqual(CANDIDATES["MR_RELAXED_PULLBACK_V1"].display_label, "OLD_MR_RELAXED")
         self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].bucket, "NEW_TEST")
         self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].interval, "12h")
         self.assertFalse(CANDIDATES["NEW_BTC_ETH_12H_PAIR"].enabled)
+        self.assertEqual(CANDIDATES["V2_BREAKOUT_RETEST"].bucket, "V2_SHADOW")
+        self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
+        self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
 
     def test_summary_rates_candidate_after_sample(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
