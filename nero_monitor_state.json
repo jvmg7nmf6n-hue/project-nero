@@ -1,8 +1,8 @@
 {
-  "GOLD:WAIT_SHORT_TRIGGER:4009.93": {
-    "cooldown": 6
+  "GOLD:WAIT_SHORT_TRIGGER:3994.81": {
+    "cooldown": 7
   },
-  "scanner:SOL:volume": {
-    "cooldown": 1
+  "GOLD:WAIT_SHORT_TRIGGER:4009.93": {
+    "cooldown": 5
   }
 }
