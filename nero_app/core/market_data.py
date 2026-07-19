@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import os
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -386,6 +387,10 @@ class MarketDataClient:
         except ImportError as exc:  # pragma: no cover - exercised via caller fallback.
             raise ImportError("yfinance is not installed") from exc
 
+        cache_dir = Path(__file__).resolve().parents[2] / ".cache" / "yfinance"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        if hasattr(yf, "set_tz_cache_location"):
+            yf.set_tz_cache_location(str(cache_dir))
         history = yf.Ticker(symbol).history(period=period, interval=interval, auto_adjust=True)
         if history.empty:
             raise ValueError(f"empty yfinance history for {symbol}")
@@ -572,3 +577,5 @@ def _resample_ohlc(prices: pd.DataFrame, interval: str) -> pd.DataFrame:
         volume=("volume", "sum"),
     )
     return grouped.dropna(subset=["open", "high", "low", "close"]).sort_values("date").reset_index(drop=True)
+
+
