@@ -1,3 +1,4 @@
 timestamp,asset,code,message
 2026-07-19T21:14:20.693242+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
 2026-07-19T22:10:44.118814+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+2026-07-19T23:11:13.385241+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
