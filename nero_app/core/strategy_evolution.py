@@ -31,6 +31,7 @@ class EvolutionReport:
     autopsy_rows: list[dict[str, Any]]
     recommendation_rows: list[dict[str, Any]]
     variant_rows: list[dict[str, Any]]
+    asset_action_rows: list[dict[str, Any]]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,6 +44,7 @@ class EvolutionReport:
             "autopsy_rows": self.autopsy_rows,
             "recommendation_rows": self.recommendation_rows,
             "variant_rows": self.variant_rows,
+            "asset_action_rows": self.asset_action_rows,
         }
 
 
@@ -66,11 +68,13 @@ def build_strategy_evolution_report(
             autopsy_rows=[],
             recommendation_rows=[],
             variant_rows=[],
+            asset_action_rows=[],
         )
 
     autopsy_rows = _build_autopsy_rows(summary, closed)
     recommendation_rows = [_recommend_for_row(row, min_trades_for_promotion) for row in _summary_records(summary)]
     variant_rows = [_variant_for_recommendation(row) for row in recommendation_rows if row["Action"] != "PROMOTE_READY"]
+    asset_action_rows = _build_asset_action_rows(closed, lab_dir)
     total_trades = _sum_numeric(summary, "total_trades") if not summary.empty else len(closed)
     total_losses = int((pd.to_numeric(closed.get("r_multiple", pd.Series(dtype=float)), errors="coerce") < 0).sum()) if not closed.empty else 0
     promote_ready = sum(1 for row in recommendation_rows if row["Action"] == "PROMOTE_READY")
@@ -87,6 +91,7 @@ def build_strategy_evolution_report(
         autopsy_rows=autopsy_rows,
         recommendation_rows=recommendation_rows,
         variant_rows=variant_rows,
+        asset_action_rows=asset_action_rows,
     )
 
 
@@ -96,6 +101,7 @@ def write_strategy_evolution_report(report: EvolutionReport, report_dir: Path = 
     pd.DataFrame(report.autopsy_rows).to_csv(report_dir / "strategy_evolution_autopsy.csv", index=False)
     pd.DataFrame(report.recommendation_rows).to_csv(report_dir / "strategy_evolution_recommendations.csv", index=False)
     pd.DataFrame(report.variant_rows).to_csv(report_dir / "strategy_evolution_variants.csv", index=False)
+    pd.DataFrame(report.asset_action_rows).to_csv(report_dir / "strategy_evolution_asset_actions.csv", index=False)
     (report_dir / "strategy_evolution_report.json").write_text(json.dumps(report.to_dict(), indent=2), encoding="utf-8")
 
 
@@ -178,6 +184,140 @@ def _variant_for_recommendation(row: dict[str, Any]) -> dict[str, Any]:
         "Promotion Rule": "100 trades, expectancy > 0, profit factor >= 1.25, max drawdown <= 8%, live-data only.",
     }
 
+
+
+def _build_asset_action_rows(closed: pd.DataFrame, lab_dir: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    closed_rows = _asset_rows_from_closed_trades(closed)
+    rows.extend(closed_rows)
+    rows.extend(_asset_rows_from_runtime_errors(lab_dir, {row["Asset"] for row in closed_rows}))
+    rows.sort(key=lambda row: (str(row["Action"]), str(row["Asset"])))
+    return rows
+
+
+def _asset_rows_from_closed_trades(closed: pd.DataFrame) -> list[dict[str, Any]]:
+    if closed.empty or "asset" not in closed:
+        return []
+    rows: list[dict[str, Any]] = []
+    for asset, group in closed.groupby(closed["asset"].astype(str)):
+        r_series = pd.to_numeric(group.get("r_multiple", pd.Series(dtype=float)), errors="coerce").dropna()
+        pnl_series = pd.to_numeric(group.get("net_pnl", pd.Series(dtype=float)), errors="coerce").dropna()
+        total = int(len(group))
+        wins = int((r_series > 0).sum())
+        losses = int((r_series < 0).sum())
+        expectancy = float(r_series.mean()) if not r_series.empty else 0.0
+        net_pnl = float(pnl_series.sum()) if not pnl_series.empty else 0.0
+        profit_factor = _profit_factor(r_series)
+        action, next_hypothesis = _asset_action(asset, total, wins, losses, expectancy, profit_factor, net_pnl)
+        rows.append(
+            {
+                "Asset": asset,
+                "Class": _asset_class(asset),
+                "Trades": total,
+                "Wins": wins,
+                "Losses": losses,
+                "Win Rate": round(wins / total, 3) if total else 0.0,
+                "Expectancy R": round(expectancy, 3),
+                "Profit Factor": round(profit_factor, 3),
+                "Net PnL": round(net_pnl, 2),
+                "Action": action,
+                "Next Hypothesis": next_hypothesis,
+            }
+        )
+    return rows
+
+
+def _asset_rows_from_runtime_errors(lab_dir: Path, assets_seen: set[str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    blocked: dict[str, str] = {}
+    for path in Path(lab_dir).glob("*/trades/runtime_errors.csv"):
+        frame = _safe_read_csv(path)
+        if frame.empty or "asset" not in frame:
+            continue
+        for record in frame.to_dict("records"):
+            asset = str(record.get("asset", "") or "").strip()
+            if not asset or asset in assets_seen:
+                continue
+            error_text = " ".join(str(value) for value in record.values()).lower()
+            if any(token in error_text for token in ["twelve", "api", "httperror", "delisted", "stale"]):
+                blocked[asset] = str(record.get("error", record.get("message", "feed failure")) or "feed failure")
+    for asset, reason in sorted(blocked.items()):
+        rows.append(
+            {
+                "Asset": asset,
+                "Class": _asset_class(asset),
+                "Trades": 0,
+                "Wins": 0,
+                "Losses": 0,
+                "Win Rate": 0.0,
+                "Expectancy R": 0.0,
+                "Profit Factor": 0.0,
+                "Net PnL": 0.0,
+                "Action": "DATA_BLOCKED",
+                "Next Hypothesis": f"Do not trust signals until feed quality is fixed: {reason}",
+            }
+        )
+    return rows
+
+
+def _asset_action(asset: str, total: int, wins: int, losses: int, expectancy: float, profit_factor: float, net_pnl: float) -> tuple[str, str]:
+    asset_class = _asset_class(asset)
+    if total < 5:
+        return "COLLECT_MORE_DATA", "Sample is too small; keep shadow testing before changing rules."
+    if expectancy > 0 and profit_factor >= 1.25 and net_pnl > 0:
+        return "PROMISING_WATCH", f"Build a {asset_class.lower()}-specific variant and keep collecting until 100 trades."
+    if wins == 0 or expectancy <= -0.5 or profit_factor < 0.75:
+        return "QUARANTINE", _quarantine_hypothesis(asset_class)
+    if expectancy <= 0 or net_pnl < 0:
+        return "REWORK_ASSET_RULES", _rework_asset_hypothesis(asset_class)
+    return "KEEP_TESTING", "Edge is not proven, but not rejected; continue live-data shadow testing."
+
+
+def _quarantine_hypothesis(asset_class: str) -> str:
+    if asset_class == "FX":
+        return "Pause this asset class; current crypto-style entries do not fit FX volatility/fee behavior."
+    if asset_class == "CRYPTO":
+        return "Reduce risk and require stronger regime/volatility confirmation before any new entry."
+    if asset_class in {"ENERGY_FUTURES", "METALS_FUTURES"}:
+        return "Retest with commodity-specific session, gap, and volatility filters before allowing entries."
+    if asset_class == "EQUITY":
+        return "Require market-index alignment and earnings/event filters before paper entries."
+    return "Pause new entries until the loss pattern is explained with a larger clean sample."
+
+
+def _rework_asset_hypothesis(asset_class: str) -> str:
+    if asset_class == "FX":
+        return "Use smaller targets, tighter stale-feed checks, and session-aware entry filters."
+    if asset_class == "CRYPTO":
+        return "Add trend-strength and liquidity filters; avoid repeating entries into high-volatility drawdowns."
+    if asset_class in {"ENERGY_FUTURES", "METALS_FUTURES"}:
+        return "Separate commodity logic from crypto logic; validate ATR target distance after fees/slippage."
+    return "Create an asset-specific shadow variant instead of applying one generic rule set."
+
+
+def _asset_class(asset: str) -> str:
+    symbol = asset.upper()
+    if symbol in {"EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "DXY"}:
+        return "FX"
+    if symbol in {"GOLD", "SILVER", "OIL"}:
+        return "SPOT_COMMODITY"
+    if symbol in {"GOLD_FUT", "SILVER_FUT", "COPPER_FUT"}:
+        return "METALS_FUTURES"
+    if symbol in {"OIL_FUT", "BRENT_FUT"}:
+        return "ENERGY_FUTURES"
+    if symbol in {"SPY", "QQQ", "NVDA", "MSTR", "COIN", "MARA", "RIOT", "GLD", "GDX", "NEM"}:
+        return "EQUITY"
+    return "CRYPTO"
+
+
+def _profit_factor(r_series: pd.Series) -> float:
+    if r_series.empty:
+        return 0.0
+    gross_win = float(r_series[r_series > 0].sum())
+    gross_loss = abs(float(r_series[r_series < 0].sum()))
+    if gross_loss == 0:
+        return gross_win if gross_win > 0 else 0.0
+    return gross_win / gross_loss
 
 def _loss_reason(record: dict[str, Any], losses: pd.DataFrame, top_exit: str, avg_planned_reward: float) -> str:
     expectancy = float(record.get("expectancy_r", 0.0) or 0.0)

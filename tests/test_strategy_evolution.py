@@ -57,6 +57,33 @@ class StrategyEvolutionTest(unittest.TestCase):
         self.assertEqual(report.variant_rows[0]["Proposed Variant"], "BREAKOUT_MOMENTUM_V2")
         self.assertIn("Stop-loss", report.autopsy_rows[0]["Likely Mistake"])
 
+
+    def test_asset_failure_correction_flags_promising_and_quarantine_assets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            report_dir = root / "reports"
+            lab_dir = root / "strategy_lab"
+            report_dir.mkdir()
+            trade_dir = lab_dir / "MIXED_TEST" / "trades"
+            trade_dir.mkdir(parents=True)
+            pd.DataFrame(
+                [
+                    {"candidate_id": "MIXED_TEST", "family": "Mixed", "total_trades": 10, "win_rate": 0.5, "expectancy_r": 0.1, "profit_factor": 1.2, "max_drawdown": -0.03},
+                ]
+            ).to_csv(report_dir / "strategy_lab_summary.csv", index=False)
+            pd.DataFrame(
+                [
+                    *[{"candidate_id": "MIXED_TEST", "asset": "OIL_FUT", "exit_reason": "TARGET", "r_multiple": 0.8, "net_pnl": 40} for _ in range(5)],
+                    *[{"candidate_id": "MIXED_TEST", "asset": "GBPUSD", "exit_reason": "SL", "r_multiple": -1.0, "net_pnl": -25} for _ in range(5)],
+                ]
+            ).to_csv(trade_dir / "closed_trades.csv", index=False)
+
+            report = build_strategy_evolution_report(lab_dir=lab_dir, report_dir=report_dir)
+
+        actions = {row["Asset"]: row["Action"] for row in report.asset_action_rows}
+        self.assertEqual(actions["OIL_FUT"], "PROMISING_WATCH")
+        self.assertEqual(actions["GBPUSD"], "QUARANTINE")
+
     def test_write_strategy_evolution_report_outputs_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             report_dir = Path(tmp)

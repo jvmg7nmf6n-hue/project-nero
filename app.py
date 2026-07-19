@@ -594,6 +594,10 @@ def _render_strategy_evolution_tab() -> None:
     if report.recommendation_rows:
         st.subheader("Strategy Doctor")
         st.dataframe(pd.DataFrame(report.recommendation_rows), use_container_width=True, hide_index=True)
+    if report.asset_action_rows:
+        st.subheader("Asset Failure Correction")
+        st.caption("NERO separates promising assets from weak or data-blocked areas before proposing new hypotheses.")
+        st.dataframe(pd.DataFrame(report.asset_action_rows), use_container_width=True, hide_index=True)
     if report.variant_rows:
         st.subheader("Shadow-Test Variant Proposals")
         st.dataframe(pd.DataFrame(report.variant_rows), use_container_width=True, hide_index=True)

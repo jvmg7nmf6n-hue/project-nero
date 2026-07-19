@@ -1,0 +1,24 @@
+Asset,Class,Trades,Wins,Losses,Win Rate,Expectancy R,Profit Factor,Net PnL,Action,Next Hypothesis
+COIN,EQUITY,3,1,2,0.333,-0.349,0.522,-106.05,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+DOGE,CRYPTO,3,2,1,0.667,0.201,1.464,46.89,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+MARA,EQUITY,1,0,1,0.0,-1.062,0.0,-106.2,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+NVDA,EQUITY,3,1,2,0.333,-0.704,0.106,-211.64,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+QQQ,EQUITY,1,0,1,0.0,-1.344,0.0,-85.69,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+SOL,CRYPTO,1,0,1,0.0,-1.277,0.0,-100.99,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+SPY,EQUITY,4,0,4,0.0,-1.658,0.0,-220.98,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+USDCHF,FX,3,0,3,0.0,-1.838,0.0,-78.85,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+USDJPY,FX,4,0,4,0.0,-2.673,0.0,-91.02,COLLECT_MORE_DATA,Sample is too small; keep shadow testing before changing rules.
+GOLD,SPOT_COMMODITY,0,0,0,0.0,0.0,0.0,0.0,DATA_BLOCKED,Do not trust signals until feed quality is fixed: ValueError: No live fallback candles for GOLD: fallback: HTTPError
+OIL,SPOT_COMMODITY,0,0,0,0.0,0.0,0.0,0.0,DATA_BLOCKED,Do not trust signals until feed quality is fixed: ValueError: No live fallback candles for OIL: fallback: HTTPError
+SILVER,SPOT_COMMODITY,0,0,0,0.0,0.0,0.0,0.0,DATA_BLOCKED,Do not trust signals until feed quality is fixed: ValueError: No live fallback candles for SILVER: fallback: HTTPError
+BRENT_FUT,ENERGY_FUTURES,7,5,2,0.714,0.439,2.21,294.72,PROMISING_WATCH,Build a energy_futures-specific variant and keep collecting until 100 trades.
+OIL_FUT,ENERGY_FUTURES,7,6,1,0.857,0.611,4.409,397.9,PROMISING_WATCH,Build a energy_futures-specific variant and keep collecting until 100 trades.
+AUDUSD,FX,8,0,8,0.0,-2.55,0.0,-290.25,QUARANTINE,Pause this asset class; current crypto-style entries do not fit FX volatility/fee behavior.
+COPPER_FUT,METALS_FUTURES,8,1,7,0.125,-1.121,0.047,-589.8,QUARANTINE,"Retest with commodity-specific session, gap, and volatility filters before allowing entries."
+ETH,CRYPTO,32,4,28,0.125,-0.923,0.119,-2914.35,QUARANTINE,Reduce risk and require stronger regime/volatility confirmation before any new entry.
+EURUSD,FX,10,0,10,0.0,-2.451,0.0,-295.53,QUARANTINE,Pause this asset class; current crypto-style entries do not fit FX volatility/fee behavior.
+GBPUSD,FX,21,0,21,0.0,-2.267,0.0,-564.35,QUARANTINE,Pause this asset class; current crypto-style entries do not fit FX volatility/fee behavior.
+NEAR,CRYPTO,10,2,8,0.2,-0.634,0.294,-629.48,QUARANTINE,Reduce risk and require stronger regime/volatility confirmation before any new entry.
+BNB,CRYPTO,9,6,3,0.667,0.034,1.077,-42.02,REWORK_ASSET_RULES,Add trend-strength and liquidity filters; avoid repeating entries into high-volatility drawdowns.
+BTC,CRYPTO,18,11,7,0.611,-0.026,0.95,-36.44,REWORK_ASSET_RULES,Add trend-strength and liquidity filters; avoid repeating entries into high-volatility drawdowns.
+XRP,CRYPTO,5,3,2,0.6,-0.064,0.876,9.69,REWORK_ASSET_RULES,Add trend-strength and liquidity filters; avoid repeating entries into high-volatility drawdowns.

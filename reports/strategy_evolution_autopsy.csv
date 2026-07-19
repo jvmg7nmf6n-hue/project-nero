@@ -1,6 +1,17 @@
 Candidate,Trades,Losses,Top Loss Exit,Avg Loss R,Avg Losing Entry RSI,Avg Planned Reward R,Likely Mistake
-BREAKOUT_MOMENTUM_V1,20,9,SL,-1.213,75.29,1.25,Stop-loss cluster; likely regime/volatility filter problem.
-MR_RELAXED_PULLBACK_V1,8,4,SL,-1.257,36.01,1.36,Stop-loss cluster; likely regime/volatility filter problem.
-MR_REGIME_FILTER_V1,5,4,SL,-1.261,31.17,1.4,Stop-loss cluster; likely regime/volatility filter problem.
-MR_TARGET_1R_V1,5,4,SL,-1.261,31.17,1.0,Stop-loss hits with weak planned reward; entry needs stricter reward-to-risk gate.
-MR_DEEP_VALUE_V1,2,2,SL,-1.18,28.31,1.41,Stop-loss cluster; likely regime/volatility filter problem.
+NEW_BTC_12H_MR,1,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
+BREAKOUT_MOMENTUM_V1,47,31,SL,-1.428,73.05,1.25,Stop-loss cluster; likely regime/volatility filter problem.
+MR_RELAXED_PULLBACK_V1,32,20,SL,-1.676,32.21,1.3,Stop-loss cluster; likely regime/volatility filter problem.
+MR_REGIME_FILTER_V1,21,16,SL,-1.76,29.29,1.47,Stop-loss cluster; likely regime/volatility filter problem.
+NEW_BNB_12H_TREND,0,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
+NEW_BNB_12H_MR,0,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
+NEW_XRP_2H_MR,0,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
+NEW_NEAR_2H_MR,0,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
+MR_TARGET_1R_V1,19,14,SL,-1.777,28.79,1.0,Stop-loss hits with weak planned reward; entry needs stricter reward-to-risk gate.
+V2_BREAKOUT_RETEST,17,14,SL,-1.831,71.78,1.5,Stop-loss cluster; likely regime/volatility filter problem.
+MR_DEEP_VALUE_V1,10,10,SL,-1.991,26.41,1.56,Stop-loss cluster; likely regime/volatility filter problem.
+V2_MR_DEEP,1,1,SL,-1.209,28.22,1.41,Stop-loss cluster; likely regime/volatility filter problem.
+V2_MR_RECOVERY,4,4,SL,-1.843,29.41,1.43,Stop-loss cluster; likely regime/volatility filter problem.
+V2_MR_REGIME,4,4,SL,-1.843,29.41,1.43,Stop-loss cluster; likely regime/volatility filter problem.
+V2_MR_REWARD,2,2,SL,-2.092,29.77,1.25,Stop-loss cluster; likely regime/volatility filter problem.
+NEW_BTC_ETH_12H_PAIR,0,0,none,0.0,0.0,0.0,No losses recorded yet; keep collecting evidence.
