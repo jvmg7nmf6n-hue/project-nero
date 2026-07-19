@@ -1,26 +1,8 @@
 {
-  "scanner:ADA:breakdown": {
-    "cooldown": 1
-  },
-  "scanner:BTC:breakdown": {
-    "cooldown": 1
-  },
-  "scanner:BTC:rsi_low": {
-    "cooldown": 1
-  },
-  "scanner:DOT:breakdown": {
-    "cooldown": 1
-  },
-  "scanner:DOT:rsi_low": {
-    "cooldown": 1
-  },
-  "scanner:DOT:volume": {
-    "cooldown": 1
-  },
   "scanner:LTC:breakout": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:SOL:volume": {
-    "cooldown": 4
+    "cooldown": 3
   }
 }
