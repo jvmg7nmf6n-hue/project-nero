@@ -1,0 +1,82 @@
+{
+  "strategy": "RANGE_MEAN_REVERSION v1.0.0",
+  "generated_at": "2026-07-19T19:57:13.826381+00:00",
+  "total_configs": 28,
+  "data_ok_configs": 22,
+  "survived": 0,
+  "watchlist": 5,
+  "skipped": 6,
+  "tier_average_expectancy_r": {
+    "TIER_1_RANGE_PRONE": -0.2193,
+    "TIER_2_CONDITIONAL": 0.0573,
+    "TIER_3_STRESS": -0.1715
+  },
+  "tier_1_beats_tier_3": "NO",
+  "best_configs": [
+    {
+      "asset": "BTC",
+      "timeframe": "4h",
+      "classification": "DIED",
+      "test_expectancy_r": 0.5896,
+      "edge_over_random_r": 0.7755,
+      "full_trades": 17
+    },
+    {
+      "asset": "BTC",
+      "timeframe": "1d",
+      "classification": "PROMISING_WATCHLIST",
+      "test_expectancy_r": 0.5562,
+      "edge_over_random_r": 0.0,
+      "full_trades": 5
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "4h",
+      "classification": "DIED",
+      "test_expectancy_r": 0.3863,
+      "edge_over_random_r": 0.2183,
+      "full_trades": 7
+    },
+    {
+      "asset": "GBPUSD",
+      "timeframe": "1d",
+      "classification": "PROMISING_WATCHLIST",
+      "test_expectancy_r": 0.2546,
+      "edge_over_random_r": -0.0373,
+      "full_trades": 5
+    },
+    {
+      "asset": "NEAR",
+      "timeframe": "12h",
+      "classification": "DIED",
+      "test_expectancy_r": 0.1829,
+      "edge_over_random_r": 0.55,
+      "full_trades": 11
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "4h",
+      "classification": "PROMISING_WATCHLIST",
+      "test_expectancy_r": 0.1511,
+      "edge_over_random_r": 0.0858,
+      "full_trades": 9
+    },
+    {
+      "asset": "ETH",
+      "timeframe": "12h",
+      "classification": "PROMISING_WATCHLIST",
+      "test_expectancy_r": 0.1329,
+      "edge_over_random_r": 0.004,
+      "full_trades": 10
+    },
+    {
+      "asset": "GBPUSD",
+      "timeframe": "4h",
+      "classification": "PROMISING_WATCHLIST",
+      "test_expectancy_r": 0.0149,
+      "edge_over_random_r": -0.2481,
+      "full_trades": 10
+    }
+  ],
+  "data_rule": "No clean live data means skipped, not guessed."
+}

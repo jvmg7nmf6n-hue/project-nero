@@ -1,0 +1,13 @@
+RANGE_MEAN_REVERSION v1.0.0
+Data OK configs: 22 / 28
+SURVIVED: 0 | WATCHLIST: 5 | SKIPPED: 6
+Tier 1 beats Tier 3: NO
+Best configs:
+- BTC 4h DIED test=0.5896R edge_random=0.7755R
+- BTC 1d PROMISING_WATCHLIST test=0.5562R edge_random=0.0R
+- USDJPY 4h DIED test=0.3863R edge_random=0.2183R
+- GBPUSD 1d PROMISING_WATCHLIST test=0.2546R edge_random=-0.0373R
+- NEAR 12h DIED test=0.1829R edge_random=0.55R
+- EURUSD 4h PROMISING_WATCHLIST test=0.1511R edge_random=0.0858R
+- ETH 12h PROMISING_WATCHLIST test=0.1329R edge_random=0.004R
+- GBPUSD 4h PROMISING_WATCHLIST test=0.0149R edge_random=-0.2481R
