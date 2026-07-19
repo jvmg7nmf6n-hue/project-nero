@@ -1,0 +1,2 @@
+timestamp,asset,symbol,strategy_version,equity,open_trade,last_evaluated_close_time,missed_run_count
+2026-07-19T21:14:20.693242+00:00,EURUSD,EURUSD=X,strategy-lab-v1.0.0:RMR_LONG_ONLY_EURUSD_4H,10020.447880423428,False,1784318400000,0

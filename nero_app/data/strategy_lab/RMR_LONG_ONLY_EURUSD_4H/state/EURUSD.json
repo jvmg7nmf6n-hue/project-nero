@@ -1,0 +1,11 @@
+{
+  "daily_guard_day": "2026-07-17",
+  "daily_r": 0.0,
+  "equity": 10020.447880423428,
+  "last_evaluated_close_time": 1784318400000,
+  "missed_run_count": 0,
+  "open_trade": null,
+  "range_adx_break_count": 0,
+  "range_pending_setup": null,
+  "strategy_version": "strategy-lab-v1.0.0:RMR_LONG_ONLY_EURUSD_4H"
+}

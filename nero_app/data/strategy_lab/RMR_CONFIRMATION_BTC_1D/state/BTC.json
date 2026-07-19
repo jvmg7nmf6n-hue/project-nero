@@ -1,0 +1,7 @@
+{
+  "daily_r": 0.0,
+  "equity": 10000.0,
+  "missed_run_count": 1,
+  "open_trade": null,
+  "strategy_version": "strategy-lab-v1.0.0:RMR_CONFIRMATION_BTC_1D"
+}
