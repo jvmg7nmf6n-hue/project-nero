@@ -1,32 +1,26 @@
 {
-  "BTC:WAIT_LONG_TRIGGER:64926.28": {
-    "cooldown": 1
-  },
   "scanner:ADA:breakdown": {
-    "cooldown": 2
-  },
-  "scanner:AVAX:volume": {
     "cooldown": 1
   },
   "scanner:BTC:breakdown": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:BTC:rsi_low": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:DOT:breakdown": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:DOT:rsi_low": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:DOT:volume": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:LTC:breakout": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "scanner:SOL:volume": {
-    "cooldown": 5
+    "cooldown": 4
   }
 }
