@@ -20,6 +20,11 @@ RANGE_MR_VERSION = "range-mean-reversion-v1.0.0"
 @dataclass(frozen=True)
 class RangeMRConfig:
     version: str = RANGE_MR_VERSION
+    hypothesis_id: str = "RMR_ORIGINAL"
+    entry_mode: str = "BAND_EXTREME"
+    min_band_atr: float = 0.0
+    require_adx_falling: bool = False
+    long_only: bool = False
     initial_equity: float = 10000.0
     risk_per_trade: float = 0.01
     fee_bps_crypto: float = 10.0
@@ -74,6 +79,8 @@ def add_range_mr_indicators(prices: pd.DataFrame, config: RangeMRConfig | None =
     frame["bb_width_pct"] = ((frame["bb_upper"] - frame["bb_lower"]) / close.replace(0, math.nan)) * 100.0
     frame["atr"] = average_true_range(frame, cfg.atr_period)
     frame["adx"] = average_directional_index(frame, cfg.adx_period)
+    frame["adx_falling_3"] = (frame["adx"] < frame["adx"].shift(1)) & (frame["adx"].shift(1) < frame["adx"].shift(2))
+    frame["band_distance_atr"] = _band_distance_atr(frame)
     frame["close_time"] = _close_time_ms(frame["date"])
     return frame
 
@@ -119,6 +126,7 @@ def run_range_mean_reversion_backtest(
     equity = cfg.initial_equity
     open_trade: dict[str, Any] | None = None
     adx_break_count = 0
+    pending_setup: dict[str, Any] | None = None
 
     for idx, candle in enriched.iterrows():
         if open_trade is not None and idx > int(open_trade["entry_index"]):
@@ -131,14 +139,16 @@ def run_range_mean_reversion_backtest(
                 open_trade = None
                 adx_break_count = 0
 
-        reasons = _entry_rejection_reasons(candle, open_trade, cfg)
-        side = ""
-        if not reasons:
-            side = "LONG" if float(candle["close"]) < float(candle["bb_lower"]) else "SHORT"
+        if cfg.entry_mode == "CONFIRMATION":
+            reasons, side, pending_setup = _confirmation_entry_state(candle, open_trade, pending_setup, cfg)
+        else:
+            reasons = _entry_rejection_reasons(candle, open_trade, cfg)
+            side = _entry_side(candle, cfg) if not reasons else ""
         evaluations.append(_evaluation_row(asset, timeframe, candle, side, reasons, cfg))
 
-        if open_trade is None and not reasons:
+        if open_trade is None and not reasons and side:
             open_trade = _open_trade(candle, idx, side, cfg)
+            pending_setup = None
             adx_break_count = 0
 
     return pd.DataFrame([trade.__dict__ for trade in trades]), pd.DataFrame(evaluations)
@@ -236,18 +246,77 @@ def split_train_test(prices: pd.DataFrame, train_fraction: float = 0.7) -> tuple
     return frame.iloc[:split_at].copy(), frame.iloc[split_at:].copy()
 
 
+def range_mr_hypothesis_configs() -> list[RangeMRConfig]:
+    """Return the original strategy plus dissected test hypotheses."""
+
+    return [
+        RangeMRConfig(hypothesis_id="RMR_ORIGINAL"),
+        RangeMRConfig(hypothesis_id="RMR_RANGE_GATE_ONLY", entry_mode="RANGE_GATE"),
+        RangeMRConfig(hypothesis_id="RMR_DEEP_BAND", min_band_atr=0.35),
+        RangeMRConfig(hypothesis_id="RMR_ADX_FALLING", require_adx_falling=True),
+        RangeMRConfig(hypothesis_id="RMR_CONFIRMATION_ENTRY", entry_mode="CONFIRMATION"),
+        RangeMRConfig(hypothesis_id="RMR_LONG_ONLY", long_only=True),
+    ]
+
+
 def _entry_rejection_reasons(candle: pd.Series, open_trade: dict[str, Any] | None, cfg: RangeMRConfig) -> list[str]:
     reasons: list[str] = []
     if open_trade is not None:
         reasons.append("OPEN_TRADE_EXISTS")
     if float(candle["adx"]) >= cfg.adx_entry_below:
         reasons.append("ADX_NOT_RANGE")
+    if cfg.require_adx_falling and not bool(candle.get("adx_falling_3", False)):
+        reasons.append("ADX_NOT_FALLING")
     close = float(candle["close"])
-    if not (close < float(candle["bb_lower"]) or close > float(candle["bb_upper"])):
+    if cfg.entry_mode == "RANGE_GATE":
+        if close == float(candle["ma20"]):
+            reasons.append("CLOSE_NOT_AWAY_FROM_MEAN")
+    elif not (close < float(candle["bb_lower"]) or close > float(candle["bb_upper"])):
         reasons.append("CLOSE_NOT_OUTSIDE_BAND")
+    if cfg.min_band_atr > 0 and float(candle.get("band_distance_atr", 0.0)) < cfg.min_band_atr:
+        reasons.append("BAND_EXTREME_NOT_DEEP")
+    if cfg.long_only and _entry_side(candle, cfg) == "SHORT":
+        reasons.append("SHORT_DISABLED")
     if float(candle["atr"]) <= 0:
         reasons.append("ATR_INVALID")
     return reasons
+
+
+def _entry_side(candle: pd.Series, cfg: RangeMRConfig) -> str:
+    close = float(candle["close"])
+    if cfg.entry_mode == "RANGE_GATE":
+        return "LONG" if close < float(candle["ma20"]) else "SHORT"
+    return "LONG" if close < float(candle["bb_lower"]) else "SHORT"
+
+
+def _confirmation_entry_state(
+    candle: pd.Series,
+    open_trade: dict[str, Any] | None,
+    pending_setup: dict[str, Any] | None,
+    cfg: RangeMRConfig,
+) -> tuple[list[str], str, dict[str, Any] | None]:
+    base_cfg = RangeMRConfig(**{**cfg.__dict__, "entry_mode": "BAND_EXTREME"})
+    base_reasons = _entry_rejection_reasons(candle, open_trade, base_cfg)
+    if not base_reasons:
+        side = _entry_side(candle, base_cfg)
+        if cfg.long_only and side == "SHORT":
+            return ["SHORT_DISABLED"], "", None
+        return ["WAITING_CONFIRMATION"], "", {"side": side, "close": float(candle["close"])}
+
+    if pending_setup is None:
+        return base_reasons, "", None
+    if open_trade is not None:
+        return ["OPEN_TRADE_EXISTS"], "", pending_setup
+    if float(candle["adx"]) >= cfg.adx_entry_below:
+        return ["ADX_NOT_RANGE"], "", None
+    side = str(pending_setup["side"])
+    close = float(candle["close"])
+    prior_close = float(pending_setup["close"])
+    if side == "LONG" and close > prior_close and close < float(candle["ma20"]):
+        return [], side, None
+    if side == "SHORT" and close < prior_close and close > float(candle["ma20"]):
+        return [], side, None
+    return ["CONFIRMATION_NOT_READY"], "", pending_setup
 
 
 def _open_trade(candle: pd.Series, idx: int, side: str, cfg: RangeMRConfig) -> dict[str, Any]:
@@ -333,7 +402,7 @@ def _close_trade(open_trade: dict[str, Any], candle: pd.Series, idx: int, asset:
         holding_bars=int(idx) - int(open_trade["entry_index"]),
         entry_adx=float(open_trade["entry_adx"]),
         entry_band_width_pct=float(open_trade["entry_band_width_pct"]),
-        strategy_version=cfg.version,
+        strategy_version=f"{cfg.version}:{cfg.hypothesis_id}",
     )
 
 
@@ -345,14 +414,22 @@ def _evaluation_row(asset: str, timeframe: str, candle: pd.Series, side: str, re
         "close": float(candle["close"]),
         "adx": float(candle["adx"]),
         "bb_width_pct": float(candle["bb_width_pct"]),
+        "band_distance_atr": float(candle.get("band_distance_atr", 0.0)),
         "ma20": float(candle["ma20"]),
         "bb_lower": float(candle["bb_lower"]),
         "bb_upper": float(candle["bb_upper"]),
         "side": side,
         "passed": not reasons,
         "rejection_reasons": "|".join(reasons),
-        "strategy_version": cfg.version,
+        "hypothesis_id": cfg.hypothesis_id,
+        "strategy_version": f"{cfg.version}:{cfg.hypothesis_id}",
     }
+
+
+def _band_distance_atr(frame: pd.DataFrame) -> pd.Series:
+    lower_distance = (frame["bb_lower"] - frame["close"]).clip(lower=0.0)
+    upper_distance = (frame["close"] - frame["bb_upper"]).clip(lower=0.0)
+    return (lower_distance + upper_distance) / frame["atr"].replace(0, math.nan)
 
 
 def _clean_ohlc(prices: pd.DataFrame) -> pd.DataFrame:
@@ -433,3 +510,4 @@ def _top_rejection(evaluations: pd.DataFrame) -> str:
             if reason:
                 counts[reason] = counts.get(reason, 0) + 1
     return max(counts.items(), key=lambda item: item[1])[0] if counts else "none"
+

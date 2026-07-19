@@ -16,6 +16,7 @@ from nero_app.core.market_data import MarketDataClient
 from nero_app.core.range_mean_reversion import (
     RangeMRConfig,
     classify_range_mr,
+    range_mr_hypothesis_configs,
     run_random_range_baseline,
     run_range_mean_reversion_backtest,
     split_train_test,
@@ -62,7 +63,7 @@ CANDLES = {
 
 def main() -> None:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    cfg = RangeMRConfig()
+    configs = range_mr_hypothesis_configs()
     client = MarketDataClient(timeout_seconds=15)
     audit_rows: list[dict[str, Any]] = []
     result_rows: list[dict[str, Any]] = []
@@ -74,9 +75,11 @@ def main() -> None:
                 audit = _audit_row(tier, asset, timeframe, candles, source, status)
                 audit_rows.append(audit)
                 if audit["test_status"] != "OK":
-                    result_rows.append(_skipped_row(audit, reason=audit["test_status"]))
+                    for cfg in configs:
+                        result_rows.append(_skipped_row(audit, reason=audit["test_status"], cfg=cfg))
                     continue
-                result_rows.append(_test_config(tier, asset, timeframe, candles, source, cfg))
+                for cfg in configs:
+                    result_rows.append(_test_config(tier, asset, timeframe, candles, source, cfg))
 
     audit_frame = pd.DataFrame(audit_rows)
     results_frame = pd.DataFrame(result_rows)
@@ -155,6 +158,7 @@ def _test_config(tier: str, asset: str, timeframe: str, candles: pd.DataFrame, s
     classification = classify_range_mr(train_summary, test_summary, random_summary, grid_status, cfg.min_train_test_trades)
     return {
         "tier": tier,
+        "hypothesis_id": cfg.hypothesis_id,
         "asset": asset,
         "timeframe": timeframe,
         "source": source,
@@ -179,9 +183,10 @@ def _test_config(tier: str, asset: str, timeframe: str, candles: pd.DataFrame, s
     }
 
 
-def _skipped_row(audit: dict[str, Any], reason: str) -> dict[str, Any]:
+def _skipped_row(audit: dict[str, Any], reason: str, cfg: RangeMRConfig) -> dict[str, Any]:
     return {
         "tier": audit["tier"],
+        "hypothesis_id": cfg.hypothesis_id,
         "asset": audit["asset"],
         "timeframe": audit["timeframe"],
         "source": audit["source"],
@@ -233,13 +238,14 @@ def _summary_payload(results: pd.DataFrame, audit: pd.DataFrame) -> dict[str, An
     if not valid.empty:
         tier_expectancy = valid.groupby("tier")["full_expectancy_r"].mean().round(4).to_dict()
     return {
-        "strategy": "RANGE_MEAN_REVERSION v1.0.0",
+        "strategy": "RANGE_MEAN_REVERSION hypothesis family v1.0.0",
         "generated_at": pd.Timestamp.utcnow().isoformat(),
         "total_configs": int(len(results)),
         "data_ok_configs": int((audit["test_status"] == "OK").sum()) if not audit.empty else 0,
         "survived": int((results["classification"] == "SURVIVED").sum()) if not results.empty else 0,
         "watchlist": int((results["classification"] == "PROMISING_WATCHLIST").sum()) if not results.empty else 0,
         "skipped": int((results["classification"] == "SKIPPED").sum()) if not results.empty else 0,
+        "hypotheses": sorted(results["hypothesis_id"].dropna().unique().tolist()) if "hypothesis_id" in results else [],
         "tier_average_expectancy_r": tier_expectancy,
         "tier_1_beats_tier_3": _tier_1_beats_tier_3(tier_expectancy),
         "best_configs": _best_configs(results),
@@ -251,13 +257,14 @@ def _summary_text(summary: dict[str, Any]) -> str:
     best = summary.get("best_configs", [])
     lines = [
         f"{summary['strategy']}",
+        f"Hypotheses: {', '.join(summary.get('hypotheses', []))}",
         f"Data OK configs: {summary['data_ok_configs']} / {summary['total_configs']}",
         f"SURVIVED: {summary['survived']} | WATCHLIST: {summary['watchlist']} | SKIPPED: {summary['skipped']}",
         f"Tier 1 beats Tier 3: {summary['tier_1_beats_tier_3']}",
         "Best configs:",
     ]
     for row in best:
-        lines.append(f"- {row['asset']} {row['timeframe']} {row['classification']} test={row['test_expectancy_r']}R edge_random={row['edge_over_random_r']}R")
+        lines.append(f"- {row['hypothesis_id']} {row['asset']} {row['timeframe']} {row['classification']} test={row['test_expectancy_r']}R edge_random={row['edge_over_random_r']}R")
     return "\n".join(lines) + "\n"
 
 
@@ -273,7 +280,7 @@ def _best_configs(results: pd.DataFrame) -> list[dict[str, Any]]:
     frame = results[results["classification"] != "SKIPPED"].copy()
     if frame.empty:
         return []
-    cols = ["asset", "timeframe", "classification", "test_expectancy_r", "edge_over_random_r", "full_trades"]
+    cols = ["hypothesis_id", "asset", "timeframe", "classification", "test_expectancy_r", "edge_over_random_r", "full_trades"]
     return frame.sort_values(["test_expectancy_r", "edge_over_random_r"], ascending=[False, False])[cols].head(8).to_dict("records")
 
 
@@ -299,4 +306,6 @@ def _last_year(frame: pd.DataFrame) -> pd.DataFrame:
 
 if __name__ == "__main__":
     main()
+
+
 

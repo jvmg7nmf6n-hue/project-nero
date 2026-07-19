@@ -8,6 +8,7 @@ from nero_app.core.range_mean_reversion import (
     _maybe_exit,
     _open_trade,
     average_directional_index,
+    range_mr_hypothesis_configs,
     run_range_mean_reversion_backtest,
 )
 
@@ -63,6 +64,27 @@ class RangeMeanReversionTests(unittest.TestCase):
         trades, evaluations = run_range_mean_reversion_backtest(frame, "BTC", "1h", cfg)
         self.assertFalse(evaluations.empty)
         self.assertIn("passed", evaluations.columns)
+
+
+    def test_hypothesis_configs_are_named_and_distinct(self):
+        configs = range_mr_hypothesis_configs()
+        names = [cfg.hypothesis_id for cfg in configs]
+        self.assertIn("RMR_RANGE_GATE_ONLY", names)
+        self.assertIn("RMR_DEEP_BAND", names)
+        self.assertIn("RMR_ADX_FALLING", names)
+        self.assertIn("RMR_CONFIRMATION_ENTRY", names)
+        self.assertIn("RMR_LONG_ONLY", names)
+        self.assertEqual(len(names), len(set(names)))
+
+    def test_deep_band_rejects_shallow_band_touch(self):
+        cfg = RangeMRConfig(min_band_atr=0.5)
+        candle = pd.Series({"adx": 18.0, "close": 95.9, "bb_lower": 96.0, "bb_upper": 104.0, "ma20": 100.0, "atr": 2.0, "band_distance_atr": 0.05})
+        self.assertIn("BAND_EXTREME_NOT_DEEP", _entry_rejection_reasons(candle, None, cfg))
+
+    def test_long_only_rejects_short_band_setup(self):
+        cfg = RangeMRConfig(long_only=True)
+        candle = pd.Series({"adx": 18.0, "close": 105.0, "bb_lower": 96.0, "bb_upper": 104.0, "ma20": 100.0, "atr": 2.0, "band_distance_atr": 0.5})
+        self.assertIn("SHORT_DISABLED", _entry_rejection_reasons(candle, None, cfg))
 
     def test_adx_calculates_without_crashing(self):
         rows = []
