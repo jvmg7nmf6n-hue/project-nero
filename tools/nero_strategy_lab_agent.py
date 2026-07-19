@@ -11,11 +11,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from nero_app.core.mean_reversion_agent import load_assets_from_env
 from nero_app.core.mobile_alerts import send_ntfy_alert
-from nero_app.core.strategy_lab_agent import run_strategy_lab
+from nero_app.core.strategy_lab_agent import STRATEGY_LAB_DEFAULT_ASSETS, run_strategy_lab
 
 
 def main() -> None:
-    assets = load_assets_from_env()
+    assets = load_assets_from_env(default=STRATEGY_LAB_DEFAULT_ASSETS)
     summary = run_strategy_lab(assets=assets, now=datetime.now(timezone.utc))
     print(
         "Strategy lab complete. "
