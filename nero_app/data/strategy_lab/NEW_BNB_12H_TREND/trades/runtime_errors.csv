@@ -1,3 +1,5 @@
 timestamp,asset,code,message
 2026-07-16T20:39:17.276811+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
 2026-07-16T23:43:59.404593+00:00,BNB,ERROR,ValueError: No live fallback candles for BNB: sample
+2026-07-19T09:39:04.679413+00:00,BNB,STALE_FEED,Latest closed candle is stale for BNBUSDT
+2026-07-19T09:44:13.716996+00:00,BNB,STALE_FEED,Latest closed candle is stale for BNBUSDT
