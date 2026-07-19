@@ -77,6 +77,8 @@ MARKET_HOURS_ASSETS = {
     "DXY", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD",
 }
 
+DEFAULT_QUARANTINED_ASSETS = {"ETH", "NEAR", "EURUSD", "GBPUSD", "AUDUSD", "COPPER_FUT"}
+
 
 class TargetMode(str, Enum):
     FROZEN_MA20 = "FROZEN_MA20"
@@ -100,6 +102,7 @@ class CandidateSpec:
     display_label: str = ""
     bucket: str = "OLD_TEST"
     asset_filter: tuple[str, ...] = ()
+    asset_exclude: tuple[str, ...] = ()
     interval: str = "1h"
     evidence_note: str = ""
     enabled: bool = True
@@ -225,6 +228,45 @@ CANDIDATES: dict[str, CandidateSpec] = {
         evidence_note="Claude sweep: NEAR/2h deep-value positive in train and test.",
         rsi_entry_below=30.0,
         lower_bb_buffer_atr=0.0,
+    ),
+
+    "HYP_OIL_TREND_V1": CandidateSpec(
+        candidate_id="HYP_OIL_TREND_V1",
+        family="Momentum",
+        title="Oil futures trend continuation",
+        display_label="HYP_OIL_TREND",
+        bucket="HYPOTHESIS_TEST",
+        asset_filter=("OIL_FUT", "BRENT_FUT"),
+        interval="1h",
+        evidence_note="Asset Failure Correction: OIL_FUT and BRENT_FUT are the strongest current positive asset cluster. Test only clean 1h trend continuation in energy futures.",
+        rsi_entry_below=100.0,
+        require_ma200=True,
+        target_mode="FIXED_150R",
+        atr_stop_multiple=1.1,
+        breakout_lookback=18,
+        require_breakout_retest=True,
+        require_trend_support=True,
+        min_planned_reward_r=1.35,
+        max_atr_pct=0.05,
+    ),
+    "HYP_OIL_MR_V1": CandidateSpec(
+        candidate_id="HYP_OIL_MR_V1",
+        family="Mean Reversion",
+        title="Oil futures recovery mean reversion",
+        display_label="HYP_OIL_MR",
+        bucket="HYPOTHESIS_TEST",
+        asset_filter=("OIL_FUT", "BRENT_FUT"),
+        interval="1h",
+        evidence_note="Asset Failure Correction: test whether 1h oil pullbacks work better after RSI recovery and a minimum reward gate.",
+        rsi_entry_below=38.0,
+        lower_bb_buffer_atr=0.2,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.25,
+        require_rsi_recovery=True,
+        require_trend_support=True,
+        min_planned_reward_r=1.2,
+        max_atr_pct=0.045,
     ),
     "NEW_BTC_ETH_12H_PAIR": CandidateSpec(
         candidate_id="NEW_BTC_ETH_12H_PAIR",
@@ -648,6 +690,7 @@ def _candidate_report_row(spec: CandidateSpec, asset: str, trades: pd.DataFrame,
     row["title"] = spec.title
     row["interval"] = spec.interval
     row["asset_filter"] = ",".join(spec.asset_filter) if spec.asset_filter else "ALL"
+    row["asset_exclude"] = ",".join(spec.asset_exclude) if spec.asset_exclude else "AUTO_QUARANTINE"
     row["evidence_note"] = spec.evidence_note
     row["enabled"] = spec.enabled
     row["rating"] = _rating(row)
@@ -689,6 +732,7 @@ def _summary_row(spec: CandidateSpec, row: dict[str, Any]) -> dict[str, Any]:
         "title": spec.title,
         "interval": spec.interval,
         "asset_filter": ",".join(spec.asset_filter) if spec.asset_filter else "ALL",
+        "asset_exclude": ",".join(spec.asset_exclude) if spec.asset_exclude else "AUTO_QUARANTINE",
         "evidence_note": spec.evidence_note,
         "enabled": spec.enabled,
         "total_trades": int(float(row.get("total_trades", 0) or 0)),
@@ -720,6 +764,7 @@ def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
         "title": spec.title,
         "interval": spec.interval,
         "asset_filter": ",".join(spec.asset_filter) if spec.asset_filter else "ALL",
+        "asset_exclude": ",".join(spec.asset_exclude) if spec.asset_exclude else "AUTO_QUARANTINE",
         "evidence_note": spec.evidence_note,
         "enabled": spec.enabled,
         "total_trades": 0,
@@ -745,10 +790,24 @@ def _stale_after_minutes(assets: dict[str, str]) -> int:
 
 
 def _candidate_assets(spec: CandidateSpec, assets: dict[str, str]) -> dict[str, str]:
-    if not spec.asset_filter:
-        return dict(assets)
-    allowed = {asset.upper() for asset in spec.asset_filter}
-    return {asset: symbol for asset, symbol in assets.items() if asset.upper() in allowed}
+    if spec.asset_filter:
+        allowed = {asset.upper() for asset in spec.asset_filter}
+        selected = {asset: symbol for asset, symbol in assets.items() if asset.upper() in allowed}
+    else:
+        selected = dict(assets)
+    excluded = set(_quarantined_assets())
+    excluded.update(asset.upper() for asset in spec.asset_exclude)
+    if spec.asset_filter:
+        explicit = {asset.upper() for asset in spec.asset_filter}
+        excluded -= explicit
+    return {asset: symbol for asset, symbol in selected.items() if asset.upper() not in excluded}
+
+
+def _quarantined_assets() -> set[str]:
+    raw = os.getenv("STRATEGY_LAB_QUARANTINED_ASSETS", "").strip()
+    if raw:
+        return {item.strip().upper() for item in raw.split(",") if item.strip()}
+    return set(DEFAULT_QUARANTINED_ASSETS)
 
 
 def _selected_candidates() -> list[CandidateSpec]:

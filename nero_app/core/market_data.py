@@ -538,8 +538,10 @@ def _yfinance_period(days: int) -> str:
 
 def _yfinance_intraday_period(candles: int, interval: str) -> str:
     hours_per_candle = _interval_milliseconds(interval) / 3_600_000
-    days = int(max(30, min(729, (candles * hours_per_candle / 6) + 20)))
-    return f"{days}d"
+    days = int(max(30, (candles * hours_per_candle / 6) + 20))
+    # yfinance intraday futures/equity feeds are more reliable below 60 days.
+    # Higher synthetic intervals are fetched as 1h and resampled locally.
+    return f"{min(days, 59)}d"
 
 
 def _interval_milliseconds(interval: str) -> int:

@@ -12,7 +12,7 @@ from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_repo
 
 class StrategyLabAgentTest(unittest.TestCase):
     def test_has_old_and_new_lab_candidates(self) -> None:
-        self.assertGreaterEqual(len(CANDIDATES), 16)
+        self.assertGreaterEqual(len(CANDIDATES), 18)
         self.assertIn("MR_RELAXED_PULLBACK_V1", CANDIDATES)
         self.assertIn("BREAKOUT_MOMENTUM_V1", CANDIDATES)
         self.assertEqual(CANDIDATES["MR_RELAXED_PULLBACK_V1"].display_label, "OLD_MR_RELAXED")
@@ -22,6 +22,9 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["V2_BREAKOUT_RETEST"].bucket, "V2_SHADOW")
         self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
         self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
+        self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].bucket, "HYPOTHESIS_TEST")
+        self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].asset_filter, ("OIL_FUT", "BRENT_FUT"))
+        self.assertEqual(CANDIDATES["HYP_OIL_MR_V1"].display_label, "HYP_OIL_MR")
 
 
 
@@ -39,6 +42,17 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertIn("EURUSD", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("USDJPY", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertEqual(len(STRATEGY_LAB_DEFAULT_ASSETS), 33)
+
+
+    def test_hypothesis_assets_bypass_default_quarantine(self) -> None:
+        from nero_app.core.strategy_lab_agent import _candidate_assets
+
+        assets = {"ETH": "ETHUSDT", "OIL_FUT": "CL=F", "BRENT_FUT": "BZ=F"}
+        broad = _candidate_assets(CANDIDATES["MR_RELAXED_PULLBACK_V1"], assets)
+        oil_hypothesis = _candidate_assets(CANDIDATES["HYP_OIL_TREND_V1"], assets)
+
+        self.assertNotIn("ETH", broad)
+        self.assertEqual(set(oil_hypothesis), {"OIL_FUT", "BRENT_FUT"})
 
     def test_signal_validator_keeps_family_rules_separate(self) -> None:
         mr_spec = CANDIDATES["V2_MR_RECOVERY"]
