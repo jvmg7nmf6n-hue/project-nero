@@ -2,11 +2,13 @@
 
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 
-from nero_app.core.strategy_lab_agent import CANDIDATES, STRATEGY_LAB_DEFAULT_ASSETS, SignalValidator, write_strategy_lab_summary
+from nero_app.core.mean_reversion_agent import MeanReversionConfig
+from nero_app.core.strategy_lab_agent import CANDIDATES, STRATEGY_LAB_DEFAULT_ASSETS, RangeMRPaperAgent, SignalValidator, StrategyFamily, _candidate_assets, write_strategy_lab_summary
 from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_report
 
 
@@ -25,9 +27,77 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].bucket, "HYPOTHESIS_TEST")
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].asset_filter, ("OIL_FUT", "BRENT_FUT"))
         self.assertEqual(CANDIDATES["HYP_OIL_MR_V1"].display_label, "HYP_OIL_MR")
+        self.assertEqual(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"].family, StrategyFamily.RANGE_MEAN_REVERSION.value)
+        self.assertEqual(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"].bucket, "RANGE_MR_WATCHLIST")
+        self.assertEqual(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"].asset_filter, ("EURUSD",))
+        self.assertEqual(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"].interval, "4h")
+        self.assertTrue(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"].range_long_only)
+        self.assertTrue(CANDIDATES["RMR_ADX_FALLING_ETH_4H"].range_require_adx_falling)
+        self.assertEqual(CANDIDATES["RMR_CONFIRMATION_BTC_1D"].range_entry_mode, "CONFIRMATION")
+        self.assertEqual(CANDIDATES["RMR_CONFIRMATION_BTC_1D"].atr_stop_multiple, 2.0)
 
 
 
+    def test_range_mr_assets_bypass_default_quarantine(self) -> None:
+        assets = {"BTC": "BTCUSDT", "ETH": "ETHUSDT", "EURUSD": "EURUSD=X"}
+
+        broad = _candidate_assets(CANDIDATES["MR_RELAXED_PULLBACK_V1"], assets)
+        eurusd_range = _candidate_assets(CANDIDATES["RMR_LONG_ONLY_EURUSD_4H"], assets)
+        eth_range = _candidate_assets(CANDIDATES["RMR_ADX_FALLING_ETH_4H"], assets)
+
+        self.assertNotIn("ETH", broad)
+        self.assertNotIn("EURUSD", broad)
+        self.assertEqual(eurusd_range, {"EURUSD": "EURUSD=X"})
+        self.assertEqual(eth_range, {"ETH": "ETHUSDT"})
+
+    def test_range_mr_paper_agent_short_target_is_profitable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            spec = CANDIDATES["RMR_ADX_FALLING_ETH_4H"]
+            config = MeanReversionConfig(assets={"ETH": "ETHUSDT"}, interval="4h", fee_bps=0.0, slippage_bps=0.0)
+            agent = RangeMRPaperAgent(spec=spec, config=config, data_dir=base / "data", report_dir=base / "reports", now=datetime(2026, 7, 19, tzinfo=timezone.utc))
+            state = {
+                "equity": 10000.0,
+                "daily_r": 0.0,
+                "range_adx_break_count": 0,
+                "open_trade": {
+                    "trade_id": "short-test",
+                    "candidate_id": spec.candidate_id,
+                    "family": spec.family,
+                    "asset": "ETH",
+                    "symbol": "ETHUSDT",
+                    "side": "SHORT",
+                    "strategy_version": "test",
+                    "status": "OPEN",
+                    "opened_at": "2026-07-19T00:00:00+00:00",
+                    "open_close_time": 1000,
+                    "entry_price": 110.0,
+                    "stop_loss": 120.0,
+                    "target": 100.0,
+                    "quantity": 1.0,
+                    "notional": 110.0,
+                    "risk_dollars": 10.0,
+                    "entry_fee": 0.0,
+                },
+            }
+            candle = pd.Series(
+                {
+                    "date": pd.Timestamp("2026-07-19T04:00:00Z"),
+                    "close_time": 1000 + 4 * 3600 * 1000,
+                    "high": 111.0,
+                    "low": 99.0,
+                    "close": 99.0,
+                    "ma20": 100.0,
+                    "adx": 18.0,
+                }
+            )
+
+            event = agent._maybe_exit("ETH", "ETHUSDT", candle, state)
+
+        self.assertIsNotNone(event)
+        self.assertEqual(event["exit_reason"], "TARGET")
+        self.assertGreater(event["net_pnl"], 0.0)
+        self.assertGreater(event["r_multiple"], 0.0)
     def test_strategy_lab_default_assets_include_stocks_and_currencies(self) -> None:
         self.assertIn("GOLD", STRATEGY_LAB_DEFAULT_ASSETS)
         self.assertIn("SILVER", STRATEGY_LAB_DEFAULT_ASSETS)
@@ -155,3 +225,4 @@ class StrategyLabAgentTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

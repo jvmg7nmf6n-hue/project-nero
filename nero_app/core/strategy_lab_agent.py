@@ -26,6 +26,13 @@ from nero_app.core.mean_reversion_agent import (
     load_assets_from_env,
     report_row,
 )
+from nero_app.core.range_mean_reversion import (
+    RangeMRConfig,
+    _confirmation_entry_state,
+    _entry_rejection_reasons,
+    _entry_side,
+    add_range_mr_indicators,
+)
 
 STRATEGY_LAB_VERSION = "strategy-lab-v1.0.0"
 DEFAULT_LAB_DIR = Path(__file__).resolve().parents[1] / "data" / "strategy_lab"
@@ -91,6 +98,7 @@ class StrategyFamily(str, Enum):
     MEAN_REVERSION = "Mean Reversion"
     MOMENTUM = "Momentum"
     EXIT_LOGIC = "Exit Logic"
+    RANGE_MEAN_REVERSION = "Range Mean Reversion"
     PAIRS_RESEARCH = "Pairs Research"
 
 
@@ -118,6 +126,10 @@ class CandidateSpec:
     require_trend_support: bool = False
     min_planned_reward_r: float = 0.0
     max_atr_pct: float | None = None
+    range_entry_mode: str = "BAND_EXTREME"
+    range_min_band_atr: float = 0.0
+    range_require_adx_falling: bool = False
+    range_long_only: bool = False
 
 
 CANDIDATES: dict[str, CandidateSpec] = {
@@ -268,6 +280,55 @@ CANDIDATES: dict[str, CandidateSpec] = {
         min_planned_reward_r=1.2,
         max_atr_pct=0.045,
     ),
+    "RMR_LONG_ONLY_EURUSD_4H": CandidateSpec(
+        candidate_id="RMR_LONG_ONLY_EURUSD_4H",
+        family="Range Mean Reversion",
+        title="EURUSD 4h range MR long-only",
+        display_label="RMR_LONG_EURUSD_4H",
+        bucket="RANGE_MR_WATCHLIST",
+        asset_filter=("EURUSD",),
+        interval="4h",
+        evidence_note="Range MR hypothesis split: EURUSD 4h long-only showed strongest watchlist edge. Forward-test only until 30-50 trades.",
+        atr_stop_multiple=2.0,
+        range_long_only=True,
+    ),
+    "RMR_ADX_FALLING_ETH_4H": CandidateSpec(
+        candidate_id="RMR_ADX_FALLING_ETH_4H",
+        family="Range Mean Reversion",
+        title="ETH 4h range MR with falling ADX",
+        display_label="RMR_ADX_ETH_4H",
+        bucket="RANGE_MR_WATCHLIST",
+        asset_filter=("ETH",),
+        interval="4h",
+        evidence_note="Range MR hypothesis split: ETH 4h improved when ADX was falling into range conditions.",
+        atr_stop_multiple=2.0,
+        range_require_adx_falling=True,
+    ),
+    "RMR_LONG_ONLY_BTC_1D": CandidateSpec(
+        candidate_id="RMR_LONG_ONLY_BTC_1D",
+        family="Range Mean Reversion",
+        title="BTC daily range MR long-only",
+        display_label="RMR_LONG_BTC_1D",
+        bucket="RANGE_MR_WATCHLIST",
+        asset_filter=("BTC",),
+        interval="1d",
+        evidence_note="Range MR hypothesis split: BTC daily long-only is promising but sample-limited.",
+        atr_stop_multiple=2.0,
+        range_long_only=True,
+    ),
+    "RMR_CONFIRMATION_BTC_1D": CandidateSpec(
+        candidate_id="RMR_CONFIRMATION_BTC_1D",
+        family="Range Mean Reversion",
+        title="BTC daily range MR confirmation entry",
+        display_label="RMR_CONFIRM_BTC_1D",
+        bucket="RANGE_MR_WATCHLIST",
+        asset_filter=("BTC",),
+        interval="1d",
+        evidence_note="Range MR hypothesis split: BTC daily confirmation entry tests whether waiting after the band breach reduces weak entries.",
+        atr_stop_multiple=2.0,
+        range_entry_mode="CONFIRMATION",
+    ),
+
     "NEW_BTC_ETH_12H_PAIR": CandidateSpec(
         candidate_id="NEW_BTC_ETH_12H_PAIR",
         family="Pairs Research",
@@ -618,6 +679,223 @@ class CandidatePaperAgent(MeanReversionAgent):
         (self.report_dir / f"strategy_lab_{self.spec.candidate_id}.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
 
 
+
+class RangeMRPaperAgent(CandidatePaperAgent):
+    def process_asset(self, asset: str, symbol: str, candles: pd.DataFrame, state: dict[str, Any]) -> dict[str, Any]:
+        range_config = _range_config_from_spec(self.spec)
+        enriched = add_range_mr_indicators(candles, range_config)
+        last_seen = int(state.get("last_evaluated_close_time", 0))
+        rows = enriched[enriched["close_time"] > last_seen].copy()
+        rows = rows.dropna(subset=["ma20", "bb_upper", "bb_lower", "atr", "adx"])
+        rows = rows.sort_values("close_time")
+        entries = 0
+        exits = 0
+        evaluated = 0
+        alerts: list[str] = []
+
+        for _, candle in rows.iterrows():
+            candle_time = int(candle["close_time"])
+            state = self._reset_daily_guard_if_needed(state, candle)
+            exit_event = self._maybe_exit(asset, symbol, candle, state)
+            if exit_event:
+                exits += 1
+                alerts.append(f"{self.spec.candidate_id} {asset}: {exit_event['exit_reason']} net={exit_event['net_pnl']:.2f} R={exit_event['r_multiple']:.2f}")
+
+            evaluation = self._evaluate_entry(asset, symbol, candle, state)
+            self._append_rows(self.trade_dir / "evaluations.csv", [evaluation])
+            evaluated += 1
+            if evaluation["passed"]:
+                entry_event = self._enter_trade(asset, symbol, candle, state)
+                if entry_event:
+                    entries += 1
+                    alerts.append(f"{self.spec.candidate_id} {asset}: PAPER_ENTRY {entry_event['side']} entry={entry_event['entry_price']:.4f} target={entry_event['target']:.4f}")
+            state["last_evaluated_close_time"] = candle_time
+
+        return {"state": state, "evaluated": evaluated, "entries": entries, "exits": exits, "alerts": alerts}
+
+    def _evaluate_entry(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any]:
+        range_config = _range_config_from_spec(self.spec)
+        pending = state.get("range_pending_setup") if isinstance(state.get("range_pending_setup"), dict) else None
+        if range_config.entry_mode == "CONFIRMATION":
+            reasons, side, pending = _confirmation_entry_state(candle, state.get("open_trade"), pending, range_config)
+            state["range_pending_setup"] = pending
+        else:
+            reasons = _entry_rejection_reasons(candle, state.get("open_trade"), range_config)
+            side = _entry_side(candle, range_config) if not reasons else ""
+        planned_reward_r = _range_planned_reward_r(candle, side, self.config.slippage_bps, range_config) if side else 0.0
+        return {
+            "timestamp": self.now.isoformat(),
+            "candidate_id": self.spec.candidate_id,
+            "asset": asset,
+            "symbol": symbol,
+            "strategy_version": self.config.strategy_version,
+            "candle_close_time": int(candle["close_time"]),
+            "candle_time": candle["date"].isoformat(),
+            "open": float(candle["open"]),
+            "high": float(candle["high"]),
+            "low": float(candle["low"]),
+            "close": float(candle["close"]),
+            "side": side,
+            "adx": float(candle["adx"]),
+            "adx_falling_3": bool(candle.get("adx_falling_3", False)),
+            "ma20": float(candle["ma20"]),
+            "bb_lower": float(candle["bb_lower"]),
+            "bb_upper": float(candle["bb_upper"]),
+            "bb_width_pct": float(candle["bb_width_pct"]),
+            "band_distance_atr": float(candle.get("band_distance_atr", 0.0)),
+            "atr": float(candle["atr"]),
+            "planned_reward_r": planned_reward_r,
+            "passed": not reasons,
+            "rejection_reasons": "|".join(reasons),
+        }
+
+    def _enter_trade(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
+        if state.get("open_trade"):
+            return None
+        range_config = _range_config_from_spec(self.spec)
+        side = _entry_side(candle, range_config)
+        equity = float(state.get("equity", self.config.initial_equity))
+        raw_entry = float(candle["close"])
+        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "buy" if side == "LONG" else "sell")
+        atr = float(candle["atr"])
+        stop_loss = entry_price - range_config.atr_stop_multiple * atr if side == "LONG" else entry_price + range_config.atr_stop_multiple * atr
+        target = float(candle["ma20"])
+        risk_per_unit = abs(entry_price - stop_loss)
+        reward_per_unit = target - entry_price if side == "LONG" else entry_price - target
+        if risk_per_unit <= 0 or reward_per_unit <= 0:
+            return None
+        risk_dollars = equity * self.config.risk_per_trade
+        quantity = risk_dollars / risk_per_unit
+        max_notional = equity * self.config.max_notional_pct
+        notional = quantity * entry_price
+        if notional > max_notional:
+            quantity = max_notional / entry_price
+            notional = max_notional
+            risk_dollars = quantity * risk_per_unit
+        fees = notional * self.config.fee_bps / 10000.0
+        trade_id = f"SLAB-{self.spec.candidate_id}-{asset}-{int(candle['close_time'])}"
+        trade = {
+            "trade_id": trade_id,
+            "candidate_id": self.spec.candidate_id,
+            "family": self.spec.family,
+            "asset": asset,
+            "symbol": symbol,
+            "side": side,
+            "strategy_version": self.config.strategy_version,
+            "status": "OPEN",
+            "opened_at": candle["date"].isoformat(),
+            "open_close_time": int(candle["close_time"]),
+            "entry_price": entry_price,
+            "stop_loss": stop_loss,
+            "target": target,
+            "target_mode": "DYNAMIC_MA20",
+            "quantity": quantity,
+            "notional": notional,
+            "risk_dollars": risk_dollars,
+            "entry_fee": fees,
+            "entry_slippage_bps": self.config.slippage_bps,
+            "planned_reward_r": reward_per_unit / risk_per_unit,
+            "entry_adx": float(candle["adx"]),
+            "entry_ma20": float(candle["ma20"]),
+            "entry_bb_lower": float(candle["bb_lower"]),
+            "entry_bb_upper": float(candle["bb_upper"]),
+            "entry_band_distance_atr": float(candle.get("band_distance_atr", 0.0)),
+            "entry_atr": atr,
+        }
+        state["open_trade"] = trade
+        state["range_pending_setup"] = None
+        state["range_adx_break_count"] = 0
+        self._append_rows(self.trade_dir / "trade_events.csv", [{**trade, "event": "ENTRY", "timestamp": self.now.isoformat()}])
+        return trade
+
+    def _maybe_exit(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
+        trade = state.get("open_trade")
+        if not trade:
+            return None
+        side = str(trade.get("side", "LONG")).upper()
+        stop_loss = float(trade["stop_loss"])
+        low = float(candle["low"])
+        high = float(candle["high"])
+        close = float(candle["close"])
+        ma20 = float(candle["ma20"])
+        adx_break_count = int(state.get("range_adx_break_count", 0))
+        adx_break_count = adx_break_count + 1 if float(candle["adx"]) >= 28.0 else 0
+        state["range_adx_break_count"] = adx_break_count
+        exit_reason = ""
+        raw_exit = close
+        if side == "LONG":
+            if low <= stop_loss:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif close >= ma20:
+                exit_reason, raw_exit = "TARGET", ma20
+        else:
+            if high >= stop_loss:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif close <= ma20:
+                exit_reason, raw_exit = "TARGET", ma20
+        if not exit_reason and adx_break_count >= 2:
+            exit_reason, raw_exit = "REGIME_BREAK", close
+        if not exit_reason:
+            return None
+
+        exit_price = apply_slippage(raw_exit, self.config.slippage_bps, "sell" if side == "LONG" else "buy")
+        quantity = float(trade["quantity"])
+        gross_pnl = (exit_price - float(trade["entry_price"])) * quantity if side == "LONG" else (float(trade["entry_price"]) - exit_price) * quantity
+        exit_fee = exit_price * quantity * self.config.fee_bps / 10000.0
+        total_fees = float(trade["entry_fee"]) + exit_fee
+        net_pnl = gross_pnl - total_fees
+        risk_dollars = max(float(trade["risk_dollars"]), 1e-9)
+        r_multiple = net_pnl / risk_dollars
+        equity = float(state.get("equity", self.config.initial_equity)) + net_pnl
+        hours_held = (int(candle["close_time"]) - int(trade["open_close_time"])) / 3600000.0
+        state["equity"] = equity
+        state["daily_r"] = float(state.get("daily_r", 0.0)) + r_multiple
+        state["open_trade"] = None
+        state["range_adx_break_count"] = 0
+        event = {
+            **trade,
+            "event": "EXIT",
+            "timestamp": self.now.isoformat(),
+            "status": "CLOSED",
+            "closed_at": candle["date"].isoformat(),
+            "exit_reason": exit_reason,
+            "exit_price": exit_price,
+            "gross_pnl": gross_pnl,
+            "exit_fee": exit_fee,
+            "fees": total_fees,
+            "slippage_bps": self.config.slippage_bps,
+            "net_pnl": net_pnl,
+            "r_multiple": r_multiple,
+            "equity_after": equity,
+            "holding_hours": hours_held,
+        }
+        self._append_rows(self.trade_dir / "trade_events.csv", [event])
+        self._append_rows(self.trade_dir / "closed_trades.csv", [event])
+        return event
+
+
+def _range_config_from_spec(spec: CandidateSpec) -> RangeMRConfig:
+    return RangeMRConfig(
+        hypothesis_id=spec.candidate_id,
+        entry_mode=spec.range_entry_mode,
+        min_band_atr=spec.range_min_band_atr,
+        require_adx_falling=spec.range_require_adx_falling,
+        long_only=spec.range_long_only,
+        atr_stop_multiple=spec.atr_stop_multiple if spec.atr_stop_multiple else 2.0,
+    )
+
+
+def _range_planned_reward_r(candle: pd.Series, side: str, slippage_bps: float, cfg: RangeMRConfig) -> float:
+    if not side:
+        return 0.0
+    entry = apply_slippage(float(candle["close"]), slippage_bps, "buy" if side == "LONG" else "sell")
+    stop = entry - cfg.atr_stop_multiple * float(candle["atr"]) if side == "LONG" else entry + cfg.atr_stop_multiple * float(candle["atr"])
+    target = float(candle["ma20"])
+    risk = abs(entry - stop)
+    reward = target - entry if side == "LONG" else entry - target
+    return max(0.0, reward / risk) if risk > 0 else 0.0
+
+
 def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None = None) -> StrategyLabRunSummary:
     now = now or datetime.now(timezone.utc)
     assets = assets or load_assets_from_env(default=STRATEGY_LAB_DEFAULT_ASSETS)
@@ -649,7 +927,8 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
             rsi_entry_below=spec.rsi_entry_below,
             atr_stop_multiple=spec.atr_stop_multiple,
         )
-        agent = CandidatePaperAgent(spec=spec, config=config, data_dir=lab_dir / spec.candidate_id, report_dir=report_dir, now=now)
+        agent_class = RangeMRPaperAgent if spec.family == StrategyFamily.RANGE_MEAN_REVERSION.value else CandidatePaperAgent
+        agent = agent_class(spec=spec, config=config, data_dir=lab_dir / spec.candidate_id, report_dir=report_dir, now=now)
         summary = agent.run(list(candidate_assets.keys()))
         evaluated += summary.evaluated
         entries += summary.entries
@@ -829,5 +1108,7 @@ def _safe_read_csv(path: Path) -> pd.DataFrame:
         return pd.read_csv(path)
     except pd.errors.EmptyDataError:
         return pd.DataFrame()
+
+
 
 
