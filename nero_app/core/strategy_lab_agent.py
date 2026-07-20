@@ -98,6 +98,7 @@ class TargetMode(str, Enum):
 class StrategyFamily(str, Enum):
     MEAN_REVERSION = "Mean Reversion"
     MOMENTUM = "Momentum"
+    SHORT_MOMENTUM = "Short Momentum"
     EXIT_LOGIC = "Exit Logic"
     RANGE_MEAN_REVERSION = "Range Mean Reversion"
     PAIRS_RESEARCH = "Pairs Research"
@@ -127,6 +128,7 @@ class CandidateSpec:
     require_trend_support: bool = False
     min_planned_reward_r: float = 0.0
     max_atr_pct: float | None = None
+    entry_side: str = "LONG"
     range_entry_mode: str = "BAND_EXTREME"
     range_min_band_atr: float = 0.0
     range_require_adx_falling: bool = False
@@ -418,6 +420,82 @@ CANDIDATES: dict[str, CandidateSpec] = {
         min_planned_reward_r=1.2,
         max_atr_pct=0.055,
     ),
+    "SHORT_BTC_BREAKDOWN_4H": CandidateSpec(
+        candidate_id="SHORT_BTC_BREAKDOWN_4H",
+        family="Short Momentum",
+        title="BTC 4h breakdown short",
+        display_label="SHORT_BTC_4H",
+        bucket="SHORT_SIDE_TEST",
+        asset_filter=("BTC",),
+        interval="4h",
+        evidence_note="Short-side maturity: tests whether BTC breakdowns below recent lows produce cleaner paper shorts than forced long-only entries.",
+        rsi_entry_below=45.0,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.3,
+        breakout_lookback=20,
+        require_trend_support=True,
+        min_planned_reward_r=1.1,
+        max_atr_pct=0.06,
+        entry_side="SHORT",
+    ),
+    "SHORT_ETH_BREAKDOWN_4H": CandidateSpec(
+        candidate_id="SHORT_ETH_BREAKDOWN_4H",
+        family="Short Momentum",
+        title="ETH 4h breakdown short",
+        display_label="SHORT_ETH_4H",
+        bucket="SHORT_SIDE_TEST",
+        asset_filter=("ETH",),
+        interval="4h",
+        evidence_note="Short-side maturity: ETH breakdown paper test with trend, volatility, and reward gates.",
+        rsi_entry_below=45.0,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.3,
+        breakout_lookback=20,
+        require_trend_support=True,
+        min_planned_reward_r=1.1,
+        max_atr_pct=0.065,
+        entry_side="SHORT",
+    ),
+    "SHORT_SOL_BREAKDOWN_4H": CandidateSpec(
+        candidate_id="SHORT_SOL_BREAKDOWN_4H",
+        family="Short Momentum",
+        title="SOL 4h breakdown short",
+        display_label="SHORT_SOL_4H",
+        bucket="SHORT_SIDE_TEST",
+        asset_filter=("SOL",),
+        interval="4h",
+        evidence_note="Short-side maturity: SOL is higher beta, so this validates whether breakdown shorts survive after fees and stops.",
+        rsi_entry_below=45.0,
+        require_ma200=True,
+        target_mode="FIXED_150R",
+        atr_stop_multiple=1.25,
+        breakout_lookback=18,
+        require_trend_support=True,
+        min_planned_reward_r=1.25,
+        max_atr_pct=0.08,
+        entry_side="SHORT",
+    ),
+    "SHORT_OIL_BREAKDOWN_1H": CandidateSpec(
+        candidate_id="SHORT_OIL_BREAKDOWN_1H",
+        family="Short Momentum",
+        title="Oil futures 1h breakdown short",
+        display_label="SHORT_OIL_1H",
+        bucket="SHORT_SIDE_TEST",
+        asset_filter=("OIL_FUT", "BRENT_FUT"),
+        interval="1h",
+        evidence_note="Short-side maturity: oil already has live futures data in the lab; test downside continuation instead of only recovery longs.",
+        rsi_entry_below=45.0,
+        require_ma200=True,
+        target_mode="FIXED_125R",
+        atr_stop_multiple=1.2,
+        breakout_lookback=18,
+        require_trend_support=True,
+        min_planned_reward_r=1.1,
+        max_atr_pct=0.055,
+        entry_side="SHORT",
+    ),
 }
 
 
@@ -448,13 +526,15 @@ class SignalValidator:
 
         if self.spec.max_atr_pct is not None and atr_pct > self.spec.max_atr_pct:
             reasons.append("VOLATILITY_SHOCK")
-        if self.spec.require_trend_support and ma20 <= ma200:
+        if self.spec.require_trend_support and not self._is_short_momentum() and ma20 <= ma200:
             reasons.append("TREND_SUPPORT_NOT_CONFIRMED")
         if self.spec.min_planned_reward_r and planned_reward_r < self.spec.min_planned_reward_r:
             reasons.append("PLANNED_REWARD_TOO_LOW")
 
         if self._is_momentum():
             reasons.extend(self._validate_momentum(candle))
+        elif self._is_short_momentum():
+            reasons.extend(self._validate_short_momentum(candle))
         elif self._is_mean_reversion_like():
             reasons.extend(self._validate_mean_reversion(candle))
         else:
@@ -463,26 +543,31 @@ class SignalValidator:
         return reasons, planned_reward_r
 
     def planned_reward_r(self, candle: pd.Series) -> float:
-        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "buy")
+        side = self._entry_side()
+        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "sell" if side == "SHORT" else "buy")
         risk_per_unit = self.risk_per_unit(candle)
         if risk_per_unit <= 0:
             return 0.0
         target = self.target_price(candle, entry_price, risk_per_unit)
-        return max(0.0, (target - entry_price) / risk_per_unit)
+        reward_per_unit = entry_price - target if side == "SHORT" else target - entry_price
+        return max(0.0, reward_per_unit / risk_per_unit)
 
     def risk_per_unit(self, candle: pd.Series) -> float:
-        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "buy")
-        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
-        return entry_price - stop_loss
+        side = self._entry_side()
+        entry_price = apply_slippage(float(candle["close"]), self.slippage_bps, "sell" if side == "SHORT" else "buy")
+        stop_loss = entry_price + self.spec.atr_stop_multiple * float(candle["atr"]) if side == "SHORT" else entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
+        return abs(entry_price - stop_loss)
 
     def target_price(self, candle: pd.Series, entry_price: float, risk_per_unit: float) -> float:
         target_mode = _target_mode_value(self.spec.target_mode)
+        side = self._entry_side()
+        direction = -1 if side == "SHORT" else 1
         if target_mode == TargetMode.FIXED_1R.value:
-            return entry_price + risk_per_unit
+            return entry_price + direction * risk_per_unit
         if target_mode == TargetMode.FIXED_125R.value:
-            return entry_price + 1.25 * risk_per_unit
+            return entry_price + direction * 1.25 * risk_per_unit
         if target_mode == TargetMode.FIXED_150R.value:
-            return entry_price + 1.5 * risk_per_unit
+            return entry_price + direction * 1.5 * risk_per_unit
         return float(candle["ma20"])
 
     def _validate_momentum(self, candle: pd.Series) -> list[str]:
@@ -518,11 +603,34 @@ class SignalValidator:
                 reasons.append("RSI_RECOVERY_NOT_CONFIRMED")
         return reasons
 
+    def _validate_short_momentum(self, candle: pd.Series) -> list[str]:
+        reasons: list[str] = []
+        breakdown_low = candle.get("breakdown_low")
+        close = float(candle["close"])
+        ma20 = float(candle["ma20"])
+        ma200 = float(candle["ma200"])
+        if pd.isna(breakdown_low) or close >= float(breakdown_low):
+            reasons.append("CLOSE_NOT_BELOW_BREAKDOWN_LOW")
+        elif self.spec.require_breakout_retest and float(candle["high"]) < float(breakdown_low) * 0.997:
+            reasons.append("BREAKDOWN_RETEST_NOT_CONFIRMED")
+        if self.spec.require_ma200 and close >= ma200:
+            reasons.append("CLOSE_NOT_BELOW_MA200")
+        if self.spec.require_trend_support and ma20 >= ma200:
+            reasons.append("DOWNTREND_SUPPORT_NOT_CONFIRMED")
+        if float(candle["rsi"]) > self.spec.rsi_entry_below:
+            reasons.append(f"RSI_NOT_BELOW_{int(self.spec.rsi_entry_below)}")
+        return reasons
     def _is_momentum(self) -> bool:
         return self.spec.family == StrategyFamily.MOMENTUM.value
 
+    def _is_short_momentum(self) -> bool:
+        return self.spec.family == StrategyFamily.SHORT_MOMENTUM.value
+
     def _is_mean_reversion_like(self) -> bool:
         return self.spec.family in {StrategyFamily.MEAN_REVERSION.value, StrategyFamily.EXIT_LOGIC.value}
+
+    def _entry_side(self) -> str:
+        return str(self.spec.entry_side or "LONG").upper()
 
 
 def _target_mode_value(target_mode: str | TargetMode) -> str:
@@ -546,6 +654,7 @@ class CandidatePaperAgent(MeanReversionAgent):
     def process_asset(self, asset: str, symbol: str, candles: pd.DataFrame, state: dict[str, Any]) -> dict[str, Any]:
         enriched = add_indicators(candles, self.config)
         enriched["breakout_high"] = enriched["high"].shift(1).rolling(self.spec.breakout_lookback).max()
+        enriched["breakdown_low"] = enriched["low"].shift(1).rolling(self.spec.breakout_lookback).min()
         enriched["rsi_prev"] = enriched["rsi"].shift(1)
         enriched["close_prev"] = enriched["close"].shift(1)
         enriched["atr_pct"] = enriched["atr"] / enriched["close"]
@@ -614,15 +723,17 @@ class CandidatePaperAgent(MeanReversionAgent):
         if state.get("open_trade"):
             return None
         equity = float(state.get("equity", self.config.initial_equity))
+        side = str(self.spec.entry_side or "LONG").upper()
         raw_entry = float(candle["close"])
-        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "buy")
-        stop_loss = entry_price - self.spec.atr_stop_multiple * float(candle["atr"])
-        risk_per_unit = entry_price - stop_loss
+        entry_price = apply_slippage(raw_entry, self.config.slippage_bps, "sell" if side == "SHORT" else "buy")
+        atr = float(candle["atr"])
+        stop_loss = entry_price + self.spec.atr_stop_multiple * atr if side == "SHORT" else entry_price - self.spec.atr_stop_multiple * atr
+        risk_per_unit = abs(entry_price - stop_loss)
         if risk_per_unit <= 0:
             return None
         target_mode = _target_mode_value(self.spec.target_mode)
         target = SignalValidator(self.spec, slippage_bps=self.config.slippage_bps).target_price(candle, entry_price, risk_per_unit)
-        reward_per_unit = target - entry_price
+        reward_per_unit = entry_price - target if side == "SHORT" else target - entry_price
         if reward_per_unit <= 0:
             return None
         risk_dollars = equity * self.config.risk_per_trade
@@ -641,6 +752,7 @@ class CandidatePaperAgent(MeanReversionAgent):
             "family": self.spec.family,
             "asset": asset,
             "symbol": symbol,
+            "side": side,
             "strategy_version": self.config.strategy_version,
             "status": "OPEN",
             "opened_at": candle["date"].isoformat(),
@@ -659,11 +771,77 @@ class CandidatePaperAgent(MeanReversionAgent):
             "entry_ma20": float(candle["ma20"]),
             "entry_bb_lower": float(candle["bb_lower"]),
             "entry_ma200": float(candle["ma200"]),
-            "entry_atr": float(candle["atr"]),
+            "entry_atr": atr,
         }
         state["open_trade"] = trade
         self._append_rows(self.trade_dir / "trade_events.csv", [{**trade, "event": "ENTRY", "timestamp": self.now.isoformat()}])
         return trade
+
+    def _maybe_exit(self, asset: str, symbol: str, candle: pd.Series, state: dict[str, Any]) -> dict[str, Any] | None:
+        trade = state.get("open_trade")
+        if not trade:
+            return None
+        side = str(trade.get("side", "LONG")).upper()
+        candle_time = int(candle["close_time"])
+        hours_held = (candle_time - int(trade["open_close_time"])) / 3600000.0
+        stop_loss = float(trade["stop_loss"])
+        target = float(trade["target"])
+        low = float(candle["low"])
+        high = float(candle["high"])
+        close = float(candle["close"])
+        exit_reason = ""
+        raw_exit = close
+        if side == "SHORT":
+            if high >= stop_loss and low <= target:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif high >= stop_loss:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif low <= target:
+                exit_reason, raw_exit = "TARGET", target
+        else:
+            if low <= stop_loss and high >= target:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif low <= stop_loss:
+                exit_reason, raw_exit = "SL", stop_loss
+            elif high >= target:
+                exit_reason, raw_exit = "TARGET", target
+        if not exit_reason and hours_held >= self.config.max_holding_hours:
+            exit_reason, raw_exit = "TIME", close
+        if not exit_reason:
+            return None
+
+        exit_price = apply_slippage(raw_exit, self.config.slippage_bps, "buy" if side == "SHORT" else "sell")
+        quantity = float(trade["quantity"])
+        gross_pnl = (float(trade["entry_price"]) - exit_price) * quantity if side == "SHORT" else (exit_price - float(trade["entry_price"])) * quantity
+        exit_fee = exit_price * quantity * self.config.fee_bps / 10000.0
+        total_fees = float(trade["entry_fee"]) + exit_fee
+        net_pnl = gross_pnl - total_fees
+        risk_dollars = max(float(trade["risk_dollars"]), 1e-9)
+        r_multiple = net_pnl / risk_dollars
+        equity = float(state.get("equity", self.config.initial_equity)) + net_pnl
+        state["equity"] = equity
+        state["daily_r"] = float(state.get("daily_r", 0.0)) + r_multiple
+        state["open_trade"] = None
+        event = {
+            **trade,
+            "event": "EXIT",
+            "timestamp": self.now.isoformat(),
+            "status": "CLOSED",
+            "closed_at": candle["date"].isoformat(),
+            "exit_reason": exit_reason,
+            "exit_price": exit_price,
+            "gross_pnl": gross_pnl,
+            "exit_fee": exit_fee,
+            "fees": total_fees,
+            "slippage_bps": self.config.slippage_bps,
+            "net_pnl": net_pnl,
+            "r_multiple": r_multiple,
+            "equity_after": equity,
+            "holding_hours": hours_held,
+        }
+        self._append_rows(self.trade_dir / "trade_events.csv", [event])
+        self._append_rows(self.trade_dir / "closed_trades.csv", [event])
+        return event
 
     def write_report(self) -> None:
         trades_path = self.trade_dir / "closed_trades.csv"
@@ -1243,13 +1421,3 @@ def _csv_asset_values(frame: pd.DataFrame) -> set[str]:
         if text:
             values.add(text)
     return values
-
-
-
-
-
-
-
-
-
-

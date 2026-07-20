@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import tempfile
 import unittest
@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from nero_app.core.mean_reversion_agent import MeanReversionConfig
-from nero_app.core.strategy_lab_agent import CANDIDATES, STRATEGY_LAB_DEFAULT_ASSETS, RangeMRPaperAgent, SignalValidator, StrategyFamily, _candidate_assets, write_strategy_lab_summary
+from nero_app.core.strategy_lab_agent import CANDIDATES, STRATEGY_LAB_DEFAULT_ASSETS, CandidatePaperAgent, RangeMRPaperAgent, SignalValidator, StrategyFamily, _candidate_assets, write_strategy_lab_summary
 from tools.nero_strategy_lab_weekly_report import build_strategy_lab_weekly_report
 
 
@@ -203,6 +203,65 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(int(summary.iloc[0]["total_trades"]), 32)
         self.assertEqual(summary.iloc[0]["rating"], "KEEP_TESTING")
 
+    def test_short_side_candidates_are_registered(self) -> None:
+        short_ids = [candidate_id for candidate_id, spec in CANDIDATES.items() if spec.family == StrategyFamily.SHORT_MOMENTUM.value]
+
+        self.assertEqual(set(short_ids), {"SHORT_BTC_BREAKDOWN_4H", "SHORT_ETH_BREAKDOWN_4H", "SHORT_SOL_BREAKDOWN_4H", "SHORT_OIL_BREAKDOWN_1H"})
+        self.assertTrue(all(CANDIDATES[candidate_id].entry_side == "SHORT" for candidate_id in short_ids))
+        self.assertTrue(all(CANDIDATES[candidate_id].bucket == "SHORT_SIDE_TEST" for candidate_id in short_ids))
+
+    def test_short_momentum_entry_and_target_accounting(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            spec = CANDIDATES["SHORT_BTC_BREAKDOWN_4H"]
+            config = MeanReversionConfig(assets={"BTC": "BTCUSDT"}, interval="4h", fee_bps=0.0, slippage_bps=0.0)
+            agent = CandidatePaperAgent(spec=spec, config=config, data_dir=base / "data", report_dir=base / "reports", now=datetime(2026, 7, 21, tzinfo=timezone.utc))
+            state = {"equity": 10000.0, "daily_r": 0.0, "open_trade": None}
+            candle = pd.Series(
+                {
+                    "date": pd.Timestamp("2026-07-21T00:00:00Z"),
+                    "close_time": 1000,
+                    "open": 101.0,
+                    "high": 102.0,
+                    "low": 94.0,
+                    "close": 95.0,
+                    "rsi": 38.0,
+                    "ma20": 98.0,
+                    "bb_lower": 90.0,
+                    "ma200": 100.0,
+                    "atr": 2.0,
+                    "atr_pct": 2.0 / 95.0,
+                    "rsi_prev": 42.0,
+                    "close_prev": 101.0,
+                    "breakout_high": 110.0,
+                    "breakdown_low": 96.0,
+                }
+            )
+
+            reasons, planned_reward_r = SignalValidator(spec).validate(candle, state, -3.0)
+            self.assertEqual(reasons, [])
+            self.assertGreaterEqual(planned_reward_r, 1.1)
+            trade = agent._enter_trade("BTC", "BTCUSDT", candle, state)
+            self.assertIsNotNone(trade)
+            self.assertEqual(trade["side"], "SHORT")
+            self.assertGreater(trade["stop_loss"], trade["entry_price"])
+            self.assertLess(trade["target"], trade["entry_price"])
+
+            exit_candle = pd.Series(
+                {
+                    "date": pd.Timestamp("2026-07-21T04:00:00Z"),
+                    "close_time": 1000 + 4 * 3600 * 1000,
+                    "high": 96.0,
+                    "low": float(trade["target"]) - 0.1,
+                    "close": float(trade["target"]),
+                }
+            )
+            event = agent._maybe_exit("BTC", "BTCUSDT", exit_candle, state)
+
+        self.assertIsNotNone(event)
+        self.assertEqual(event["exit_reason"], "TARGET")
+        self.assertGreater(event["net_pnl"], 0.0)
+        self.assertGreater(event["r_multiple"], 0.0)
     def test_weekly_report_mentions_sample_warning(self) -> None:
         summary = pd.DataFrame(
             [
@@ -225,5 +284,3 @@ class StrategyLabAgentTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
