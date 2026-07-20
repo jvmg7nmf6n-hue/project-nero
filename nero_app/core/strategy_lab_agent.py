@@ -1,4 +1,4 @@
-﻿"""Parallel Strategy Lab Agent for Project Nero.
+"""Parallel Strategy Lab Agent for Project Nero.
 
 Runs multiple research-only paper strategies side by side. No real orders,
 no exchange trading keys, no auto-promotion of strategy rules.
@@ -671,7 +671,7 @@ class CandidatePaperAgent(MeanReversionAgent):
         trades = _safe_read_csv(trades_path)
         evaluations = _safe_read_csv(evaluations_path)
         rows = []
-        assets = sorted(set(self.config.assets.keys()) | set(trades["asset"].unique() if not trades.empty and "asset" in trades else []))
+        assets = sorted(set(self.config.assets.keys()) | _csv_asset_values(trades))
         for asset in assets:
             rows.append(_candidate_report_row(self.spec, asset, trades[trades["asset"] == asset] if not trades.empty and "asset" in trades else pd.DataFrame(), evaluations))
         rows.append(_candidate_report_row(self.spec, "COMBINED", trades, evaluations))
@@ -1232,6 +1232,17 @@ def _safe_read_csv(path: Path) -> pd.DataFrame:
         return pd.read_csv(path)
     except pd.errors.EmptyDataError:
         return pd.DataFrame()
+
+
+def _csv_asset_values(frame: pd.DataFrame) -> set[str]:
+    if frame.empty or "asset" not in frame:
+        return set()
+    values: set[str] = set()
+    for value in frame["asset"].dropna().unique():
+        text = str(value).strip()
+        if text:
+            values.add(text)
+    return values
 
 
 
