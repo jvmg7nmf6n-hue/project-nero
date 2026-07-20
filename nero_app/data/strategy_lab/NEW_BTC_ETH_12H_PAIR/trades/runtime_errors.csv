@@ -1,0 +1,5 @@
+timestamp,asset,code,message
+2026-07-20T15:44:29.571863+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+2026-07-20T15:44:29.571863+00:00,ETH,STALE_FEED,Latest closed candle is stale for ETHUSDT
+2026-07-20T15:46:52.438667+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+2026-07-20T15:46:52.438667+00:00,ETH,STALE_FEED,Latest closed candle is stale for ETHUSDT

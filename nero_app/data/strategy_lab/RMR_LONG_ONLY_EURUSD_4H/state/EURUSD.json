@@ -2,7 +2,11 @@
   "daily_guard_day": "2026-07-20",
   "daily_r": 0.0,
   "equity": 10020.447880423428,
+<<<<<<< HEAD
   "last_evaluated_close_time": 1784563200000,
+=======
+  "last_evaluated_close_time": 1784548800000,
+>>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
   "missed_run_count": 0,
   "open_trade": null,
   "range_adx_break_count": 0,

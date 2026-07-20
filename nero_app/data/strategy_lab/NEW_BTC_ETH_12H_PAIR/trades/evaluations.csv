@@ -1,0 +1,2 @@
+timestamp,candidate_id,asset,symbol,strategy_version,candle_close_time,candle_time,left_asset,right_asset,left_close,right_close,hedge_beta,spread,spread_zscore_60,passed,rejection_reasons,signal
+2026-07-20T15:49:52.726726+00:00,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,BTCUSDT/ETHUSDT,strategy-lab-v1.0.0:NEW_BTC_ETH_12H_PAIR,1784548799999,2026-07-20T11:59:59.999000+00:00,BTC,ETH,65002.01,1893.2,23.749164061434143,20040.09259889288,-1.2497099157303926,False,RESEARCH_ONLY_NO_PAIR_EXECUTION,PAIR_NORMAL

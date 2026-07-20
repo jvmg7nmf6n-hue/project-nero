@@ -20,7 +20,7 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["MR_RELAXED_PULLBACK_V1"].display_label, "OLD_MR_RELAXED")
         self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].bucket, "NEW_TEST")
         self.assertEqual(CANDIDATES["NEW_BTC_12H_MR"].interval, "12h")
-        self.assertFalse(CANDIDATES["NEW_BTC_ETH_12H_PAIR"].enabled)
+        self.assertTrue(CANDIDATES["NEW_BTC_ETH_12H_PAIR"].enabled)
         self.assertEqual(CANDIDATES["V2_BREAKOUT_RETEST"].bucket, "V2_SHADOW")
         self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
         self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
@@ -225,4 +225,5 @@ class StrategyLabAgentTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 timestamp,asset,code,message
 2026-07-19T21:14:20.693242+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
 2026-07-19T22:10:44.118814+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
@@ -8,3 +9,8 @@ timestamp,asset,code,message
 2026-07-20T12:29:53.097866+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
 2026-07-20T14:41:31.144159+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
 2026-07-20T16:14:53.327382+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+=======
+timestamp,asset,code,message
+2026-07-20T15:44:29.571863+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+2026-07-20T15:46:52.438667+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
+>>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)

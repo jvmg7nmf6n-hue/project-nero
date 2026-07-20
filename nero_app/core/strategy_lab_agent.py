@@ -19,6 +19,7 @@ from typing import Any
 import pandas as pd
 
 from nero_app.core.mean_reversion_agent import (
+    AgentRunSummary,
     MeanReversionAgent,
     MeanReversionConfig,
     add_indicators,
@@ -337,8 +338,8 @@ CANDIDATES: dict[str, CandidateSpec] = {
         bucket="RESEARCH_ONLY",
         asset_filter=("BTC", "ETH"),
         interval="12h",
-        evidence_note="Claude sweep: BTC-ETH/12h pair positive but weak. Kept research-only until real pair execution is wired.",
-        enabled=False,
+        evidence_note="Claude sweep: BTC-ETH/12h pair positive but weak. Research-only report cycle until real pair execution is wired.",
+        enabled=True,
     ),
 
     "V2_BREAKOUT_RETEST": CandidateSpec(
@@ -874,6 +875,109 @@ class RangeMRPaperAgent(CandidatePaperAgent):
         return event
 
 
+
+class PairResearchAgent(CandidatePaperAgent):
+    """Research-only pair monitor.
+
+    This intentionally does not paper-trade. Pair P/L needs two-leg execution,
+    hedge-ratio sizing, and separate fee accounting. Until that is wired, the
+    agent records live BTC/ETH spread evidence and produces normal Strategy Lab
+    report files with zero trades.
+    """
+
+    def run(self, assets: list[str] | None = None) -> AgentRunSummary:
+        selected_assets = assets or list(self.config.assets.keys())
+        if len(selected_assets) < 2:
+            self._append_error("PAIR", "PAIR_ASSETS_MISSING", "Pair research requires at least two assets.")
+            self.write_report()
+            return AgentRunSummary(evaluated=0, entries=0, exits=0, alerts=["PAIR: missing assets"], missed_runs=0)
+
+        frames: dict[str, pd.DataFrame] = {}
+        alerts: list[str] = []
+        heartbeat_rows: list[dict[str, Any]] = []
+        missed_runs = 0
+
+        for asset in selected_assets[:2]:
+            symbol = self.config.assets.get(asset, asset)
+            state = self._load_state(asset)
+            try:
+                candles = self.fetch_closed_candles(asset, symbol)
+                if self._is_stale(candles):
+                    self._append_error(asset, "STALE_FEED", f"Latest closed candle is stale for {symbol}")
+                    alerts.append(f"{asset}: stale feed")
+                    state["missed_run_count"] = int(state.get("missed_run_count", 0)) + 1
+                else:
+                    missed = self._missed_run_count(state, candles)
+                    missed_runs += missed
+                    state["last_evaluated_close_time"] = int(candles.iloc[-1]["close_time"])
+                    state["missed_run_count"] = int(state.get("missed_run_count", 0)) + missed
+                    frames[asset] = candles
+                self._save_state(asset, state)
+            except Exception as exc:  # noqa: BLE001 - runtime audit should catch all failures.
+                self._append_error(asset, "ERROR", f"{exc.__class__.__name__}: {exc}")
+                alerts.append(f"{asset}: ERROR {exc.__class__.__name__}")
+            heartbeat_rows.append(self._heartbeat_row(asset, symbol, state))
+
+        evaluated = 0
+        if len(frames) == 2:
+            evaluated = self._write_pair_evaluation(frames)
+            alerts.append(f"{self.spec.candidate_id}: pair research evaluated={evaluated}")
+
+        self._append_rows(self.heartbeat_dir / "heartbeats.csv", heartbeat_rows)
+        self.write_report()
+        return AgentRunSummary(evaluated=evaluated, entries=0, exits=0, alerts=alerts, missed_runs=missed_runs)
+
+    def _write_pair_evaluation(self, frames: dict[str, pd.DataFrame]) -> int:
+        left_asset, right_asset = list(frames.keys())[:2]
+        left = frames[left_asset][["close_time", "date", "close"]].rename(columns={"close": "left_close"})
+        right = frames[right_asset][["close_time", "close"]].rename(columns={"close": "right_close"})
+        pair = pd.merge(left, right, on="close_time", how="inner").sort_values("close_time")
+        pair = pair.dropna(subset=["left_close", "right_close"]).tail(self.config.candle_limit)
+        if len(pair) < 60:
+            self._append_error("PAIR", "PAIR_SAMPLE_TOO_SMALL", f"Only {len(pair)} aligned candles available.")
+            return 0
+
+        left_close = pair["left_close"].astype(float)
+        right_close = pair["right_close"].astype(float)
+        variance = float(right_close.var(ddof=0))
+        hedge_beta = float(left_close.cov(right_close) / variance) if variance else 0.0
+        spread = left_close - hedge_beta * right_close
+        spread_mean = spread.rolling(60).mean()
+        spread_std = spread.rolling(60).std(ddof=0)
+        zscore = (spread - spread_mean) / spread_std.replace(0, pd.NA)
+        latest = pair.iloc[-1]
+        latest_z = float(zscore.iloc[-1]) if not pd.isna(zscore.iloc[-1]) else 0.0
+        signal = "PAIR_STRETCHED" if abs(latest_z) >= 2.0 else "PAIR_NORMAL"
+        row = {
+            "timestamp": self.now.isoformat(),
+            "candidate_id": self.spec.candidate_id,
+            "asset": "BTC_ETH_PAIR",
+            "symbol": f"{self.config.assets.get(left_asset, left_asset)}/{self.config.assets.get(right_asset, right_asset)}",
+            "strategy_version": self.config.strategy_version,
+            "candle_close_time": int(latest["close_time"]),
+            "candle_time": pd.to_datetime(latest["date"], utc=True).isoformat(),
+            "left_asset": left_asset,
+            "right_asset": right_asset,
+            "left_close": float(latest["left_close"]),
+            "right_close": float(latest["right_close"]),
+            "hedge_beta": hedge_beta,
+            "spread": float(spread.iloc[-1]),
+            "spread_zscore_60": latest_z,
+            "passed": False,
+            "rejection_reasons": "RESEARCH_ONLY_NO_PAIR_EXECUTION",
+            "signal": signal,
+        }
+        self._append_rows(self.trade_dir / "evaluations.csv", [row])
+        return int(len(pair))
+
+    def write_report(self) -> None:
+        evaluations = _safe_read_csv(self.trade_dir / "evaluations.csv")
+        rows = [_candidate_report_row(self.spec, "BTC_ETH_PAIR", pd.DataFrame(), evaluations)]
+        rows.append(_candidate_report_row(self.spec, "COMBINED", pd.DataFrame(), evaluations))
+        report = pd.DataFrame(rows)
+        report.to_csv(self.report_dir / f"strategy_lab_{self.spec.candidate_id}.csv", index=False)
+        (self.report_dir / f"strategy_lab_{self.spec.candidate_id}.json").write_text(json.dumps(rows, indent=2), encoding="utf-8")
+
 def _range_config_from_spec(spec: CandidateSpec) -> RangeMRConfig:
     return RangeMRConfig(
         hypothesis_id=spec.candidate_id,
@@ -921,13 +1025,18 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
         config = dataclasses.replace(
             base_config,
             assets=candidate_assets,
-            stale_after_minutes=_stale_after_minutes(candidate_assets),
+            stale_after_minutes=_stale_after_minutes(candidate_assets, spec.interval),
             interval=spec.interval,
             strategy_version=f"{STRATEGY_LAB_VERSION}:{spec.candidate_id}",
             rsi_entry_below=spec.rsi_entry_below,
             atr_stop_multiple=spec.atr_stop_multiple,
         )
-        agent_class = RangeMRPaperAgent if spec.family == StrategyFamily.RANGE_MEAN_REVERSION.value else CandidatePaperAgent
+        if spec.family == StrategyFamily.RANGE_MEAN_REVERSION.value:
+            agent_class = RangeMRPaperAgent
+        elif spec.family == StrategyFamily.PAIRS_RESEARCH.value:
+            agent_class = PairResearchAgent
+        else:
+            agent_class = CandidatePaperAgent
         agent = agent_class(spec=spec, config=config, data_dir=lab_dir / spec.candidate_id, report_dir=report_dir, now=now)
         summary = agent.run(list(candidate_assets.keys()))
         evaluated += summary.evaluated
@@ -1059,13 +1168,28 @@ def _empty_summary_row(spec: CandidateSpec) -> dict[str, Any]:
 
 
 
-def _stale_after_minutes(assets: dict[str, str]) -> int:
+def _stale_after_minutes(assets: dict[str, str], interval: str = "1h") -> int:
     asset_names = {asset.upper() for asset in assets}
     if asset_names and asset_names.issubset(MARKET_HOURS_ASSETS):
         return int(os.getenv("SLAB_MARKET_HOURS_STALE_AFTER_MINUTES", "4320"))
     if asset_names & MARKET_HOURS_ASSETS:
         return int(os.getenv("SLAB_MIXED_MARKET_STALE_AFTER_MINUTES", "4320"))
-    return int(os.getenv("SLAB_STALE_AFTER_MINUTES", "180"))
+    interval_minutes = _interval_minutes(interval)
+    default_minutes = max(180, int(interval_minutes * 1.5))
+    return int(os.getenv("SLAB_STALE_AFTER_MINUTES", str(default_minutes)))
+
+
+def _interval_minutes(interval: str) -> int:
+    value = str(interval).strip().lower()
+    if value.endswith("m"):
+        return int(value[:-1] or "1")
+    if value.endswith("h"):
+        return int(value[:-1] or "1") * 60
+    if value.endswith("d"):
+        return int(value[:-1] or "1") * 1440
+    if value.endswith("w"):
+        return int(value[:-1] or "1") * 10080
+    return 60
 
 
 def _candidate_assets(spec: CandidateSpec, assets: dict[str, str]) -> dict[str, str]:
@@ -1108,6 +1232,12 @@ def _safe_read_csv(path: Path) -> pd.DataFrame:
         return pd.read_csv(path)
     except pd.errors.EmptyDataError:
         return pd.DataFrame()
+
+
+
+
+
+
 
 
 
