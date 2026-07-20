@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-20",
   "daily_r": 0.5490954518637033,
   "equity": 9999.736912954715,
-  "last_evaluated_close_time": 1784570400000,
-  "missed_run_count": 346,
+  "last_evaluated_close_time": 1784577600000,
+  "missed_run_count": 347,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:MR_RELAXED_PULLBACK_V1"
 }
