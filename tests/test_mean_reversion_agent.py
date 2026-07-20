@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
@@ -154,6 +154,19 @@ class MeanReversionAgentTest(unittest.TestCase):
         self.assertTrue(row["insufficient_sample"])
         self.assertEqual(row["total_trades"], 1)
         self.assertGreater(row["profit_factor"], 0.0)
+
+
+
+    def test_append_rows_sanitizes_malformed_existing_csv(self) -> None:
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "heartbeats.csv"
+            path.write_text("timestamp,asset\nold,BTC,unexpected-extra\n", encoding="utf-8")
+
+            MeanReversionAgent._append_rows(path, [{"timestamp": "new", "asset": "ETH", "symbol": "ETHUSDT"}])
+            frame = pd.read_csv(path)
+
+        self.assertEqual(list(frame.columns), ["timestamp", "asset", "symbol"])
+        self.assertEqual(frame.iloc[-1]["symbol"], "ETHUSDT")
 
 
 if __name__ == "__main__":

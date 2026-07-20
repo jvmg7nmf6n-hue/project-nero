@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -429,20 +429,23 @@ class MeanReversionAgent:
         if path.exists() and path.stat().st_size > 0:
             with path.open("r", newline="", encoding="utf-8") as handle:
                 reader = csv.reader(handle)
-                existing_fields = next(reader, [])
-        fields = list(existing_fields)
+                existing_fields = [field for field in next(reader, []) if field]
+        fields = list(dict.fromkeys(existing_fields))
         for row in rows:
             for key in row.keys():
-                if key not in fields:
+                if key and key not in fields:
                     fields.append(key)
         rewrite = bool(existing_fields) and fields != existing_fields
         existing_rows: list[dict[str, Any]] = []
         if rewrite:
             with path.open("r", newline="", encoding="utf-8") as handle:
-                existing_rows = list(csv.DictReader(handle))
+                existing_rows = [
+                    {key: value for key, value in row.items() if key in fields}
+                    for row in csv.DictReader(handle)
+                ]
         mode = "w" if rewrite or not existing_fields else "a"
         with path.open(mode, newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
             if mode == "w":
                 writer.writeheader()
                 writer.writerows(existing_rows)
@@ -604,3 +607,4 @@ def load_assets_from_env(default: dict[str, str] | None = None) -> dict[str, str
             name = symbol.replace("USDT", "")
             assets[name] = symbol
     return assets
+
