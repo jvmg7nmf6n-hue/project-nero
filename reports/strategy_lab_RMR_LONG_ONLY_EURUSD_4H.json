@@ -1,25 +1,21 @@
 [
   {
     "asset": "EURUSD",
-    "total_trades": 3,
+    "total_trades": 2,
     "win_rate": 1.0,
-    "net_pnl": 20.447880423429133,
-    "expectancy_r": 0.21229668059123138,
-    "profit_factor": 20.447880423429133,
+    "net_pnl": 7.182252027679244,
+    "expectancy_r": 0.09644917881657945,
+    "profit_factor": 7.182252027679244,
     "max_drawdown": 0.0,
-    "average_win": 6.815960141143044,
+    "average_win": 3.591126013839622,
     "average_loss": 0.0,
     "average_holding_hours": 12.0,
-    "consecutive_wins": 3,
+    "consecutive_wins": 2,
     "consecutive_losses": 0,
-    "fees_paid": 60.1358084723875,
-    "slippage_paid_estimate": 12.011044956698338,
+    "fees_paid": 40.049429121589334,
+    "slippage_paid_estimate": 8.000439488088015,
     "insufficient_sample": true,
-<<<<<<< HEAD
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 152, \"CLOSE_NOT_OUTSIDE_BAND\": 214, \"OPEN_TRADE_EXISTS\": 6, \"SHORT_DISABLED\": 223}",
-=======
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 151, \"CLOSE_NOT_OUTSIDE_BAND\": 207, \"OPEN_TRADE_EXISTS\": 6, \"SHORT_DISABLED\": 216}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 152, \"CLOSE_NOT_OUTSIDE_BAND\": 208, \"OPEN_TRADE_EXISTS\": 4, \"SHORT_DISABLED\": 217}",
     "candidate_id": "RMR_LONG_ONLY_EURUSD_4H",
     "display_label": "RMR_LONG_EURUSD_4H",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -31,29 +27,25 @@
     "evidence_note": "Range MR hypothesis split: EURUSD 4h long-only showed strongest watchlist edge. Forward-test only until 30-50 trades.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-    "rating_score": 56.18
+    "rating_score": 53.45
   },
   {
     "asset": "COMBINED",
-    "total_trades": 3,
-    "win_rate": 1.0,
-    "net_pnl": 20.447880423429133,
-    "expectancy_r": 0.21229668059123138,
-    "profit_factor": 20.447880423429133,
+    "total_trades": 12,
+    "win_rate": 0.16666666666666666,
+    "net_pnl": 7.182252027679244,
+    "expectancy_r": 0.09644917881657945,
+    "profit_factor": 7.182252027679244,
     "max_drawdown": 0.0,
-    "average_win": 6.815960141143044,
+    "average_win": 3.591126013839622,
     "average_loss": 0.0,
     "average_holding_hours": 12.0,
-    "consecutive_wins": 3,
+    "consecutive_wins": 2,
     "consecutive_losses": 0,
-    "fees_paid": 60.1358084723875,
-    "slippage_paid_estimate": 12.011044956698338,
+    "fees_paid": 40.049429121589334,
+    "slippage_paid_estimate": 8.000439488088015,
     "insufficient_sample": true,
-<<<<<<< HEAD
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 152, \"CLOSE_NOT_OUTSIDE_BAND\": 214, \"OPEN_TRADE_EXISTS\": 6, \"SHORT_DISABLED\": 223}",
-=======
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 151, \"CLOSE_NOT_OUTSIDE_BAND\": 207, \"OPEN_TRADE_EXISTS\": 6, \"SHORT_DISABLED\": 216}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 152, \"CLOSE_NOT_OUTSIDE_BAND\": 208, \"OPEN_TRADE_EXISTS\": 4, \"SHORT_DISABLED\": 217}",
     "candidate_id": "RMR_LONG_ONLY_EURUSD_4H",
     "display_label": "RMR_LONG_EURUSD_4H",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -65,6 +57,6 @@
     "evidence_note": "Range MR hypothesis split: EURUSD 4h long-only showed strongest watchlist edge. Forward-test only until 30-50 trades.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-    "rating_score": 56.18
+    "rating_score": 63.45
   }
 ]

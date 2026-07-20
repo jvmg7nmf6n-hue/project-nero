@@ -3,34 +3,19 @@
     "asset": "BTC",
     "total_trades": 2,
     "win_rate": 1.0,
-<<<<<<< HEAD
     "net_pnl": 76.14445847055822,
     "expectancy_r": 0.38015448714374855,
     "profit_factor": 76.14445847055822,
     "max_drawdown": 0.0,
     "average_win": 38.07222923527911,
-=======
-    "net_pnl": 76.61972302926203,
-    "expectancy_r": 0.38251791209630126,
-    "profit_factor": 76.61972302926203,
-    "max_drawdown": 0.0,
-    "average_win": 38.30986151463102,
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "average_loss": 0.0,
     "average_holding_hours": 276.0,
     "consecutive_wins": 2,
     "consecutive_losses": 0,
-<<<<<<< HEAD
     "fees_paid": 5.280288404987483,
     "slippage_paid_estimate": 1.0397727316223875,
     "insufficient_sample": true,
     "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 177, \"CLOSE_NOT_OUTSIDE_BAND\": 210, \"OPEN_TRADE_EXISTS\": 21, \"SHORT_DISABLED\": 221}",
-=======
-    "fees_paid": 5.310883825713306,
-    "slippage_paid_estimate": 1.045790643771666,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 178, \"CLOSE_NOT_OUTSIDE_BAND\": 209, \"OPEN_TRADE_EXISTS\": 21, \"SHORT_DISABLED\": 220}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "candidate_id": "RMR_LONG_ONLY_BTC_1D",
     "display_label": "RMR_LONG_BTC_1D",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -42,44 +27,25 @@
     "evidence_note": "Range MR hypothesis split: BTC daily long-only is promising but sample-limited.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
     "rating_score": 57.7
-=======
-    "rating_score": 57.74
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
   },
   {
     "asset": "COMBINED",
-    "total_trades": 2,
-    "win_rate": 1.0,
-<<<<<<< HEAD
+    "total_trades": 10,
+    "win_rate": 0.2,
     "net_pnl": 76.14445847055822,
     "expectancy_r": 0.38015448714374855,
     "profit_factor": 76.14445847055822,
     "max_drawdown": 0.0,
     "average_win": 38.07222923527911,
-=======
-    "net_pnl": 76.61972302926203,
-    "expectancy_r": 0.38251791209630126,
-    "profit_factor": 76.61972302926203,
-    "max_drawdown": 0.0,
-    "average_win": 38.30986151463102,
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "average_loss": 0.0,
     "average_holding_hours": 276.0,
     "consecutive_wins": 2,
     "consecutive_losses": 0,
-<<<<<<< HEAD
     "fees_paid": 5.280288404987483,
     "slippage_paid_estimate": 1.0397727316223875,
     "insufficient_sample": true,
     "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 177, \"CLOSE_NOT_OUTSIDE_BAND\": 210, \"OPEN_TRADE_EXISTS\": 21, \"SHORT_DISABLED\": 221}",
-=======
-    "fees_paid": 5.310883825713306,
-    "slippage_paid_estimate": 1.045790643771666,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 178, \"CLOSE_NOT_OUTSIDE_BAND\": 209, \"OPEN_TRADE_EXISTS\": 21, \"SHORT_DISABLED\": 220}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "candidate_id": "RMR_LONG_ONLY_BTC_1D",
     "display_label": "RMR_LONG_BTC_1D",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -91,10 +57,6 @@
     "evidence_note": "Range MR hypothesis split: BTC daily long-only is promising but sample-limited.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
-    "rating_score": 57.7
-=======
-    "rating_score": 57.74
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rating_score": 65.7
   }
 ]

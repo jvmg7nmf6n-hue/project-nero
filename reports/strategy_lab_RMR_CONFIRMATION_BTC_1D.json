@@ -3,34 +3,19 @@
     "asset": "BTC",
     "total_trades": 1,
     "win_rate": 1.0,
-<<<<<<< HEAD
     "net_pnl": 45.65493464673702,
     "expectancy_r": 0.4565493464673701,
     "profit_factor": 45.65493464673702,
     "max_drawdown": 0.0,
     "average_win": 45.65493464673702,
-=======
-    "net_pnl": 45.56818352185834,
-    "expectancy_r": 0.4556818352185833,
-    "profit_factor": 45.56818352185834,
-    "max_drawdown": 0.0,
-    "average_win": 45.56818352185834,
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "average_loss": 0.0,
     "average_holding_hours": 48.0,
     "consecutive_wins": 1,
     "consecutive_losses": 0,
-<<<<<<< HEAD
     "fees_paid": 2.0307577659009954,
     "slippage_paid_estimate": 0.4156886916627267,
     "insufficient_sample": true,
     "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 177, \"CLOSE_NOT_OUTSIDE_BAND\": 206, \"OPEN_TRADE_EXISTS\": 1, \"WAITING_CONFIRMATION\": 4}",
-=======
-    "fees_paid": 2.033453374711781,
-    "slippage_paid_estimate": 0.4162110023216703,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 178, \"CLOSE_NOT_OUTSIDE_BAND\": 205, \"OPEN_TRADE_EXISTS\": 1, \"WAITING_CONFIRMATION\": 4}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "candidate_id": "RMR_CONFIRMATION_BTC_1D",
     "display_label": "RMR_CONFIRM_BTC_1D",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -42,44 +27,25 @@
     "evidence_note": "Range MR hypothesis split: BTC daily confirmation entry tests whether waiting after the band breach reduces weak entries.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
     "rating_score": 57.85
-=======
-    "rating_score": 57.84
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
   },
   {
     "asset": "COMBINED",
-    "total_trades": 1,
-    "win_rate": 1.0,
-<<<<<<< HEAD
+    "total_trades": 7,
+    "win_rate": 0.14285714285714285,
     "net_pnl": 45.65493464673702,
     "expectancy_r": 0.4565493464673701,
     "profit_factor": 45.65493464673702,
     "max_drawdown": 0.0,
     "average_win": 45.65493464673702,
-=======
-    "net_pnl": 45.56818352185834,
-    "expectancy_r": 0.4556818352185833,
-    "profit_factor": 45.56818352185834,
-    "max_drawdown": 0.0,
-    "average_win": 45.56818352185834,
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "average_loss": 0.0,
     "average_holding_hours": 48.0,
     "consecutive_wins": 1,
     "consecutive_losses": 0,
-<<<<<<< HEAD
     "fees_paid": 2.0307577659009954,
     "slippage_paid_estimate": 0.4156886916627267,
     "insufficient_sample": true,
     "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 177, \"CLOSE_NOT_OUTSIDE_BAND\": 206, \"OPEN_TRADE_EXISTS\": 1, \"WAITING_CONFIRMATION\": 4}",
-=======
-    "fees_paid": 2.033453374711781,
-    "slippage_paid_estimate": 0.4162110023216703,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_RANGE\": 178, \"CLOSE_NOT_OUTSIDE_BAND\": 205, \"OPEN_TRADE_EXISTS\": 1, \"WAITING_CONFIRMATION\": 4}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
     "candidate_id": "RMR_CONFIRMATION_BTC_1D",
     "display_label": "RMR_CONFIRM_BTC_1D",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -91,10 +57,6 @@
     "evidence_note": "Range MR hypothesis split: BTC daily confirmation entry tests whether waiting after the band breach reduces weak entries.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
-    "rating_score": 57.85
-=======
-    "rating_score": 57.84
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rating_score": 63.85
   }
 ]

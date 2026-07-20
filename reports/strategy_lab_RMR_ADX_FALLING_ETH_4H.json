@@ -3,35 +3,19 @@
     "asset": "ETH",
     "total_trades": 2,
     "win_rate": 1.0,
-<<<<<<< HEAD
-    "net_pnl": 41.47449891445154,
-    "expectancy_r": 0.20715982745260642,
-    "profit_factor": 41.47449891445154,
+    "net_pnl": 39.44063937354056,
+    "expectancy_r": 0.19701364838729266,
+    "profit_factor": 39.44063937354056,
     "max_drawdown": 0.0,
-    "average_win": 20.73724945722577,
+    "average_win": 19.72031968677028,
     "average_loss": 0.0,
-    "average_holding_hours": 4.0,
+    "average_holding_hours": 3.5,
     "consecutive_wins": 2,
     "consecutive_losses": 0,
-    "fees_paid": 26.659816170956475,
-    "slippage_paid_estimate": 5.331408052860168,
+    "fees_paid": 26.65929109405117,
+    "slippage_paid_estimate": 5.330883334426027,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 153, \"ADX_NOT_RANGE\": 194, \"CLOSE_NOT_OUTSIDE_BAND\": 213, \"OPEN_TRADE_EXISTS\": 6}",
-=======
-    "net_pnl": 114.555369930393,
-    "expectancy_r": 0.5711930820339252,
-    "profit_factor": 114.555369930393,
-    "max_drawdown": 0.0,
-    "average_win": 57.2776849651965,
-    "average_loss": 0.0,
-    "average_holding_hours": 26.0,
-    "consecutive_wins": 2,
-    "consecutive_losses": 0,
-    "fees_paid": 10.994367665333703,
-    "slippage_paid_estimate": 2.2028369103826915,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 138, \"ADX_NOT_RANGE\": 172, \"CLOSE_NOT_OUTSIDE_BAND\": 207, \"OPEN_TRADE_EXISTS\": 11}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 145, \"ADX_NOT_RANGE\": 174, \"CLOSE_NOT_OUTSIDE_BAND\": 196, \"OPEN_TRADE_EXISTS\": 5}",
     "candidate_id": "RMR_ADX_FALLING_ETH_4H",
     "display_label": "RMR_ADX_ETH_4H",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -43,45 +27,25 @@
     "evidence_note": "Range MR hypothesis split: ETH 4h improved when ADX was falling into range conditions.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
-    "rating_score": 55.11
-=======
-    "rating_score": 60.57
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rating_score": 54.96
   },
   {
     "asset": "COMBINED",
-    "total_trades": 2,
-    "win_rate": 1.0,
-<<<<<<< HEAD
-    "net_pnl": 41.47449891445154,
-    "expectancy_r": 0.20715982745260642,
-    "profit_factor": 41.47449891445154,
+    "total_trades": 10,
+    "win_rate": 0.2,
+    "net_pnl": 39.44063937354056,
+    "expectancy_r": 0.19701364838729266,
+    "profit_factor": 39.44063937354056,
     "max_drawdown": 0.0,
-    "average_win": 20.73724945722577,
+    "average_win": 19.72031968677028,
     "average_loss": 0.0,
-    "average_holding_hours": 4.0,
+    "average_holding_hours": 3.5,
     "consecutive_wins": 2,
     "consecutive_losses": 0,
-    "fees_paid": 26.659816170956475,
-    "slippage_paid_estimate": 5.331408052860168,
+    "fees_paid": 26.65929109405117,
+    "slippage_paid_estimate": 5.330883334426027,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 153, \"ADX_NOT_RANGE\": 194, \"CLOSE_NOT_OUTSIDE_BAND\": 213, \"OPEN_TRADE_EXISTS\": 6}",
-=======
-    "net_pnl": 114.555369930393,
-    "expectancy_r": 0.5711930820339252,
-    "profit_factor": 114.555369930393,
-    "max_drawdown": 0.0,
-    "average_win": 57.2776849651965,
-    "average_loss": 0.0,
-    "average_holding_hours": 26.0,
-    "consecutive_wins": 2,
-    "consecutive_losses": 0,
-    "fees_paid": 10.994367665333703,
-    "slippage_paid_estimate": 2.2028369103826915,
-    "insufficient_sample": true,
-    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 138, \"ADX_NOT_RANGE\": 172, \"CLOSE_NOT_OUTSIDE_BAND\": 207, \"OPEN_TRADE_EXISTS\": 11}",
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rejected_setup_counts": "{\"ADX_NOT_FALLING\": 145, \"ADX_NOT_RANGE\": 174, \"CLOSE_NOT_OUTSIDE_BAND\": 196, \"OPEN_TRADE_EXISTS\": 5}",
     "candidate_id": "RMR_ADX_FALLING_ETH_4H",
     "display_label": "RMR_ADX_ETH_4H",
     "bucket": "RANGE_MR_WATCHLIST",
@@ -93,10 +57,6 @@
     "evidence_note": "Range MR hypothesis split: ETH 4h improved when ADX was falling into range conditions.",
     "enabled": true,
     "rating": "INSUFFICIENT_SAMPLE",
-<<<<<<< HEAD
-    "rating_score": 55.11
-=======
-    "rating_score": 60.57
->>>>>>> cb55a43 (Fix RMR and pair strategy lab reports)
+    "rating_score": 62.96
   }
 ]
