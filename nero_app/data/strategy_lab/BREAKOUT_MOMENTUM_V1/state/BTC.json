@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-21",
   "daily_r": 1.0056392190793582,
   "equity": 10234.832933124366,
-  "last_evaluated_close_time": 1784635200000,
-  "missed_run_count": 354,
+  "last_evaluated_close_time": 1784642400000,
+  "missed_run_count": 355,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "BREAKOUT_MOMENTUM_V1",
