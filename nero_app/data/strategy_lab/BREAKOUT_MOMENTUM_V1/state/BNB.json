@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-21",
   "daily_r": 0.0,
   "equity": 10006.647067914833,
-  "last_evaluated_close_time": 1784624400000,
-  "missed_run_count": 77,
+  "last_evaluated_close_time": 1784631600000,
+  "missed_run_count": 78,
   "open_trade": {
     "asset": "BNB",
     "candidate_id": "BREAKOUT_MOMENTUM_V1",
