@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-21",
   "daily_r": -1.2591235854840959,
   "equity": 9943.367838752329,
-  "last_evaluated_close_time": 1784656800000,
-  "missed_run_count": 21,
+  "last_evaluated_close_time": 1784664000000,
+  "missed_run_count": 22,
   "open_trade": {
     "asset": "USDCHF",
     "candidate_id": "BREAKOUT_MOMENTUM_V1",
