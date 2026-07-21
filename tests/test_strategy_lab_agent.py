@@ -24,6 +24,12 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["V2_BREAKOUT_RETEST"].bucket, "V2_SHADOW")
         self.assertEqual(CANDIDATES["V2_MR_RECOVERY"].display_label, "V2_MR_RECOVERY")
         self.assertTrue(CANDIDATES["V2_MR_REWARD"].require_rsi_recovery)
+        self.assertEqual(CANDIDATES["REPAIR_BREAKOUT_QUALITY_V1"].display_label, "FIX_BREAKOUT_QUALITY")
+        self.assertEqual(CANDIDATES["REPAIR_BREAKOUT_QUALITY_V1"].bucket, "LOSS_REPAIR_TEST")
+        self.assertTrue(CANDIDATES["REPAIR_BREAKOUT_QUALITY_V1"].require_breakout_retest)
+        self.assertEqual(CANDIDATES["REPAIR_MR_REGIME_LATE_V1"].display_label, "FIX_MR_LATE")
+        self.assertTrue(CANDIDATES["REPAIR_MR_REGIME_LATE_V1"].require_rsi_recovery)
+        self.assertEqual(CANDIDATES["REPAIR_MR_1R_ASYMMETRIC_V1"].target_mode, "FIXED_150R")
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].bucket, "HYPOTHESIS_TEST")
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].asset_filter, ("OIL_FUT", "BRENT_FUT"))
         self.assertEqual(CANDIDATES["HYP_OIL_MR_V1"].display_label, "HYP_OIL_MR")
@@ -202,6 +208,15 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(summary.iloc[0]["interval"], "1h")
         self.assertEqual(int(summary.iloc[0]["total_trades"]), 32)
         self.assertEqual(summary.iloc[0]["rating"], "KEEP_TESTING")
+
+    def test_loss_repair_candidates_use_clean_live_feed_assets(self) -> None:
+        assets = {"BTC": "BTCUSDT", "NEAR": "NEARUSDT", "SPY": "SPY", "BNB": "BNBUSDT", "PAXG": "PAXGUSDT"}
+
+        repair_breakout = _candidate_assets(CANDIDATES["REPAIR_BREAKOUT_QUALITY_V1"], assets)
+
+        self.assertEqual(set(repair_breakout), {"BTC", "BNB", "PAXG"})
+        self.assertNotIn("NEAR", repair_breakout)
+        self.assertNotIn("SPY", repair_breakout)
 
     def test_short_side_candidates_are_registered(self) -> None:
         short_ids = [candidate_id for candidate_id, spec in CANDIDATES.items() if spec.family == StrategyFamily.SHORT_MOMENTUM.value]
