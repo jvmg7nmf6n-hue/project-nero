@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-07-21",
-  "daily_r": -1.954742037486184,
+  "daily_guard_day": "2026-07-22",
+  "daily_r": 0.0,
   "equity": 9987.546732282843,
-  "last_evaluated_close_time": 1784671200000,
-  "missed_run_count": 22,
+  "last_evaluated_close_time": 1784678400000,
+  "missed_run_count": 23,
   "open_trade": {
     "asset": "DXY",
     "candidate_id": "V2_BREAKOUT_RETEST",

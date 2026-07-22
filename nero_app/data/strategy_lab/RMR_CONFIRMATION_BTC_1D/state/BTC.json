@@ -1,11 +1,14 @@
 {
-  "daily_guard_day": "2026-07-21",
+  "daily_guard_day": "2026-07-22",
   "daily_r": 0.0,
   "equity": 10045.654934646736,
-  "last_evaluated_close_time": 1784592000000,
+  "last_evaluated_close_time": 1784678400000,
   "missed_run_count": 0,
   "open_trade": null,
   "range_adx_break_count": 0,
-  "range_pending_setup": null,
+  "range_pending_setup": {
+    "close": 66603.33,
+    "side": "SHORT"
+  },
   "strategy_version": "strategy-lab-v1.0.0:RMR_CONFIRMATION_BTC_1D"
 }
