@@ -41,6 +41,7 @@ from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PAT
 from nero_app.core.strategy_lab_agent import CANDIDATES, DEFAULT_REPORT_DIR as STRATEGY_LAB_REPORT_DIR, write_strategy_lab_summary
 from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
+from nero_app.core.strategy_verification import build_strategy_verification_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -534,6 +535,43 @@ def _render_strategy_test_lab_tab() -> None:
     if total_trades < 30:
         st.warning("Still early. Reliable ranking needs about 30-50 closed trades per algo.")
     st.info("Ratings combine win rate, expectancy, profit factor, drawdown, and sample size. Use this as evidence collection, not a standalone trade command.")
+    try:
+        verification = build_strategy_verification_report()
+    except Exception as exc:  # pragma: no cover - dashboard should survive report errors
+        verification = pd.DataFrame()
+        st.warning(f"Strategy verification report could not be built: {exc}")
+    if not verification.empty:
+        st.subheader("Verification Verdict")
+        verdict_counts = verification["verdict"].value_counts().to_dict() if "verdict" in verification else {}
+        q_col, w_col, p_col, s_col = st.columns(4)
+        q_col.metric("Quarantine", str(verdict_counts.get("QUARANTINE", 0)))
+        w_col.metric("Watchlist", str(verdict_counts.get("WATCHLIST", 0)))
+        p_col.metric("Promote Paper", str(verdict_counts.get("PROMOTE_PAPER", 0)))
+        s_col.metric("Too Early", str(verdict_counts.get("INSUFFICIENT_SAMPLE", 0)))
+        st.caption("Verification is stricter than the lab rating: it applies sample-size, profit-factor, expectancy, drawdown, and data-trust gates.")
+        verification_display = verification.copy()
+        verification_columns = [
+            "display_label",
+            "verdict",
+            "evidence_score",
+            "sample_status",
+            "total_trades",
+            "win_rate",
+            "expectancy_r",
+            "profit_factor",
+            "max_drawdown",
+            "net_pnl",
+            "primary_reason",
+            "action",
+        ]
+        verification_display = verification_display[[column for column in verification_columns if column in verification_display.columns]]
+        for column in ["win_rate", "max_drawdown"]:
+            if column in verification_display:
+                verification_display[column] = pd.to_numeric(verification_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.0%}")
+        for column in ["expectancy_r", "profit_factor", "net_pnl", "evidence_score"]:
+            if column in verification_display:
+                verification_display[column] = pd.to_numeric(verification_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.2f}")
+        st.dataframe(verification_display, use_container_width=True, hide_index=True)
     if "bucket" in summary:
         st.caption("Lab groups: OLD_TEST = existing NERO algos, NEW_TEST = Claude-sweep candidates, RESEARCH_ONLY = not executed until a real engine is wired.")
         bucket_view = summary.groupby("bucket", dropna=False).agg(
@@ -1591,6 +1629,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 
 

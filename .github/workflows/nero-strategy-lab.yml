@@ -33,11 +33,13 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      - name: Run strategy verification engine
+        run: python tools/nero_strategy_verification.py
       - name: Save strategy lab records
         run: |
           git config user.name "nero-strategy-lab"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json
+          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_verification_report.csv reports/strategy_verification_report.json
           git commit -m "Update strategy lab records" || echo "no strategy lab changes"
           git pull --rebase origin main
           git push || echo "nothing to push"
