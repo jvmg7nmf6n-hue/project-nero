@@ -1,53 +1,47 @@
 {
   "BTC:WAIT_SHORT_TRIGGER:65466.18": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "BTC:WAIT_SHORT_TRIGGER:65466.66": {
-    "cooldown": 6
-  },
-  "BTC:WAIT_SHORT_TRIGGER:65467.98": {
-    "cooldown": 4
-  },
-  "BTC:WAIT_SHORT_TRIGGER:65468.37": {
     "cooldown": 5
   },
-  "BTC:WAIT_SHORT_TRIGGER:65469.84": {
-    "cooldown": 3
-  },
-  "scanner:ADA:volume": {
+  "BTC:WAIT_SHORT_TRIGGER:65467.04": {
     "cooldown": 7
   },
-  "scanner:AVAX:rsi_high": {
-    "cooldown": 6
-  },
-  "scanner:BTC:breakdown": {
+  "BTC:WAIT_SHORT_TRIGGER:65467.98": {
     "cooldown": 3
   },
-  "scanner:BTC:rsi_low": {
-    "cooldown": 1
+  "BTC:WAIT_SHORT_TRIGGER:65468.37": {
+    "cooldown": 4
   },
-  "scanner:DOGE:rsi_low": {
-    "cooldown": 1
-  },
-  "scanner:DOT:breakdown": {
+  "BTC:WAIT_SHORT_TRIGGER:65469.84": {
     "cooldown": 2
   },
-  "scanner:DOT:volume": {
-    "cooldown": 3
+  "GOLD:WAIT_LONG_TRIGGER:4166.38": {
+    "cooldown": 7
   },
-  "scanner:ETH:volume": {
-    "cooldown": 3
-  },
-  "scanner:LINK:volume": {
-    "cooldown": 3
-  },
-  "scanner:LTC:breakout": {
+  "scanner:ADA:volume": {
     "cooldown": 6
   },
-  "scanner:LTC:volume": {
+  "scanner:AVAX:rsi_high": {
+    "cooldown": 5
+  },
+  "scanner:BTC:breakdown": {
+    "cooldown": 2
+  },
+  "scanner:DOT:breakdown": {
     "cooldown": 1
   },
-  "scanner:SHIB:rsi_low": {
-    "cooldown": 1
+  "scanner:DOT:volume": {
+    "cooldown": 2
+  },
+  "scanner:ETH:volume": {
+    "cooldown": 2
+  },
+  "scanner:LINK:volume": {
+    "cooldown": 2
+  },
+  "scanner:LTC:breakout": {
+    "cooldown": 5
   }
 }
