@@ -27,6 +27,7 @@ from nero_app.core.mean_reversion_agent import (
     load_assets_from_env,
     report_row,
 )
+from nero_app.core.strategy_quarantine import DEFAULT_QUARANTINE_CSV, load_quarantined_strategy_ids
 from nero_app.core.range_mean_reversion import (
     RangeMRConfig,
     _confirmation_entry_state,
@@ -1249,8 +1250,14 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
     lab_dir = Path(os.getenv("STRATEGY_LAB_DATA_DIR", str(DEFAULT_LAB_DIR)))
     report_dir = Path(os.getenv("STRATEGY_LAB_REPORT_DIR", str(DEFAULT_REPORT_DIR)))
     selected = _selected_candidates()
+    quarantine_enabled = os.getenv("STRATEGY_QUARANTINE_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
+    quarantine_path = Path(os.getenv("STRATEGY_QUARANTINE_REPORT", str(DEFAULT_QUARANTINE_CSV)))
+    quarantined = load_quarantined_strategy_ids(quarantine_path) if quarantine_enabled else set()
     for spec in selected:
         if not spec.enabled:
+            continue
+        if spec.candidate_id in quarantined:
+            alerts.append(f"{spec.candidate_id}: QUARANTINED_BY_VERIFICATION; skipped new paper entries")
             continue
         candidate_assets = _candidate_assets(spec, assets)
         if not candidate_assets:
@@ -1476,3 +1483,7 @@ def _csv_asset_values(frame: pd.DataFrame) -> set[str]:
         if text:
             values.add(text)
     return values
+
+
+
+

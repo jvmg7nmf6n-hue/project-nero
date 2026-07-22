@@ -41,6 +41,7 @@ from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PAT
 from nero_app.core.strategy_lab_agent import CANDIDATES, DEFAULT_REPORT_DIR as STRATEGY_LAB_REPORT_DIR, write_strategy_lab_summary
 from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
+from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
@@ -572,6 +573,15 @@ def _render_strategy_test_lab_tab() -> None:
             if column in verification_display:
                 verification_display[column] = pd.to_numeric(verification_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.2f}")
         st.dataframe(verification_display, use_container_width=True, hide_index=True)
+        quarantine = build_strategy_quarantine_report()
+        if not quarantine.empty:
+            st.subheader("Quarantine Automation")
+            st.warning("These strategies are blocked from opening new paper trades until reviewed. Existing history remains preserved.")
+            q_display = quarantine.copy()
+            for column in ["expectancy_r", "profit_factor", "net_pnl"]:
+                if column in q_display:
+                    q_display[column] = pd.to_numeric(q_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.2f}")
+            st.dataframe(q_display, use_container_width=True, hide_index=True)
     if "bucket" in summary:
         st.caption("Lab groups: OLD_TEST = existing NERO algos, NEW_TEST = Claude-sweep candidates, RESEARCH_ONLY = not executed until a real engine is wired.")
         bucket_view = summary.groupby("bucket", dropna=False).agg(
@@ -1629,6 +1639,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 
 

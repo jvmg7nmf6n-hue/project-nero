@@ -1,0 +1,62 @@
+[
+  {
+    "candidate_id": "BREAKOUT_MOMENTUM_V1",
+    "display_label": "OLD_BREAKOUT",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 92,
+    "net_pnl": -1549.48,
+    "expectancy_r": -0.6675,
+    "profit_factor": 0.5925,
+    "reason": "30+ trade sample shows negative or weak risk-adjusted edge.",
+    "action": "Stop new paper entries and send to Strategy Doctor."
+  },
+  {
+    "candidate_id": "MR_REGIME_FILTER_V1",
+    "display_label": "OLD_MR_REGIME",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 28,
+    "net_pnl": -797.35,
+    "expectancy_r": -0.8489,
+    "profit_factor": 0.4271,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
+    "candidate_id": "MR_TARGET_1R_V1",
+    "display_label": "OLD_MR_1R",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 25,
+    "net_pnl": -775.15,
+    "expectancy_r": -0.8359,
+    "profit_factor": 0.3789,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
+    "candidate_id": "MR_RELAXED_PULLBACK_V1",
+    "display_label": "OLD_MR_RELAXED",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 41,
+    "net_pnl": -671.4,
+    "expectancy_r": -0.6383,
+    "profit_factor": 0.6091,
+    "reason": "30+ trade sample shows negative or weak risk-adjusted edge.",
+    "action": "Stop new paper entries and send to Strategy Doctor."
+  },
+  {
+    "candidate_id": "V2_BREAKOUT_RETEST",
+    "display_label": "V2_BREAKOUT_RETEST",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 44,
+    "net_pnl": -323.01,
+    "expectancy_r": -0.8623,
+    "profit_factor": 0.7761,
+    "reason": "30+ trade sample shows negative or weak risk-adjusted edge.",
+    "action": "Stop new paper entries and send to Strategy Doctor."
+  }
+]
