@@ -41,6 +41,7 @@ from nero_app.core.strategy_performance_auditor import DEFAULT_CLOSED_TRADES_PAT
 from nero_app.core.strategy_lab_agent import CANDIDATES, DEFAULT_REPORT_DIR as STRATEGY_LAB_REPORT_DIR, write_strategy_lab_summary
 from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
+from nero_app.core.strategy_repair_workbench import build_strategy_repair_workbench
 from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
 from nero_app.core.social_intelligence import (
@@ -642,6 +643,14 @@ def _render_strategy_evolution_tab() -> None:
     if report.recommendation_rows:
         st.subheader("Strategy Doctor")
         st.dataframe(pd.DataFrame(report.recommendation_rows), use_container_width=True, hide_index=True)
+    repair_workbench = build_strategy_repair_workbench()
+    if not repair_workbench.empty:
+        st.subheader("Active Repair Operation Theater")
+        st.caption(
+            "Quarantined strategies are mapped to versioned repair candidates. "
+            "Repairs stay paper-only until release gates are met."
+        )
+        st.dataframe(repair_workbench, use_container_width=True, hide_index=True)
     if report.asset_action_rows:
         st.subheader("Asset Failure Correction")
         st.caption("NERO separates promising assets from weak or data-blocked areas before proposing new hypotheses.")
