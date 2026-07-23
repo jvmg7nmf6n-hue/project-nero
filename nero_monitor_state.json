@@ -1,80 +1,92 @@
 {
   "BTC:WAIT_SHORT_TRIGGER:64925.18": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "BTC:WAIT_SHORT_TRIGGER:65299.87": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "BTC:WAIT_SHORT_TRIGGER:65300.26": {
-    "cooldown": 4
-  },
-  "BTC:WAIT_SHORT_TRIGGER:65469.51": {
-    "cooldown": 1
+    "cooldown": 3
   },
   "BTC:WAIT_SHORT_TRIGGER:65471.84": {
-    "cooldown": 2
+    "cooldown": 1
+  },
+  "scanner:ADA:rsi_low": {
+    "cooldown": 7
   },
   "scanner:ADA:volume": {
-    "cooldown": 4
+    "cooldown": 3
   },
   "scanner:AVAX:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
+  },
+  "scanner:AVAX:rsi_low": {
+    "cooldown": 7
   },
   "scanner:AVAX:volume": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:BTC:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
+  },
+  "scanner:BTC:rsi_low": {
+    "cooldown": 7
   },
   "scanner:BTC:volume": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:DOGE:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:DOGE:rsi_low": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:DOGE:volume": {
-    "cooldown": 5
+    "cooldown": 4
+  },
+  "scanner:DOT:breakdown": {
+    "cooldown": 7
   },
   "scanner:ETH:breakdown": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:ETH:rsi_low": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:ETH:volume": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:LINK:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:SHIB:breakdown": {
     "cooldown": 5
   },
-  "scanner:SHIB:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:SHIB:volume": {
-    "cooldown": 5
-  },
-  "scanner:SOL:breakdown": {
-    "cooldown": 5
-  },
-  "scanner:SOL:rsi_low": {
+  "scanner:LINK:rsi_low": {
     "cooldown": 7
   },
-  "scanner:SOL:volume": {
+  "scanner:SHIB:breakdown": {
+    "cooldown": 4
+  },
+  "scanner:SHIB:rsi_low": {
     "cooldown": 5
   },
-  "scanner:XRP:breakdown": {
-    "cooldown": 5
+  "scanner:SHIB:volume": {
+    "cooldown": 4
   },
-  "scanner:XRP:rsi_low": {
+  "scanner:SOL:breakdown": {
+    "cooldown": 4
+  },
+  "scanner:SOL:rsi_low": {
     "cooldown": 6
   },
-  "scanner:XRP:volume": {
+  "scanner:SOL:volume": {
+    "cooldown": 4
+  },
+  "scanner:XRP:breakdown": {
+    "cooldown": 4
+  },
+  "scanner:XRP:rsi_low": {
     "cooldown": 5
+  },
+  "scanner:XRP:volume": {
+    "cooldown": 4
   }
 }
