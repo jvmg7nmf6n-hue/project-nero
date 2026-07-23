@@ -1,33 +1,5 @@
 [
   {
-    "quarantined_strategy": "MR_REGIME_FILTER_V1",
-    "quarantined_label": "OLD_MR_REGIME",
-    "quarantined_net_pnl": -797.35,
-    "quarantined_trades": 28,
-    "diagnosis": "Mean-reversion entry is too early or regime filter is weak. Negative evidence with at least 20 trades.",
-    "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
-    "repair_label": "FIX_MR_LATE",
-    "repair_status": "DEPLOYED_AWAITING_TRADES",
-    "repair_trades": 0,
-    "repair_net_pnl": 0.0,
-    "next_action": "Keep GitHub Strategy Lab running; wait for first repair trades.",
-    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
-  },
-  {
-    "quarantined_strategy": "MR_RELAXED_PULLBACK_V1",
-    "quarantined_label": "OLD_MR_RELAXED",
-    "quarantined_net_pnl": -671.4,
-    "quarantined_trades": 41,
-    "diagnosis": "Mean-reversion entry is too early or regime filter is weak. 30+ trade sample shows negative or weak risk-adjusted edge.",
-    "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
-    "repair_label": "FIX_MR_LATE",
-    "repair_status": "DEPLOYED_AWAITING_TRADES",
-    "repair_trades": 0,
-    "repair_net_pnl": 0.0,
-    "next_action": "Keep GitHub Strategy Lab running; wait for first repair trades.",
-    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
-  },
-  {
     "quarantined_strategy": "BREAKOUT_MOMENTUM_V1",
     "quarantined_label": "OLD_BREAKOUT",
     "quarantined_net_pnl": -1549.48,
@@ -42,6 +14,20 @@
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
   {
+    "quarantined_strategy": "MR_REGIME_FILTER_V1",
+    "quarantined_label": "OLD_MR_REGIME",
+    "quarantined_net_pnl": -797.35,
+    "quarantined_trades": 28,
+    "diagnosis": "Mean-reversion entry is too early or regime filter is weak. Negative evidence with at least 20 trades.",
+    "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
+    "repair_label": "FIX_MR_LATE",
+    "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
+    "repair_trades": 1,
+    "repair_net_pnl": -67.81,
+    "next_action": "Continue paper testing until at least 30 repair trades.",
+    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
+  },
+  {
     "quarantined_strategy": "MR_TARGET_1R_V1",
     "quarantined_label": "OLD_MR_1R",
     "quarantined_net_pnl": -775.15,
@@ -50,8 +36,22 @@
     "repair_candidate": "REPAIR_MR_1R_ASYMMETRIC_V1",
     "repair_label": "FIX_MR_1R_ASYM",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
+    "repair_trades": 2,
+    "repair_net_pnl": -146.29,
+    "next_action": "Continue paper testing until at least 30 repair trades.",
+    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
+  },
+  {
+    "quarantined_strategy": "MR_RELAXED_PULLBACK_V1",
+    "quarantined_label": "OLD_MR_RELAXED",
+    "quarantined_net_pnl": -671.4,
+    "quarantined_trades": 41,
+    "diagnosis": "Mean-reversion entry is too early or regime filter is weak. 30+ trade sample shows negative or weak risk-adjusted edge.",
+    "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
+    "repair_label": "FIX_MR_LATE",
+    "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
     "repair_trades": 1,
-    "repair_net_pnl": -78.48,
+    "repair_net_pnl": -67.81,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
