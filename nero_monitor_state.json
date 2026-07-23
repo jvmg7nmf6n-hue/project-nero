@@ -1,77 +1,80 @@
 {
   "BTC:WAIT_SHORT_TRIGGER:64925.18": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "BTC:WAIT_SHORT_TRIGGER:65299.87": {
-    "cooldown": 4
+    "cooldown": 3
   },
   "BTC:WAIT_SHORT_TRIGGER:65300.26": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "BTC:WAIT_SHORT_TRIGGER:65469.51": {
-    "cooldown": 2
-  },
-  "BTC:WAIT_SHORT_TRIGGER:65471.84": {
-    "cooldown": 3
-  },
-  "GOLD:WAIT_LONG_TRIGGER:4166.41": {
     "cooldown": 1
   },
+  "BTC:WAIT_SHORT_TRIGGER:65471.84": {
+    "cooldown": 2
+  },
   "scanner:ADA:volume": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "scanner:AVAX:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:AVAX:volume": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "scanner:BTC:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:BTC:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:DOGE:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:DOGE:rsi_low": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:DOGE:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:ETH:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
+  },
+  "scanner:ETH:rsi_low": {
+    "cooldown": 7
   },
   "scanner:ETH:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:LINK:breakdown": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:SHIB:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:SHIB:rsi_low": {
-    "cooldown": 7
+    "cooldown": 6
   },
   "scanner:SHIB:volume": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:SOL:breakdown": {
-    "cooldown": 6
+    "cooldown": 5
   },
-  "scanner:SOL:volume": {
-    "cooldown": 6
-  },
-  "scanner:XRP:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:XRP:rsi_low": {
+  "scanner:SOL:rsi_low": {
     "cooldown": 7
   },
-  "scanner:XRP:volume": {
+  "scanner:SOL:volume": {
+    "cooldown": 5
+  },
+  "scanner:XRP:breakdown": {
+    "cooldown": 5
+  },
+  "scanner:XRP:rsi_low": {
     "cooldown": 6
+  },
+  "scanner:XRP:volume": {
+    "cooldown": 5
   }
 }
