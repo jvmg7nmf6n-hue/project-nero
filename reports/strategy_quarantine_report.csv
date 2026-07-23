@@ -1,5 +1,6 @@
 candidate_id,display_label,verdict,blocked,total_trades,net_pnl,expectancy_r,profit_factor,reason,action
 BREAKOUT_MOMENTUM_V1,OLD_BREAKOUT,QUARANTINE,True,92,-1549.48,-0.6675,0.5925,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
+MR_DEEP_VALUE_V1,OLD_MR_DEEP,QUARANTINE,True,20,-1318.79,-1.6624,0.0129,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 MR_REGIME_FILTER_V1,OLD_MR_REGIME,QUARANTINE,True,28,-797.35,-0.8489,0.4271,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 MR_TARGET_1R_V1,OLD_MR_1R,QUARANTINE,True,25,-775.15,-0.8359,0.3789,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 MR_RELAXED_PULLBACK_V1,OLD_MR_RELAXED,QUARANTINE,True,41,-671.4,-0.6383,0.6091,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
