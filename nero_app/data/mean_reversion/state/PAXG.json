@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-23",
   "daily_r": -1.4576334528805917,
   "equity": 9930.116179472257,
-  "last_evaluated_close_time": 1784811600000,
-  "missed_run_count": 452,
+  "last_evaluated_close_time": 1784818800000,
+  "missed_run_count": 453,
   "open_trade": {
     "asset": "PAXG",
     "entry_atr": 13.318571428571497,
