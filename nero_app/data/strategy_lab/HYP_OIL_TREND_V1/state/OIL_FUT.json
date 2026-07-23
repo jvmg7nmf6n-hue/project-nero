@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-23",
   "daily_r": 1.241404554714113,
   "equity": 10086.335448388574,
-  "last_evaluated_close_time": 1784797200000,
-  "missed_run_count": 31,
+  "last_evaluated_close_time": 1784804400000,
+  "missed_run_count": 32,
   "open_trade": {
     "asset": "OIL_FUT",
     "candidate_id": "HYP_OIL_TREND_V1",

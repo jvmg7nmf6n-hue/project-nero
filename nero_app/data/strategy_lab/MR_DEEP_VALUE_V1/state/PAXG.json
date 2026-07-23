@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-23",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1784797200000,
-  "missed_run_count": 374,
+  "last_evaluated_close_time": 1784804400000,
+  "missed_run_count": 375,
   "open_trade": {
     "asset": "PAXG",
     "candidate_id": "MR_DEEP_VALUE_V1",
