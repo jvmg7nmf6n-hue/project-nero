@@ -1,65 +1,65 @@
 {
   "BTC:WAIT_SHORT_TRIGGER:64550.13": {
-    "cooldown": 5
-  },
-  "GOLD:WAIT_SHORT_TRIGGER:4021.66": {
-    "cooldown": 2
-  },
-  "scanner:ADA:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:ADA:volume": {
-    "cooldown": 5
-  },
-  "scanner:BTC:breakdown": {
-    "cooldown": 5
-  },
-  "scanner:BTC:breakout": {
-    "cooldown": 2
-  },
-  "scanner:BTC:rsi_high": {
-    "cooldown": 2
-  },
-  "scanner:BTC:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:DOGE:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:DOGE:volume": {
-    "cooldown": 2
-  },
-  "scanner:DOT:breakdown": {
     "cooldown": 4
   },
-  "scanner:DOT:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:ETH:breakout": {
-    "cooldown": 2
-  },
-  "scanner:ETH:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:LINK:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:SHIB:breakout": {
+  "GOLD:WAIT_SHORT_TRIGGER:4021.66": {
     "cooldown": 1
   },
-  "scanner:SHIB:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:SOL:breakdown": {
+  "scanner:ADA:rsi_low": {
     "cooldown": 5
   },
+  "scanner:ADA:volume": {
+    "cooldown": 4
+  },
+  "scanner:BTC:breakdown": {
+    "cooldown": 4
+  },
+  "scanner:BTC:breakout": {
+    "cooldown": 1
+  },
+  "scanner:BTC:rsi_high": {
+    "cooldown": 1
+  },
+  "scanner:BTC:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:DOGE:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:DOGE:volume": {
+    "cooldown": 1
+  },
+  "scanner:DOT:breakdown": {
+    "cooldown": 3
+  },
+  "scanner:DOT:rsi_high": {
+    "cooldown": 7
+  },
+  "scanner:DOT:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:ETH:breakout": {
+    "cooldown": 1
+  },
+  "scanner:ETH:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:LINK:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:SHIB:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:SOL:breakdown": {
+    "cooldown": 4
+  },
   "scanner:SOL:rsi_low": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "scanner:XRP:breakout": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:XRP:rsi_low": {
-    "cooldown": 6
+    "cooldown": 5
   }
 }
