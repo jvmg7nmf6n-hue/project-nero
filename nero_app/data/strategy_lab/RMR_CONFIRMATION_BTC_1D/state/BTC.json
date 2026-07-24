@@ -1,8 +1,8 @@
 {
-  "daily_guard_day": "2026-07-23",
+  "daily_guard_day": "2026-07-24",
   "daily_r": 0.0,
   "equity": 10045.654934646736,
-  "last_evaluated_close_time": 1784764800000,
+  "last_evaluated_close_time": 1784851200000,
   "missed_run_count": 0,
   "open_trade": {
     "asset": "BTC",
