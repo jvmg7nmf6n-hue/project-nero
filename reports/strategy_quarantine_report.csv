@@ -5,3 +5,4 @@ MR_REGIME_FILTER_V1,OLD_MR_REGIME,QUARANTINE,True,28,-797.35,-0.8489,0.4271,Nega
 MR_TARGET_1R_V1,OLD_MR_1R,QUARANTINE,True,25,-775.15,-0.8359,0.3789,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 MR_RELAXED_PULLBACK_V1,OLD_MR_RELAXED,QUARANTINE,True,41,-671.4,-0.6383,0.6091,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
 V2_BREAKOUT_RETEST,V2_BREAKOUT_RETEST,QUARANTINE,True,44,-323.01,-0.8623,0.7761,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
+HYP_OIL_TREND_V1,HYP_OIL_TREND,QUARANTINE,True,20,-9.45,0.0156,0.9898,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.

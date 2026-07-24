@@ -70,5 +70,17 @@
     "profit_factor": 0.7761,
     "reason": "30+ trade sample shows negative or weak risk-adjusted edge.",
     "action": "Stop new paper entries and send to Strategy Doctor."
+  },
+  {
+    "candidate_id": "HYP_OIL_TREND_V1",
+    "display_label": "HYP_OIL_TREND",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -9.45,
+    "expectancy_r": 0.0156,
+    "profit_factor": 0.9898,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
   }
 ]
