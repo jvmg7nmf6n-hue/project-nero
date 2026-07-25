@@ -28,6 +28,7 @@ from nero_app.core.mean_reversion_agent import (
     report_row,
 )
 from nero_app.core.strategy_quarantine import DEFAULT_QUARANTINE_CSV, load_quarantined_strategy_ids
+from nero_app.core.strategy_contracts import write_strategy_architecture_manifests
 from nero_app.core.range_mean_reversion import (
     RangeMRConfig,
     _confirmation_entry_state,
@@ -1283,8 +1284,18 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
         entries += summary.entries
         exits += summary.exits
         alerts.extend(summary.alerts)
+    run_summary = StrategyLabRunSummary(evaluated=evaluated, entries=entries, exits=exits, alerts=alerts, candidate_count=len(selected))
     write_strategy_lab_summary(report_dir, selected)
-    return StrategyLabRunSummary(evaluated=evaluated, entries=entries, exits=exits, alerts=alerts, candidate_count=len(selected))
+    write_strategy_architecture_manifests(
+        selected,
+        assets=assets,
+        run_summary=run_summary,
+        report_dir=report_dir,
+        lab_dir=lab_dir,
+        now=now,
+        workflow_name=os.getenv("GITHUB_WORKFLOW", "local-strategy-lab"),
+    )
+    return run_summary
 
 
 def write_strategy_lab_summary(report_dir: Path = DEFAULT_REPORT_DIR, candidates: list[CandidateSpec] | None = None) -> pd.DataFrame:

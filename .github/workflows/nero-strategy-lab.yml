@@ -33,6 +33,8 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+      - name: Refresh strategy contracts and manifests
+        run: python tools/nero_strategy_manifests.py
       - name: Run strategy verification engine
         run: python tools/nero_strategy_verification.py
       - name: Run strategy quarantine automation
@@ -43,7 +45,7 @@ jobs:
         run: |
           git config user.name "nero-strategy-lab"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_verification_report.csv reports/strategy_verification_report.json reports/strategy_quarantine_report.csv reports/strategy_quarantine_report.json reports/strategy_repair_workbench.csv reports/strategy_repair_workbench.json
+          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_contracts.csv reports/strategy_contracts.json reports/strategy_run_manifest.json reports/strategy_data_quality_manifest.csv reports/strategy_data_quality_manifest.json reports/strategy_verification_report.csv reports/strategy_verification_report.json reports/strategy_quarantine_report.csv reports/strategy_quarantine_report.json reports/strategy_repair_workbench.csv reports/strategy_repair_workbench.json
           git commit -m "Update strategy lab records" || echo "no strategy lab changes"
           git pull --rebase origin main
           git push || echo "nothing to push"
