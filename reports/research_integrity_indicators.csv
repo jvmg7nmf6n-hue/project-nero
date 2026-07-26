@@ -1,0 +1,3 @@
+check,local_value,reference_library,reference_value,absolute_diff,status,notes
+RSI(14),83.221663,pandas-ta,,,REFERENCE_NOT_INSTALLED,Install pandas-ta locally to compare indicator formulas against a reference implementation.
+TA-Lib availability,,TA-Lib,,,NOT_INSTALLED,TA-Lib remains optional because it is a deployment-risky binary dependency.

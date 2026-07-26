@@ -1,0 +1,7 @@
+guardrail,status,required_before_use
+Optimizer dependency,NOT_INSTALLED,Install optuna only for research runs; never required for live/paper execution.
+Chronological split,MANDATORY,Train/test must be time-ordered; random shuffle is not allowed for trading systems.
+Out-of-sample survival,MANDATORY,Optimized parameters must improve or hold up in the unseen test half.
+Random-entry baseline,MANDATORY,Strategy timing must beat a random entry baseline inside the same regime pool.
+Minimum sample,MANDATORY,No optimized variant can be promoted before at least 30-50 closed trades.
+Manual versioning,MANDATORY,"NERO can recommend parameter changes, but cannot silently auto-change live/paper strategy parameters."

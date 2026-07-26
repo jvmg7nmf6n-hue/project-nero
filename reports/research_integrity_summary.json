@@ -1,0 +1,17 @@
+{
+  "dependency_rows":7,
+  "indicator_checks":2,
+  "metric_checks":3,
+  "optimizer_guardrails":6,
+  "hard_dependencies":[
+    "arch",
+    "statsmodels"
+  ],
+  "optional_reference_adapters":[
+    "pandas-ta",
+    "TA-Lib",
+    "empyrical",
+    "optuna"
+  ],
+  "policy":"Third-party libraries verify NERO's calculations; they do not auto-authorize real-money trades."
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "check":"RSI(14)",
+    "local_value":83.221663,
+    "reference_library":"pandas-ta",
+    "reference_value":"",
+    "absolute_diff":"",
+    "status":"REFERENCE_NOT_INSTALLED",
+    "notes":"Install pandas-ta locally to compare indicator formulas against a reference implementation."
+  },
+  {
+    "check":"TA-Lib availability",
+    "local_value":"",
+    "reference_library":"TA-Lib",
+    "reference_value":"",
+    "absolute_diff":"",
+    "status":"NOT_INSTALLED",
+    "notes":"TA-Lib remains optional because it is a deployment-risky binary dependency."
+  }
+]

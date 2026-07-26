@@ -1,0 +1,4 @@
+metric,local_value,reference_library,reference_value,absolute_diff,status,notes
+Sharpe,4.708833,empyrical,,,REFERENCE_NOT_INSTALLED,Install empyrical/maintained fork locally to cross-check financial metrics.
+Sortino,17.008057,empyrical,,,REFERENCE_NOT_INSTALLED,Install empyrical/maintained fork locally to cross-check financial metrics.
+Max Drawdown,-0.011,empyrical,,,REFERENCE_NOT_INSTALLED,Install empyrical/maintained fork locally to cross-check financial metrics.

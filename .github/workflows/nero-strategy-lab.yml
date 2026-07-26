@@ -41,11 +41,13 @@ jobs:
         run: python tools/nero_strategy_quarantine.py
       - name: Run strategy repair workbench
         run: python tools/nero_strategy_repair_workbench.py
+      - name: Run research integrity audit
+        run: python tools/nero_research_integrity.py
       - name: Save strategy lab records
         run: |
           git config user.name "nero-strategy-lab"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_contracts.csv reports/strategy_contracts.json reports/strategy_run_manifest.json reports/strategy_data_quality_manifest.csv reports/strategy_data_quality_manifest.json reports/strategy_verification_report.csv reports/strategy_verification_report.json reports/strategy_quarantine_report.csv reports/strategy_quarantine_report.json reports/strategy_repair_workbench.csv reports/strategy_repair_workbench.json
+          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_contracts.csv reports/strategy_contracts.json reports/strategy_run_manifest.json reports/strategy_data_quality_manifest.csv reports/strategy_data_quality_manifest.json reports/strategy_verification_report.csv reports/strategy_verification_report.json reports/strategy_quarantine_report.csv reports/strategy_quarantine_report.json reports/strategy_repair_workbench.csv reports/strategy_repair_workbench.json reports/research_integrity_*.csv reports/research_integrity_*.json
           git commit -m "Update strategy lab records" || echo "no strategy lab changes"
           git pull --rebase origin main
           git push || echo "nothing to push"

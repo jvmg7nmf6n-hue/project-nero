@@ -1,0 +1,29 @@
+[
+  {
+    "metric":"Sharpe",
+    "local_value":4.708833,
+    "reference_library":"empyrical",
+    "reference_value":"",
+    "absolute_diff":"",
+    "status":"REFERENCE_NOT_INSTALLED",
+    "notes":"Install empyrical\/maintained fork locally to cross-check financial metrics."
+  },
+  {
+    "metric":"Sortino",
+    "local_value":17.008057,
+    "reference_library":"empyrical",
+    "reference_value":"",
+    "absolute_diff":"",
+    "status":"REFERENCE_NOT_INSTALLED",
+    "notes":"Install empyrical\/maintained fork locally to cross-check financial metrics."
+  },
+  {
+    "metric":"Max Drawdown",
+    "local_value":-0.011,
+    "reference_library":"empyrical",
+    "reference_value":"",
+    "absolute_diff":"",
+    "status":"REFERENCE_NOT_INSTALLED",
+    "notes":"Install empyrical\/maintained fork locally to cross-check financial metrics."
+  }
+]

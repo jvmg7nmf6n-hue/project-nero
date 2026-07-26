@@ -1,0 +1,32 @@
+[
+  {
+    "guardrail":"Optimizer dependency",
+    "status":"NOT_INSTALLED",
+    "required_before_use":"Install optuna only for research runs; never required for live\/paper execution."
+  },
+  {
+    "guardrail":"Chronological split",
+    "status":"MANDATORY",
+    "required_before_use":"Train\/test must be time-ordered; random shuffle is not allowed for trading systems."
+  },
+  {
+    "guardrail":"Out-of-sample survival",
+    "status":"MANDATORY",
+    "required_before_use":"Optimized parameters must improve or hold up in the unseen test half."
+  },
+  {
+    "guardrail":"Random-entry baseline",
+    "status":"MANDATORY",
+    "required_before_use":"Strategy timing must beat a random entry baseline inside the same regime pool."
+  },
+  {
+    "guardrail":"Minimum sample",
+    "status":"MANDATORY",
+    "required_before_use":"No optimized variant can be promoted before at least 30-50 closed trades."
+  },
+  {
+    "guardrail":"Manual versioning",
+    "status":"MANDATORY",
+    "required_before_use":"NERO can recommend parameter changes, but cannot silently auto-change live\/paper strategy parameters."
+  }
+]
