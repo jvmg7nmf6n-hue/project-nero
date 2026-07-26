@@ -1,6 +1,6 @@
 library,package,role,status,decision,notes
-arch,arch,GARCH volatility validation,NOT_INSTALLED,HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS,"Used by Quant Intel for GARCH(1,1); EWMA fallback remains available if fitting fails."
-statsmodels,statsmodels,Cointegration and Granger validation,NOT_INSTALLED,HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS,Used as the reference implementation for Engle-Granger/ADF and Granger tests.
+arch,arch,GARCH volatility validation,INSTALLED,HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS,"Used by Quant Intel for GARCH(1,1); EWMA fallback remains available if fitting fails."
+statsmodels,statsmodels,Cointegration and Granger validation,INSTALLED,HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS,Used as the reference implementation for Engle-Granger/ADF and Granger tests.
 pandas-ta,pandas_ta,Technical indicator reference checks,NOT_INSTALLED,OPTIONAL_REFERENCE_ADAPTER,Preferred over TA-Lib for cloud portability; NERO can compare RSI/MACD/Bollinger when installed.
 TA-Lib,talib,Technical indicator reference checks,NOT_INSTALLED,NOT_HARD_DEPENDENCY,Binary wheels can break Windows/Streamlit deployment; use only if already available locally.
 empyrical,empyrical,Financial metric cross-checks,NOT_INSTALLED,OPTIONAL_REFERENCE_ADAPTER,"Cross-checks Sharpe, Sortino, and max drawdown without replacing NERO's stored calculations."

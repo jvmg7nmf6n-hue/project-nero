@@ -3,7 +3,7 @@
     "library":"arch",
     "package":"arch",
     "role":"GARCH volatility validation",
-    "status":"NOT_INSTALLED",
+    "status":"INSTALLED",
     "decision":"HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS",
     "notes":"Used by Quant Intel for GARCH(1,1); EWMA fallback remains available if fitting fails."
   },
@@ -11,7 +11,7 @@
     "library":"statsmodels",
     "package":"statsmodels",
     "role":"Cointegration and Granger validation",
-    "status":"NOT_INSTALLED",
+    "status":"INSTALLED",
     "decision":"HARD_DEPENDENCY_ALREADY_IN_REQUIREMENTS",
     "notes":"Used as the reference implementation for Engle-Granger\/ADF and Granger tests."
   },
