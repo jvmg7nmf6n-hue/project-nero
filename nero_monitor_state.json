@@ -1,65 +1,83 @@
 {
-  "BTC:WAIT_LONG_TRIGGER:64486.39": {
+  "BTC:WAIT_LONG_TRIGGER:64530.33": {
     "cooldown": 1
   },
-  "BTC:WAIT_LONG_TRIGGER:64530.33": {
-    "cooldown": 2
-  },
   "BTC:WAIT_LONG_TRIGGER:64543.36": {
-    "cooldown": 5
-  },
-  "BTC:WAIT_LONG_TRIGGER:64543.79": {
-    "cooldown": 3
-  },
-  "BTC:WAIT_LONG_TRIGGER:64543.84": {
     "cooldown": 4
   },
+  "BTC:WAIT_LONG_TRIGGER:64543.79": {
+    "cooldown": 2
+  },
+  "BTC:WAIT_LONG_TRIGGER:64543.84": {
+    "cooldown": 3
+  },
   "BTC:WAIT_LONG_TRIGGER:64604.67": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "BTC:WAIT_LONG_TRIGGER:64716.46": {
+    "cooldown": 6
+  },
+  "BTC:WAIT_LONG_TRIGGER:64781.69": {
     "cooldown": 7
   },
   "scanner:ADA:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:ADA:breakout": {
-    "cooldown": 3
-  },
-  "scanner:AVAX:breakdown": {
     "cooldown": 5
   },
+  "scanner:ADA:breakout": {
+    "cooldown": 2
+  },
+  "scanner:AVAX:breakdown": {
+    "cooldown": 4
+  },
   "scanner:AVAX:rsi_low": {
-    "cooldown": 6
+    "cooldown": 5
+  },
+  "scanner:BTC:breakout": {
+    "cooldown": 7
   },
   "scanner:BTC:rsi_high": {
-    "cooldown": 7
-  },
-  "scanner:DOGE:rsi_low": {
-    "cooldown": 1
+    "cooldown": 6
   },
   "scanner:DOT:breakout": {
-    "cooldown": 2
+    "cooldown": 1
   },
   "scanner:DOT:volume": {
-    "cooldown": 3
-  },
-  "scanner:LINK:breakout": {
     "cooldown": 2
   },
-  "scanner:LINK:volume": {
-    "cooldown": 2
-  },
-  "scanner:SHIB:rsi_high": {
-    "cooldown": 3
-  },
-  "scanner:SHIB:rsi_low": {
+  "scanner:ETH:breakout": {
     "cooldown": 7
   },
-  "scanner:SOL:breakout": {
+  "scanner:ETH:rsi_high": {
+    "cooldown": 7
+  },
+  "scanner:ETH:volume": {
+    "cooldown": 7
+  },
+  "scanner:LINK:breakout": {
+    "cooldown": 1
+  },
+  "scanner:LINK:rsi_high": {
+    "cooldown": 7
+  },
+  "scanner:LINK:volume": {
+    "cooldown": 1
+  },
+  "scanner:LTC:breakout": {
+    "cooldown": 7
+  },
+  "scanner:SHIB:rsi_high": {
     "cooldown": 2
   },
+  "scanner:SHIB:rsi_low": {
+    "cooldown": 6
+  },
+  "scanner:SOL:breakout": {
+    "cooldown": 1
+  },
   "scanner:SOL:rsi_high": {
-    "cooldown": 2
+    "cooldown": 1
+  },
+  "scanner:XRP:breakout": {
+    "cooldown": 7
   }
 }
