@@ -1,8 +1,8 @@
 {
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1785139200000,
-  "missed_run_count": 71,
+  "last_evaluated_close_time": 1785150000000,
+  "missed_run_count": 73,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:NEW_BTC_ETH_12H_PAIR"
 }
