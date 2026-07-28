@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-28",
   "daily_r": -2.412982785088919,
   "equity": 9760.157340961641,
-  "last_evaluated_close_time": 1785254400000,
-  "missed_run_count": 54,
+  "last_evaluated_close_time": 1785261600000,
+  "missed_run_count": 55,
   "open_trade": {
     "asset": "BRENT_FUT",
     "candidate_id": "SHORT_OIL_BREAKDOWN_1H",
