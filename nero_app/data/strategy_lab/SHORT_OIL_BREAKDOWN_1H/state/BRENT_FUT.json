@@ -2,7 +2,7 @@
   "daily_guard_day": "2026-07-28",
   "daily_r": -2.412982785088919,
   "equity": 9760.157340961641,
-  "last_evaluated_close_time": 1785265200000,
+  "last_evaluated_close_time": 1785268800000,
   "missed_run_count": 55,
   "open_trade": {
     "asset": "BRENT_FUT",
