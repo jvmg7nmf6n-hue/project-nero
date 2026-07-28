@@ -1,65 +1,62 @@
 {
   "BTC:WAIT_LONG_TRIGGER:65718.84": {
-    "cooldown": 2
-  },
-  "BTC:WAIT_LONG_TRIGGER:65719.06": {
     "cooldown": 1
   },
   "GOLD:WAIT_LONG_TRIGGER:4117.0": {
-    "cooldown": 3
-  },
-  "GOLD:WAIT_SHORT_TRIGGER:4061.88": {
-    "cooldown": 7
-  },
-  "scanner:AVAX:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:AVAX:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:BTC:rsi_low": {
-    "cooldown": 7
-  },
-  "scanner:DOGE:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:DOGE:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:DOGE:volume": {
-    "cooldown": 4
-  },
-  "scanner:DOT:rsi_low": {
     "cooldown": 2
   },
-  "scanner:DOT:volume": {
+  "GOLD:WAIT_SHORT_TRIGGER:4061.88": {
+    "cooldown": 6
+  },
+  "scanner:AVAX:breakdown": {
     "cooldown": 5
+  },
+  "scanner:AVAX:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:BTC:rsi_low": {
+    "cooldown": 6
+  },
+  "scanner:DOGE:breakdown": {
+    "cooldown": 5
+  },
+  "scanner:DOGE:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:DOGE:volume": {
+    "cooldown": 3
+  },
+  "scanner:DOT:rsi_low": {
+    "cooldown": 1
+  },
+  "scanner:DOT:volume": {
+    "cooldown": 4
   },
   "scanner:ETH:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:LINK:breakdown": {
-    "cooldown": 6
-  },
-  "scanner:LINK:rsi_low": {
-    "cooldown": 6
-  },
-  "scanner:LINK:volume": {
-    "cooldown": 6
-  },
-  "scanner:SHIB:breakdown": {
-    "cooldown": 7
-  },
-  "scanner:SHIB:rsi_low": {
-    "cooldown": 7
-  },
-  "scanner:SOL:rsi_low": {
-    "cooldown": 7
-  },
-  "scanner:XRP:breakdown": {
     "cooldown": 5
   },
-  "scanner:XRP:rsi_low": {
+  "scanner:LINK:breakdown": {
+    "cooldown": 5
+  },
+  "scanner:LINK:rsi_low": {
+    "cooldown": 5
+  },
+  "scanner:LINK:volume": {
+    "cooldown": 5
+  },
+  "scanner:SHIB:breakdown": {
     "cooldown": 6
+  },
+  "scanner:SHIB:rsi_low": {
+    "cooldown": 6
+  },
+  "scanner:SOL:rsi_low": {
+    "cooldown": 6
+  },
+  "scanner:XRP:breakdown": {
+    "cooldown": 4
+  },
+  "scanner:XRP:rsi_low": {
+    "cooldown": 5
   }
 }
