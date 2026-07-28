@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-28",
   "daily_r": -2.412982785088919,
   "equity": 9760.157340961641,
-  "last_evaluated_close_time": 1785240000000,
-  "missed_run_count": 52,
+  "last_evaluated_close_time": 1785250800000,
+  "missed_run_count": 54,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SHORT_OIL_BREAKDOWN_1H"
 }
