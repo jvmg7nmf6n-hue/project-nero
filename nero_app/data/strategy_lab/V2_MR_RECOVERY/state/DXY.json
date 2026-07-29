@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-29",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1785294000000,
-  "missed_run_count": 73,
+  "last_evaluated_close_time": 1785304800000,
+  "missed_run_count": 75,
   "open_trade": {
     "asset": "DXY",
     "candidate_id": "V2_MR_RECOVERY",
