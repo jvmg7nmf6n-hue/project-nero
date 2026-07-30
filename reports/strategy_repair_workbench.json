@@ -8,8 +8,8 @@
     "repair_candidate": "REPAIR_BREAKOUT_QUALITY_V1",
     "repair_label": "FIX_BREAKOUT_QUALITY",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 16,
-    "repair_net_pnl": -5.65,
+    "repair_trades": 18,
+    "repair_net_pnl": 102.93,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
@@ -64,8 +64,8 @@
     "repair_candidate": "REPAIR_BREAKOUT_QUALITY_V1",
     "repair_label": "FIX_BREAKOUT_QUALITY",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 16,
-    "repair_net_pnl": -5.65,
+    "repair_trades": 18,
+    "repair_net_pnl": 102.93,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
