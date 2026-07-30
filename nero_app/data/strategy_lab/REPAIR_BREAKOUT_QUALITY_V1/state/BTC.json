@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-07-30",
   "daily_r": 0.0,
   "equity": 9883.576341526079,
-  "last_evaluated_close_time": 1785369600000,
-  "missed_run_count": 73,
+  "last_evaluated_close_time": 1785384000000,
+  "missed_run_count": 76,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:REPAIR_BREAKOUT_QUALITY_V1"
 }
