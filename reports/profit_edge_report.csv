@@ -1,0 +1,30 @@
+candidate_id,display_label,role,verdict,total_trades,win_rate,expectancy_r,profit_factor,net_pnl,max_drawdown,edge_score,paper_weight,recovery_priority,decision,reason
+HYP_OIL_TREND_V1,HYP_OIL_TREND,CAPITAL_DRAIN,QUARANTINE,20,0.55,0.0156,0.9898,-9.45,-0.0561,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+V2_BREAKOUT_RETEST,V2_BREAKOUT_RETEST,CAPITAL_DRAIN,QUARANTINE,44,0.3636,-0.8623,0.7761,-323.01,-0.0376,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+MR_RELAXED_PULLBACK_V1,OLD_MR_RELAXED,CAPITAL_DRAIN,QUARANTINE,41,0.4146,-0.6383,0.6091,-671.4,-0.0821,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+MR_TARGET_1R_V1,OLD_MR_1R,CAPITAL_DRAIN,QUARANTINE,25,0.36,-0.8359,0.3789,-775.15,-0.0645,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+MR_REGIME_FILTER_V1,OLD_MR_REGIME,CAPITAL_DRAIN,QUARANTINE,28,0.3214,-0.8489,0.4271,-797.35,-0.0645,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+MR_DEEP_VALUE_V1,OLD_MR_DEEP,CAPITAL_DRAIN,QUARANTINE,20,0.05,-1.6624,0.0129,-1318.79,-0.0354,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+BREAKOUT_MOMENTUM_V1,OLD_BREAKOUT,CAPITAL_DRAIN,QUARANTINE,92,0.3913,-0.6675,0.5925,-1549.48,-0.0664,0.0,0.0,0,BLOCK_NEW_ENTRIES,Negative evidence is strong enough to protect the paper account.
+RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,PROFIT_CANDIDATE,WATCHLIST,8,0.25,0.5315,106.5791,106.58,0.0,100.0,0.05,3,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,PROFIT_CANDIDATE,WATCHLIST,10,0.2,0.3802,76.1445,76.14,0.0,100.0,0.1,2,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,PROFIT_CANDIDATE,WATCHLIST,10,0.2,0.197,39.4406,39.44,0.0,100.0,0.1,2,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+RMR_LONG_ONLY_EURUSD_4H,RMR_LONG_EURUSD_4H,PROFIT_CANDIDATE,WATCHLIST,12,0.1667,0.0964,7.1823,7.18,0.0,100.0,0.1,2,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,PROFIT_CANDIDATE,WATCHLIST,12,0.6667,0.1584,1.6282,173.96,-0.0341,93.63,0.094,2,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+NEW_BTC_12H_MR,NEW_BTC_12H_MR,PROFIT_CANDIDATE,WATCHLIST,6,0.6667,0.0718,1.1677,29.13,-0.0109,75.97,0.05,3,FOCUS_PAPER_ONLY,Positive edge is visible but below the promotion sample gate.
+HYP_OIL_MR_V1,HYP_OIL_MR,TOO_EARLY,INSUFFICIENT_SAMPLE,2,1.0,1.0608,212.1521,212.15,0.0,55.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+SHORT_SOL_BREAKDOWN_4H,SHORT_SOL_4H,TOO_EARLY,INSUFFICIENT_SAMPLE,1,1.0,0.1051,8.4074,8.41,0.0,55.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+NEW_BNB_12H_MR,NEW_BNB_12H_MR,TOO_EARLY,INSUFFICIENT_SAMPLE,0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+NEW_NEAR_2H_MR,NEW_NEAR_2H_MR,TOO_EARLY,INSUFFICIENT_SAMPLE,0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,TOO_EARLY,INSUFFICIENT_SAMPLE,0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+SHORT_BTC_BREAKDOWN_4H,SHORT_BTC_4H,TOO_EARLY,INSUFFICIENT_SAMPLE,0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+SHORT_OIL_BREAKDOWN_1H,SHORT_OIL_1H,TOO_EARLY,INSUFFICIENT_SAMPLE,0,0.0,0.0,0.0,0.0,0.0,40.0,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+REPAIR_MR_1R_ASYMMETRIC_V1,FIX_MR_1R_ASYM,TOO_EARLY,INSUFFICIENT_SAMPLE,2,0.0,-1.4331,0.0,-146.29,0.0,6.67,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+V2_MR_DEEP,V2_MR_DEEP,TOO_EARLY,INSUFFICIENT_SAMPLE,2,0.0,-1.2639,0.0,-211.64,0.0,6.67,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,TOO_EARLY,INSUFFICIENT_SAMPLE,1,0.0,-1.5264,0.0,-63.64,0.0,5.83,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+REPAIR_MR_REGIME_LATE_V1,FIX_MR_LATE,TOO_EARLY,INSUFFICIENT_SAMPLE,1,0.0,-1.4784,0.0,-67.81,0.0,5.83,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+SHORT_ETH_BREAKDOWN_4H,SHORT_ETH_4H,TOO_EARLY,INSUFFICIENT_SAMPLE,1,0.0,-0.8109,0.0,-73.53,0.0,5.83,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+NEW_XRP_2H_MR,NEW_XRP_2H_MR,TOO_EARLY,INSUFFICIENT_SAMPLE,1,0.0,-1.2856,0.0,-98.61,0.0,5.83,0.0,0,COLLECT_MORE_DATA,Not enough closed trades for a profit decision.
+V2_MR_RECOVERY,V2_MR_RECOVERY,WEAK_CANDIDATE,INSUFFICIENT_SAMPLE,8,0.0,-1.4777,0.0,-604.93,-0.0119,10.48,0.0,0,REDUCE_OR_REPAIR,Current sample is negative; send to Strategy Doctor if it keeps losing.
+V2_MR_REGIME,V2_MR_REGIME,WEAK_CANDIDATE,INSUFFICIENT_SAMPLE,6,0.0,-1.6931,0.0,-457.53,-0.0119,8.81,0.0,0,REDUCE_OR_REPAIR,Current sample is negative; send to Strategy Doctor if it keeps losing.
+V2_MR_REWARD,V2_MR_REWARD,WEAK_CANDIDATE,INSUFFICIENT_SAMPLE,5,0.2,-1.1963,0.1938,-265.71,-0.0074,3.43,0.0,0,REDUCE_OR_REPAIR,Current sample is negative; send to Strategy Doctor if it keeps losing.

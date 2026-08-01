@@ -1,0 +1,17 @@
+parent,proposed_variant,mode,family,parent_action,parent_trades,parent_expectancy_r,parent_profit_factor,parent_net_pnl,fixes_known_failure,evidence_quality,overfit_risk,gate_score,decision,reason
+V2_MR_REWARD,V2_MR_REWARD_V2,SHADOW_TEST_ONLY,Exit Logic,COLLECT_MORE_DATA,2,-2.092,0.0,-265.71,True,TOO_SMALL,LOW,25.4,COLLECT_EVIDENCE,Idea is not mature enough; collect more clean paper evidence first.
+NEW_BTC_12H_MR,NEW_BTC_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,1,1.125,79.021,29.13,True,TOO_SMALL,HIGH,45.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_BNB_12H_MR,NEW_BNB_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_NEAR_2H_MR,NEW_NEAR_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR_V2,SHADOW_TEST_ONLY,Pairs Research,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_BNB_12H_TREND,NEW_BNB_12H_TREND_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,0,0.0,0.0,-63.64,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_XRP_2H_MR,NEW_XRP_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,-98.61,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+V2_MR_RECOVERY,V2_MR_RECOVERY_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-604.93,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+V2_MR_REGIME,V2_MR_REGIME_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-457.53,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+V2_MR_DEEP,V2_MR_DEEP_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,1,-1.209,0.0,-211.64,True,TOO_SMALL,HIGH,7.2,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+BREAKOUT_MOMENTUM_V1,BREAKOUT_MOMENTUM_V2,SHADOW_TEST_ONLY,Momentum,REWORK,47,-0.642,0.491,-1549.48,True,EARLY_EVIDENCE,MEDIUM,47.45,REPAIR_FIRST,"Use as a repair hypothesis, but keep it paper-only until evidence improves."
+MR_RELAXED_PULLBACK_V1,MR_RELAXED_PULLBACK_V2,SHADOW_TEST_ONLY,Mean Reversion,REWORK,32,-0.724,0.533,-671.4,True,EARLY_EVIDENCE,MEDIUM,43.32,REPAIR_FIRST,"Use as a repair hypothesis, but keep it paper-only until evidence improves."
+MR_TARGET_1R_V1,MR_TARGET_1R_V2,SHADOW_TEST_ONLY,Exit Logic,COLLECT_MORE_DATA,19,-1.112,0.284,-775.15,True,EARLY_EVIDENCE,LOW,30.21,WATCHLIST_ONLY,Keep visible but do not spend major paper-test budget yet.
+MR_DEEP_VALUE_V1,MR_DEEP_VALUE_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,10,-1.991,0.0,-1318.79,True,EARLY_EVIDENCE,MEDIUM,29.0,WATCHLIST_ONLY,Keep visible but do not spend major paper-test budget yet.
+MR_REGIME_FILTER_V1,MR_REGIME_FILTER_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,21,-1.112,0.324,-797.35,True,EARLY_EVIDENCE,MEDIUM,23.09,WATCHLIST_ONLY,Keep visible but do not spend major paper-test budget yet.
+V2_BREAKOUT_RETEST,V2_BREAKOUT_RETEST_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,17,-1.341,0.262,-323.01,True,EARLY_EVIDENCE,MEDIUM,21.54,WATCHLIST_ONLY,Keep visible but do not spend major paper-test budget yet.
