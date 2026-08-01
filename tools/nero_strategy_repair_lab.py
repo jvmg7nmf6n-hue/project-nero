@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import sys
 from pathlib import Path
@@ -15,11 +15,16 @@ def main() -> None:
     print(f"Strategy Repair Lab complete. attempts={len(report)}")
     if report.empty:
         return
+    decisions = report["promotion_decision"].value_counts().to_dict() if "promotion_decision" in report else {}
+    print("Repair decisions: " + ", ".join(f"{key}={value}" for key, value in sorted(decisions.items())))
     for _, row in report.iterrows():
         print(
             f"{row['parent_label']} -> {row['repair_label']} "
             f"attempt={int(row['attempt_number'])}/{int(row['max_attempts'])} "
-            f"status={row['status']} mode={row['fresh_data_mode']}"
+            f"status={row['status']} decision={row.get('promotion_decision', 'UNKNOWN')} "
+            f"reason={row.get('failure_reason_code', 'UNKNOWN')} "
+            f"repair_trades={int(row.get('repair_trades', 0))} "
+            f"delta={float(row.get('repair_vs_parent_net_delta', 0.0)):.2f}"
         )
 
 

@@ -707,7 +707,33 @@ def _render_strategy_evolution_tab() -> None:
     if not repair_lab.empty:
         st.subheader("Repair Lab Fresh-Data Guard")
         st.caption("Every repair attempt must use a genuinely unseen historical window or forward paper tracking from today. Same-window retests are blocked.")
-        st.dataframe(repair_lab, use_container_width=True, hide_index=True)
+        decision_counts = repair_lab["promotion_decision"].value_counts().to_dict() if "promotion_decision" in repair_lab else {}
+        col_a, col_b, col_c, col_d = st.columns(4)
+        col_a.metric("Repair Lines", str(len(repair_lab)))
+        col_b.metric("Collecting", str(decision_counts.get("COLLECT_FRESH_DATA", 0)))
+        col_c.metric("Design Needed", str(decision_counts.get("DESIGN_REQUIRED", 0)))
+        col_d.metric("Dead After 4", str(decision_counts.get("PERMANENTLY_DEAD", 0)))
+        if {"dashboard_lineage_label", "repair_vs_parent_net_delta"}.issubset(repair_lab.columns):
+            chart_rows = repair_lab[["dashboard_lineage_label", "repair_vs_parent_net_delta"]].copy()
+            chart_rows["repair_vs_parent_net_delta"] = pd.to_numeric(chart_rows["repair_vs_parent_net_delta"], errors="coerce").fillna(0.0)
+            chart_rows = chart_rows.set_index("dashboard_lineage_label")
+            st.bar_chart(chart_rows, use_container_width=True)
+        preferred = [
+            "parent_label",
+            "repair_label",
+            "attempt_number",
+            "failure_reason_code",
+            "repair_trades",
+            "repair_net_pnl",
+            "repair_vs_parent_net_delta",
+            "sample_milestone",
+            "promotion_decision",
+            "lineage_status",
+            "random_baseline_status",
+            "anti_overfit_guard",
+        ]
+        visible = repair_lab[[column for column in preferred if column in repair_lab.columns] + [column for column in repair_lab.columns if column not in preferred]]
+        st.dataframe(visible, use_container_width=True, hide_index=True)
     if report.asset_action_rows:
         st.subheader("Asset Failure Correction")
         st.caption("NERO separates promising assets from weak or data-blocked areas before proposing new hypotheses.")
@@ -1753,14 +1779,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
