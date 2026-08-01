@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +22,7 @@ from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.etf_flow_intelligence import fetch_etf_flow_score
 from nero_app.core.gold_real_yield import fetch_gold_real_yield_score
+from nero_app.core.hypothesis_quality_gate import build_hypothesis_quality_gate
 from nero_app.core.historical_market_memory import (
     format_regime_report,
     infer_environment_tags,
@@ -42,8 +43,10 @@ from nero_app.core.strategy_lab_agent import CANDIDATES, DEFAULT_REPORT_DIR as S
 from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
 from nero_app.core.strategy_repair_workbench import build_strategy_repair_workbench
+from nero_app.core.strategy_repair_lab import build_strategy_repair_lab_report
 from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
+from nero_app.core.profit_edge_engine import build_profit_edge_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -513,6 +516,55 @@ def _render_strategy_research_lab_tab() -> None:
     st.warning("Safety rule: candidates are RESEARCH_ONLY. NERO must not auto-change strategy parameters without manual version approval.")
 
 
+def _render_profit_edge_engine_tab() -> None:
+    st.subheader("Profit Edge Engine")
+    st.caption("Profit-seeking evidence filter. It ranks paper candidates, blocks capital drains, and tracks whether positive edges can recover historical strategy drag.")
+    try:
+        edge_report, edge_summary = build_profit_edge_report()
+    except Exception as exc:  # pragma: no cover - dashboard should survive report errors
+        st.warning(f"Profit Edge Engine could not be built: {exc}")
+        return
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    col_a.metric("Status", edge_summary.status)
+    col_b.metric("Profit Candidates", str(edge_summary.profit_candidates))
+    col_c.metric("Capital Drains", str(edge_summary.capital_drains))
+    col_d.metric("Top Edge", edge_summary.top_candidate)
+    col_e.metric("Recovery Ratio", f"{edge_summary.recovery_ratio:.0%}")
+    col_f, col_g, col_h = st.columns(3)
+    col_f.metric("Positive Pool", f"${edge_summary.evidence_pool_pnl:,.2f}")
+    col_g.metric("Blocked Drag", f"${edge_summary.blocked_drag_pnl:,.2f}")
+    col_h.metric("Recovery Gap", f"${edge_summary.recovery_gap:,.2f}")
+    for note in edge_summary.notes:
+        st.info(note)
+    if edge_report.empty:
+        st.info("No profit-edge report yet. Run the Strategy Lab workflow first.")
+        return
+    display = edge_report.copy()
+    preferred_columns = [
+        "display_label",
+        "role",
+        "decision",
+        "paper_weight",
+        "recovery_priority",
+        "total_trades",
+        "win_rate",
+        "expectancy_r",
+        "profit_factor",
+        "net_pnl",
+        "edge_score",
+        "reason",
+    ]
+    display = display[[column for column in preferred_columns if column in display.columns]]
+    for column in ["win_rate", "paper_weight"]:
+        if column in display:
+            display[column] = pd.to_numeric(display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.0%}")
+    for column in ["expectancy_r", "profit_factor", "net_pnl", "edge_score"]:
+        if column in display:
+            display[column] = pd.to_numeric(display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.2f}")
+    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.warning("This engine is paper-only. It is a focus and loss-containment tool, not a real-money trade instruction.")
+
+
 def _render_strategy_test_lab_tab() -> None:
     st.subheader("Strategy TEST Lab")
     st.caption("Old strategies plus new evidence candidates. No real orders. GitHub Actions records evidence so NERO can rank strategies after enough trades.")
@@ -651,6 +703,11 @@ def _render_strategy_evolution_tab() -> None:
             "Repairs stay paper-only until release gates are met."
         )
         st.dataframe(repair_workbench, use_container_width=True, hide_index=True)
+    repair_lab = build_strategy_repair_lab_report()
+    if not repair_lab.empty:
+        st.subheader("Repair Lab Fresh-Data Guard")
+        st.caption("Every repair attempt must use a genuinely unseen historical window or forward paper tracking from today. Same-window retests are blocked.")
+        st.dataframe(repair_lab, use_container_width=True, hide_index=True)
     if report.asset_action_rows:
         st.subheader("Asset Failure Correction")
         st.caption("NERO separates promising assets from weak or data-blocked areas before proposing new hypotheses.")
@@ -660,6 +717,48 @@ def _render_strategy_evolution_tab() -> None:
         st.dataframe(pd.DataFrame(report.variant_rows), use_container_width=True, hide_index=True)
     st.warning("Autonomy safety: NERO can propose and shadow-test improvements, but production strategy changes must be versioned and audited.")
 
+
+def _render_hypothesis_quality_gate_tab() -> None:
+    st.subheader("Hypothesis Quality Gate")
+    st.caption("Pre-deployment brain filter: scores new and repair hypotheses before they receive fresh paper-test budget.")
+    try:
+        gate_report, gate_summary = build_hypothesis_quality_gate()
+    except Exception as exc:
+        st.warning(f"Hypothesis Quality Gate could not be built: {exc}")
+        return
+
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    col_a.metric("Status", gate_summary.status)
+    col_b.metric("Approved", str(gate_summary.approved_shadow_tests))
+    col_c.metric("Repair First", str(gate_summary.repair_first))
+    col_d.metric("Rejected", str(gate_summary.rejected))
+    col_e.metric("Avg Score", f"{gate_summary.average_score:.0f}/100")
+    st.metric("Top Hypothesis", gate_summary.top_hypothesis)
+    for note in gate_summary.notes:
+        st.info(note)
+    if gate_report.empty:
+        st.info("No hypothesis gate report yet. Run Strategy Evolution first.")
+        return
+
+    display = gate_report.copy()
+    preferred = [
+        "proposed_variant",
+        "decision",
+        "gate_score",
+        "parent",
+        "family",
+        "parent_trades",
+        "parent_expectancy_r",
+        "parent_profit_factor",
+        "parent_net_pnl",
+        "fixes_known_failure",
+        "evidence_quality",
+        "overfit_risk",
+        "reason",
+    ]
+    display = display[[column for column in preferred if column in display.columns]]
+    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.warning("Gate decisions are paper-research controls, not live trade instructions.")
 def _load_strategy_lab_rows() -> list[dict[str, object]]:
     summary_path = STRATEGY_LAB_REPORT_DIR / "strategy_lab_summary.csv"
     if not summary_path.exists():
@@ -1307,8 +1406,8 @@ def main() -> None:
 
     _render_opening_market_deck(asset, market_data, intraday_data, trade_plan, sentiment_result, opening_timeframe_label)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, test_lab_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "TEST Lab", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, hypothesis_gate_tab, test_lab_tab, profit_edge_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "Hypothesis Gate", "TEST Lab", "Profit Engine", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1510,8 +1609,14 @@ def main() -> None:
     with evolution_tab:
         _render_strategy_evolution_tab()
 
+    with hypothesis_gate_tab:
+        _render_hypothesis_quality_gate_tab()
+
     with test_lab_tab:
         _render_strategy_test_lab_tab()
+
+    with profit_edge_tab:
+        _render_profit_edge_engine_tab()
 
     with market_memory_tab:
         _render_market_memory_tab(asset, enriched_headline)
@@ -1648,6 +1753,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 
 
