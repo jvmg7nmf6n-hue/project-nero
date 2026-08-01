@@ -1,26 +1,35 @@
 {
   "GOLD:WAIT_SHORT_TRIGGER:4020.4": {
-    "cooldown": 3
+    "cooldown": 2
   },
   "GOLD:WAIT_SHORT_TRIGGER:4020.42": {
-    "cooldown": 4
+    "cooldown": 3
   },
   "GOLD:WAIT_SHORT_TRIGGER:4020.43": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "GOLD:WAIT_SHORT_TRIGGER:4020.48": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "GOLD:WAIT_SHORT_TRIGGER:4020.53": {
+    "cooldown": 6
+  },
+  "GOLD:WAIT_SHORT_TRIGGER:4020.58": {
     "cooldown": 7
   },
   "scanner:ADA:volume": {
-    "cooldown": 4
+    "cooldown": 3
   },
   "scanner:DOGE:volume": {
-    "cooldown": 2
+    "cooldown": 1
+  },
+  "scanner:LTC:rsi_low": {
+    "cooldown": 7
   },
   "scanner:SHIB:breakout": {
-    "cooldown": 2
+    "cooldown": 1
+  },
+  "scanner:SHIB:volume": {
+    "cooldown": 7
   }
 }
