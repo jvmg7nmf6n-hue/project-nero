@@ -1,8 +1,8 @@
 {
-  "daily_guard_day": "2026-07-31",
+  "daily_guard_day": "2026-08-01",
   "daily_r": 0.0,
   "equity": 10076.144458470559,
-  "last_evaluated_close_time": 1785456000000,
+  "last_evaluated_close_time": 1785542400000,
   "missed_run_count": 0,
   "open_trade": null,
   "range_adx_break_count": 0,
