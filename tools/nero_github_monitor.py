@@ -84,7 +84,16 @@ def main() -> None:
 
 
 
+def _truthy(value: str | None, default: bool = False) -> bool:
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _run_market_scanner(state: dict[str, dict[str, int]], market_client: MarketDataClient) -> int:
+    if not _truthy(os.getenv("NERO_SCANNER_ALERTS_ENABLED"), default=False):
+        print("scanner alerts disabled; set NERO_SCANNER_ALERTS_ENABLED=true to enable.")
+        return 0
     raw_assets = os.getenv("NERO_SCANNER_ASSETS", ",".join(DEFAULT_SCANNER_ASSETS))
     assets = [asset.strip().upper() for asset in raw_assets.split(",") if asset.strip()]
     if not assets:

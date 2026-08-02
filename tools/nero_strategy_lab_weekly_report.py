@@ -68,29 +68,39 @@ def build_strategy_lab_weekly_report(summary: pd.DataFrame | None = None, now: d
     return "\n".join(lines)
 
 
+def _truthy(value: str | None, default: bool = False) -> bool:
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def send_report(report: str) -> None:
     receiver_email = _env_first("RECEIVER_EMAIL", default="tareekh39@gmail.com")
     sender_email = _env_first("SENDER_EMAIL", "GMAIL_EMAIL", "GMAIL_USER", "EMAIL_SENDER", default=receiver_email)
     app_password = _env_first("EMAIL_APP_PASSWORD", "GMAIL_APP_PASSWORD", "APP_PASSWORD", "EMAIL_PASSWORD")
     smtp_host = _env_first("SMTP_HOST", default="smtp.gmail.com")
     smtp_port = int(_env_first("SMTP_PORT", default="465") or "465")
-    result = send_email_alert(
-        smtp_host=smtp_host,
-        smtp_port=smtp_port,
-        sender_email=sender_email,
-        app_password=app_password,
-        receiver_email=receiver_email,
-        subject=f"NERO Strategy TEST Lab Weekly Report | {datetime.now(PKT).strftime('%Y-%m-%d')}",
-        message=report,
-    )
-    print(result.message)
+    result = None
+    if _truthy(os.getenv("STRATEGY_LAB_WEEKLY_EMAIL_ENABLED"), default=False):
+        result = send_email_alert(
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            sender_email=sender_email,
+            app_password=app_password,
+            receiver_email=receiver_email,
+            subject=f"NERO Strategy TEST Lab Weekly Report | {datetime.now(PKT).strftime('%Y-%m-%d')}",
+            message=report,
+        )
+        print(result.message)
+    else:
+        print("Strategy Lab weekly email skipped; set STRATEGY_LAB_WEEKLY_EMAIL_ENABLED=true to enable.")
     topic = os.getenv("NTFY_TOPIC", "").strip()
-    if topic:
+    if topic and _truthy(os.getenv("STRATEGY_LAB_WEEKLY_NTFY_ENABLED"), default=True):
         ntfy = send_ntfy_alert(
             server_url=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
             topic=topic,
             title="NERO Strategy TEST Lab Report",
-            message="Friday strategy lab report emailed." if result.ok else result.message,
+            message="Friday strategy lab report generated." if result is None else ("Friday strategy lab report emailed." if result.ok else result.message),
             priority="default",
             tags="bar_chart",
         )

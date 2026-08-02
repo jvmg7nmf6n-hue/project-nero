@@ -35,7 +35,16 @@ def main() -> None:
         _send_ntfy(alert)
 
 
+def _truthy(value: str | None, default: bool = False) -> bool:
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _send_ntfy(message: str) -> None:
+    if "ERROR" in message and not _truthy(os.getenv("MR_ALERT_ERRORS"), default=False):
+        print("Ntfy skipped for Mean Reversion error; set MR_ALERT_ERRORS=true to enable.")
+        return
     topic = os.getenv("NTFY_TOPIC", "").strip()
     if not topic:
         return

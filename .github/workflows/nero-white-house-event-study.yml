@@ -54,7 +54,7 @@ jobs:
       - name: Notify event study refresh
         if: always()
         run: |
-          if [ -n "${NTFY_TOPIC}" ]; then
+          if [ "${WHITE_HOUSE_NTFY_ENABLED:-false}" = "true" ] && [ -n "${NTFY_TOPIC}" ]; then
             STATUS="${{ job.status }}"
             curl -sS -X POST "${NTFY_SERVER:-https://ntfy.sh}/${NTFY_TOPIC}" \
               -H "Title: NERO White House Event Study" \
@@ -67,6 +67,7 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+          WHITE_HOUSE_NTFY_ENABLED: "false"
       - name: Upload event study artifacts
         uses: actions/upload-artifact@v4
         with:

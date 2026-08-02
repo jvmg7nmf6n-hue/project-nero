@@ -162,6 +162,12 @@ def _mean_reversion_lines(mean_reversion: pd.DataFrame) -> list[str]:
     return lines or ["No asset rows found in mean-reversion report."]
 
 
+def _truthy(value: str | None, default: bool = False) -> bool:
+    if value is None or value == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def send_weekly_report(report: str) -> None:
     subject = f"NERO Weekly Performance Report | {datetime.now(PKT).strftime('%Y-%m-%d')}"
     receiver_email = _env_first("RECEIVER_EMAIL", default="tareekh39@gmail.com")
@@ -180,24 +186,28 @@ def send_weekly_report(report: str) -> None:
     if missing:
         print(f"Missing email secrets: {', '.join(missing)}")
 
-    email_result = send_email_alert(
-        smtp_host=smtp_host,
-        smtp_port=smtp_port,
-        sender_email=sender_email,
-        app_password=app_password,
-        receiver_email=receiver_email,
-        subject=subject,
-        message=report,
-    )
-    print(email_result.message)
+    email_result = None
+    if _truthy(os.getenv("NERO_WEEKLY_EMAIL_ENABLED"), default=False):
+        email_result = send_email_alert(
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            sender_email=sender_email,
+            app_password=app_password,
+            receiver_email=receiver_email,
+            subject=subject,
+            message=report,
+        )
+        print(email_result.message)
+    else:
+        print("Weekly NERO email skipped; set NERO_WEEKLY_EMAIL_ENABLED=true to enable.")
 
     topic = os.getenv("NTFY_TOPIC", "").strip()
-    if topic:
+    if topic and _truthy(os.getenv("NERO_WEEKLY_NTFY_ENABLED"), default=False):
         ntfy_result = send_ntfy_alert(
             server_url=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
             topic=topic,
             title="NERO Weekly Report",
-            message="NERO weekly performance email sent." if email_result.ok else email_result.message,
+            message="NERO weekly performance report generated." if email_result is None else ("NERO weekly performance email sent." if email_result.ok else email_result.message),
             priority="default",
             tags="bar_chart",
         )

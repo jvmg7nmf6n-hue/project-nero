@@ -31,8 +31,10 @@ def _send_ntfy(message: str) -> None:
     topic = os.getenv("NTFY_TOPIC", "").strip()
     if not topic:
         return
-    if "ERROR" in message and os.getenv("STRATEGY_LAB_ALERT_ERRORS", "false").strip().lower() not in {"1", "true", "yes", "on"}:
-        print("Ntfy skipped for Strategy Lab data-feed error; set STRATEGY_LAB_ALERT_ERRORS=true to enable.")
+    lowered = message.lower()
+    alert_errors = os.getenv("STRATEGY_LAB_ALERT_ERRORS", "false").strip().lower() in {"1", "true", "yes", "on"}
+    if ("error" in lowered or "stale feed" in lowered) and not alert_errors:
+        print("Ntfy skipped for Strategy Lab error/stale-feed alert; set STRATEGY_LAB_ALERT_ERRORS=true to enable.")
         return
     priority = "high" if any(token in message for token in ["PAPER_ENTRY", "TARGET", "SL"]) else "default"
     result = send_ntfy_alert(
