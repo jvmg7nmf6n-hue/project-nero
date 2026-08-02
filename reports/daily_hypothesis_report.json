@@ -276,12 +276,7 @@
       "status": "FORWARD_REPAIR_TRACKING"
     }
   ],
-  "new_watchlist_ids": [
-    "NEW_BTC_12H_MR",
-    "RMR_ADX_FALLING_ETH_4H",
-    "RMR_CONFIRMATION_BTC_1D",
-    "RMR_LONG_ONLY_BTC_1D"
-  ],
+  "new_watchlist_ids": [],
   "source_files": {
     "profit_edge": "reports/profit_edge_report.csv",
     "repair_lab": "reports/strategy_repair_lab_attempts.csv",
@@ -360,8 +355,8 @@
   "summary": {
     "active_new_hypotheses": 5,
     "design_required": 2,
-    "new_watchlist_additions": 4,
-    "notification_due": true,
+    "new_watchlist_additions": 0,
+    "notification_due": false,
     "report_date": "2026-08-02",
     "successful_strategies": 4,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
