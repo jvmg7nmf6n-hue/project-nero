@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-08-04",
   "daily_r": 0.0,
   "equity": 8990.244029162484,
-  "last_evaluated_close_time": 1785870000000,
-  "missed_run_count": 529,
+  "last_evaluated_close_time": 1785877200000,
+  "missed_run_count": 530,
   "open_trade": null,
   "strategy_version": "mean-reversion-v1.0.0"
 }
