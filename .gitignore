@@ -13,3 +13,4 @@ work/
 outputs/
 local_untracked_backup_*/
 .cache/
+audit_exports/

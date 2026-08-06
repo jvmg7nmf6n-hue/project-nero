@@ -64,6 +64,24 @@ class StrategyQuarantineTests(unittest.TestCase):
         self.assertEqual(summary.entries, 0)
         self.assertTrue(any("QUARANTINED_BY_VERIFICATION" in alert for alert in summary.alerts))
 
+    def test_manual_blocked_strategies_are_skipped_even_without_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            missing_quarantine = base / "missing_quarantine_report.csv"
+            env = {
+                "STRATEGY_LAB_CANDIDATES": "BREAKOUT_MOMENTUM_V1,MR_DEEP_VALUE_V1,MR_REGIME_FILTER_V1,MR_TARGET_1R_V1,MR_RELAXED_PULLBACK_V1",
+                "STRATEGY_QUARANTINE_REPORT": str(missing_quarantine),
+                "STRATEGY_LAB_DATA_DIR": str(base / "data"),
+                "STRATEGY_LAB_REPORT_DIR": str(base / "reports"),
+            }
+            with patch.dict(os.environ, env, clear=False):
+                summary = run_strategy_lab(assets={"BTC": "BTCUSDT"})
+
+        self.assertEqual(summary.candidate_count, 5)
+        self.assertEqual(summary.evaluated, 0)
+        self.assertEqual(summary.entries, 0)
+        self.assertEqual(sum("QUARANTINED_BY_VERIFICATION" in alert for alert in summary.alerts), 5)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -89,6 +89,14 @@ MARKET_HOURS_ASSETS = {
 
 DEFAULT_QUARANTINED_ASSETS = {"ETH", "NEAR", "EURUSD", "GBPUSD", "AUDUSD", "COPPER_FUT"}
 
+MANUAL_BLOCKED_STRATEGIES = {
+    "BREAKOUT_MOMENTUM_V1",
+    "MR_DEEP_VALUE_V1",
+    "MR_REGIME_FILTER_V1",
+    "MR_TARGET_1R_V1",
+    "MR_RELAXED_PULLBACK_V1",
+}
+
 
 class TargetMode(str, Enum):
     FROZEN_MA20 = "FROZEN_MA20"
@@ -1254,6 +1262,7 @@ def run_strategy_lab(assets: dict[str, str] | None = None, now: datetime | None 
     quarantine_enabled = os.getenv("STRATEGY_QUARANTINE_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
     quarantine_path = Path(os.getenv("STRATEGY_QUARANTINE_REPORT", str(DEFAULT_QUARANTINE_CSV)))
     quarantined = load_quarantined_strategy_ids(quarantine_path) if quarantine_enabled else set()
+    quarantined |= MANUAL_BLOCKED_STRATEGIES
     for spec in selected:
         if not spec.enabled:
             continue
