@@ -59,8 +59,10 @@ jobs:
         run: |
           git config user.name "nero-strategy-lab"
           git config user.email "actions@users.noreply.github.com"
-          git add nero_app/data/strategy_lab reports/strategy_lab_*.csv reports/strategy_lab_*.json reports/strategy_contracts.csv reports/strategy_contracts.json reports/strategy_run_manifest.json reports/strategy_data_quality_manifest.csv reports/strategy_data_quality_manifest.json reports/strategy_verification_report.csv reports/strategy_verification_report.json reports/strategy_quarantine_report.csv reports/strategy_quarantine_report.json reports/profit_edge_report.csv reports/profit_edge_report.json reports/strategy_repair_workbench.csv reports/strategy_repair_workbench.json reports/strategy_repair_lab_attempts.csv reports/strategy_repair_lab_attempts.json reports/hypothesis_quality_gate.csv reports/hypothesis_quality_gate.json reports/daily_hypothesis_report* reports/research_integrity_*.csv reports/research_integrity_*.json
+          git add nero_app/data/strategy_lab reports/*.csv reports/*.json reports/*.txt
+          git status --short
           git commit -m "Update strategy lab records" || echo "no strategy lab changes"
+          git status --short
           git pull --rebase origin main
           git push || echo "nothing to push"
 
