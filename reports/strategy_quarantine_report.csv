@@ -6,3 +6,4 @@ MR_TARGET_1R_V1,OLD_MR_1R,QUARANTINE,True,25,-775.15,-0.8359,0.3789,Negative evi
 MR_RELAXED_PULLBACK_V1,OLD_MR_RELAXED,QUARANTINE,True,41,-671.4,-0.6383,0.6091,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
 V2_BREAKOUT_RETEST,V2_BREAKOUT_RETEST,QUARANTINE,True,44,-323.01,-0.8623,0.7761,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
 HYP_OIL_TREND_V1,HYP_OIL_TREND,QUARANTINE,True,20,-9.45,0.0156,0.9898,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
+REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,QUARANTINE,True,26,230.58,-0.2924,1.3706,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.

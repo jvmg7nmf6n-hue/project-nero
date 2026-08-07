@@ -82,5 +82,17 @@
     "profit_factor": 0.9898,
     "reason": "Negative evidence with at least 20 trades.",
     "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
+    "candidate_id": "REPAIR_BREAKOUT_QUALITY_V1",
+    "display_label": "FIX_BREAKOUT_QUALITY",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 26,
+    "net_pnl": 230.58,
+    "expectancy_r": -0.2924,
+    "profit_factor": 1.3706,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
   }
 ]
