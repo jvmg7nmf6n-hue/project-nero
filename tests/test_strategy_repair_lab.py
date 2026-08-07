@@ -69,7 +69,8 @@ class StrategyRepairLabTests(unittest.TestCase):
         self.assertEqual(row["forward_start"], "2026-08-01")
         self.assertEqual(row["failure_reason_code"], "CAPITAL_DRAIN")
         self.assertEqual(row["sample_milestone"], "UNDER_30_COLLECTING")
-        self.assertEqual(row["promotion_decision"], "COLLECT_FRESH_DATA")
+        self.assertEqual(row["promotion_decision"], "COLLECT_FRESH_DATA_ACCOUNTING_ONLY")
+        self.assertEqual(row["repair_quality_label"], "ACCOUNTING_PROFIT_ONLY")
 
     def test_active_forward_rows_do_not_increment_attempt_count(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -146,6 +147,82 @@ class StrategyRepairLabTests(unittest.TestCase):
         self.assertEqual(row["promotion_decision"], "PERMANENTLY_DEAD")
         self.assertEqual(row["lineage_status"], "DEAD_AFTER_4")
         self.assertEqual(int(row["attempt_number"]), MAX_REPAIR_ATTEMPTS)
+
+
+    def test_accounting_profit_only_repair_is_not_promoted_as_r_plus(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            workbench = base / "workbench.csv"
+            summary = base / "summary.csv"
+            pd.DataFrame(
+                [
+                    {
+                        "quarantined_strategy": "OLD_BREAKOUT",
+                        "quarantined_label": "OLD_BREAKOUT",
+                        "repair_candidate": "FIX_BREAKOUT_QUALITY",
+                        "repair_label": "FIX_BREAKOUT_QUALITY",
+                    }
+                ]
+            ).to_csv(workbench, index=False)
+            pd.DataFrame(
+                [
+                    {"candidate_id": "OLD_BREAKOUT", "total_trades": 92, "net_pnl": -1549.48, "expectancy_r": -0.32, "profit_factor": 0.55},
+                    {"candidate_id": "FIX_BREAKOUT_QUALITY", "total_trades": 19, "net_pnl": 169.55, "expectancy_r": -0.3586, "profit_factor": 1.37},
+                ]
+            ).to_csv(summary, index=False)
+
+            report = build_strategy_repair_lab_report(
+                workbench_csv=workbench,
+                attempts_csv=base / "attempts.csv",
+                attempts_json=base / "attempts.json",
+                original_windows_csv=base / "missing_windows.csv",
+                summary_csv=summary,
+                lineage_csv=base / "lineage.csv",
+                lineage_json=base / "lineage.json",
+                now=datetime(2026, 8, 7, tzinfo=timezone.utc),
+            )
+
+        row = report.iloc[0]
+        self.assertEqual(row["repair_quality_label"], "ACCOUNTING_PROFIT_ONLY")
+        self.assertEqual(row["promotion_decision"], "COLLECT_FRESH_DATA_ACCOUNTING_ONLY")
+        self.assertIn("R is not", row["next_action"])
+
+    def test_r_plus_repair_gets_early_label_but_still_needs_sample(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            workbench = base / "workbench.csv"
+            summary = base / "summary.csv"
+            pd.DataFrame(
+                [
+                    {
+                        "quarantined_strategy": "OLD_BAD",
+                        "quarantined_label": "OLD_BAD",
+                        "repair_candidate": "FIX_R_PLUS",
+                        "repair_label": "FIX_R_PLUS",
+                    }
+                ]
+            ).to_csv(workbench, index=False)
+            pd.DataFrame(
+                [
+                    {"candidate_id": "OLD_BAD", "total_trades": 40, "net_pnl": -500.0, "expectancy_r": -0.2, "profit_factor": 0.6},
+                    {"candidate_id": "FIX_R_PLUS", "total_trades": 12, "net_pnl": 120.0, "expectancy_r": 0.12, "profit_factor": 1.45},
+                ]
+            ).to_csv(summary, index=False)
+
+            report = build_strategy_repair_lab_report(
+                workbench_csv=workbench,
+                attempts_csv=base / "attempts.csv",
+                attempts_json=base / "attempts.json",
+                original_windows_csv=base / "missing_windows.csv",
+                summary_csv=summary,
+                lineage_csv=base / "lineage.csv",
+                lineage_json=base / "lineage.json",
+                now=datetime(2026, 8, 7, tzinfo=timezone.utc),
+            )
+
+        row = report.iloc[0]
+        self.assertEqual(row["repair_quality_label"], "R_PLUS_EARLY")
+        self.assertEqual(row["promotion_decision"], "COLLECT_FRESH_DATA")
 
     def test_repair_can_reach_shadow_promotion_only_after_baseline_and_sample(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -65,6 +65,8 @@ class RepairLabAttempt:
     repair_expectancy_r: float
     repair_profit_factor: float
     repair_vs_parent_net_delta: float
+    repair_quality_label: str
+    repair_quality_detail: str
     failure_reason_code: str
     failure_reason_detail: str
     repair_hypothesis_schema_version: str
@@ -186,6 +188,7 @@ def _attempt_row(
     failure_code, failure_detail = _failure_reason(row, metrics)
     milestone = _sample_milestone(metrics["repair_trades"])
     random_status, random_exp = _random_baseline(baselines, repair_candidate)
+    quality_label, quality_detail = _repair_quality(metrics, random_status=random_status)
     beats_parent = metrics["repair_net_pnl"] > metrics["parent_net_pnl"] and metrics["repair_expectancy_r"] > metrics["parent_expectancy_r"]
     beats_random = random_status == "BASELINE_NOT_AVAILABLE" or metrics["repair_expectancy_r"] > random_exp
     promotion = _promotion_decision(status, metrics, beats_parent, beats_random, random_status)
@@ -210,6 +213,8 @@ def _attempt_row(
         repair_expectancy_r=round(metrics["repair_expectancy_r"], 4),
         repair_profit_factor=round(metrics["repair_profit_factor"], 4),
         repair_vs_parent_net_delta=round(metrics["repair_net_pnl"] - metrics["parent_net_pnl"], 2),
+        repair_quality_label=quality_label,
+        repair_quality_detail=quality_detail,
         failure_reason_code=failure_code,
         failure_reason_detail=failure_detail,
         repair_hypothesis_schema_version=REPAIR_SCHEMA_VERSION,
@@ -259,6 +264,8 @@ def _design_required_row(row: dict[str, Any], now: datetime, summary: pd.DataFra
         repair_expectancy_r=0.0,
         repair_profit_factor=0.0,
         repair_vs_parent_net_delta=round(0.0 - metrics["parent_net_pnl"], 2),
+        repair_quality_label="NO_REPAIR_SPEC",
+        repair_quality_detail="No versioned repair exists yet, so there is no repair edge to judge.",
         failure_reason_code=failure_code,
         failure_reason_detail=failure_detail,
         repair_hypothesis_schema_version=REPAIR_SCHEMA_VERSION,
@@ -306,6 +313,8 @@ def _cap_reached_row(row: dict[str, Any], attempt_count: int, now: datetime, sum
         repair_expectancy_r=round(metrics["repair_expectancy_r"], 4),
         repair_profit_factor=round(metrics["repair_profit_factor"], 4),
         repair_vs_parent_net_delta=round(metrics["repair_net_pnl"] - metrics["parent_net_pnl"], 2),
+        repair_quality_label="ATTEMPT_CAP_REACHED",
+        repair_quality_detail="Repair lineage has exhausted the four-attempt cap.",
         failure_reason_code=failure_code,
         failure_reason_detail=failure_detail,
         repair_hypothesis_schema_version=REPAIR_SCHEMA_VERSION,
@@ -379,6 +388,8 @@ def _promotion_decision(status: str, metrics: dict[str, float | int], beats_pare
     if status == "DESIGN_REQUIRED":
         return "DESIGN_REQUIRED"
     if repair_trades < MIN_FORWARD_TRADES_FOR_REVIEW:
+        if repair_net > 0 and repair_exp <= 0:
+            return "COLLECT_FRESH_DATA_ACCOUNTING_ONLY"
         return "COLLECT_FRESH_DATA"
     if random_status == "BASELINE_NOT_AVAILABLE":
         return "COLLECT_RANDOM_BASELINE"
@@ -395,6 +406,31 @@ def _promotion_decision(status: str, metrics: dict[str, float | int], beats_pare
     return "WATCHLIST_REPAIR"
 
 
+def _repair_quality(metrics: dict[str, float | int], random_status: str) -> tuple[str, str]:
+    repair_trades = int(metrics["repair_trades"])
+    repair_net = float(metrics["repair_net_pnl"])
+    repair_exp = float(metrics["repair_expectancy_r"])
+    repair_pf = float(metrics["repair_profit_factor"])
+    if repair_trades <= 0:
+        return "NO_REPAIR_TRADES", "Repair candidate has no observed paper trades yet."
+    if repair_net > 0 and repair_exp <= 0:
+        return (
+            "ACCOUNTING_PROFIT_ONLY",
+            "Net dollars are positive, but R-expectancy is not positive; treat as unproven and redesign risk/reward before promotion.",
+        )
+    if repair_net <= 0 and repair_exp <= 0:
+        return "NEGATIVE_REPAIR", "Repair is still losing in both net P/L and R-expectancy."
+    if repair_net > 0 and repair_exp > 0 and repair_pf >= PROMOTION_PROFIT_FACTOR:
+        if repair_trades < MIN_FORWARD_TRADES_FOR_REVIEW:
+            return "R_PLUS_EARLY", f"R-positive repair, but sample is below {MIN_FORWARD_TRADES_FOR_REVIEW} fresh trades."
+        if random_status == "BASELINE_NOT_AVAILABLE":
+            return "R_PLUS_NEEDS_RANDOM_BASELINE", "R-positive repair needs a same-universe random-entry baseline before promotion."
+        return "R_PLUS_CANDIDATE", "Repair is positive on net P/L, R-expectancy, and profit factor gates."
+    if repair_net > 0 and repair_exp > 0:
+        return "R_PLUS_WEAK_PF", f"Repair is R-positive but profit factor is below {PROMOTION_PROFIT_FACTOR:.2f}."
+    return "MIXED_REPAIR", "Repair metrics are mixed; continue paper tracking and keep it out of promotion."
+
+
 def _sample_milestone(trades: int) -> str:
     if trades >= 100:
         return "REVIEW_100"
@@ -408,6 +444,8 @@ def _sample_milestone(trades: int) -> str:
 def _next_action(status: str, promotion: str, milestone: str) -> str:
     if promotion == "COLLECT_FRESH_DATA":
         return f"Paper-track until at least {MIN_FORWARD_TRADES_FOR_REVIEW} fresh trades; current milestone {milestone}."
+    if promotion == "COLLECT_FRESH_DATA_ACCOUNTING_ONLY":
+        return "Do not promote; collect more fresh trades and redesign risk/reward because dollars are positive but R is not."
     if promotion == "COLLECT_RANDOM_BASELINE":
         return "Build/run same-universe random-entry baseline before any promotion."
     if promotion.startswith("REJECT"):
@@ -457,6 +495,8 @@ def _lineage_report(report: pd.DataFrame) -> pd.DataFrame:
         "parent_net_pnl",
         "repair_net_pnl",
         "repair_vs_parent_net_delta",
+        "repair_quality_label",
+        "repair_quality_detail",
         "repair_trades",
         "sample_milestone",
         "random_baseline_status",
