@@ -2,7 +2,7 @@
   "daily_guard_day": "2026-08-08",
   "daily_r": 0.0,
   "equity": 10079.984154605985,
-  "last_evaluated_close_time": 1786154400000,
+  "last_evaluated_close_time": 1786158000000,
   "missed_run_count": 272,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:NEW_BNB_12H_MR"
