@@ -254,6 +254,23 @@
       "reason": "Not enough closed trades for a profit decision."
     },
     {
+      "candidate_id": "NEW_BNB_12H_TREND",
+      "display_label": "NEW_BNB_12H_TREND",
+      "role": "TOO_EARLY",
+      "verdict": "INSUFFICIENT_SAMPLE",
+      "total_trades": 11,
+      "win_rate": 0.6364,
+      "expectancy_r": -0.0655,
+      "profit_factor": 1.0434,
+      "net_pnl": 12.27,
+      "max_drawdown": -0.0119,
+      "edge_score": 55.0,
+      "paper_weight": 0.0,
+      "recovery_priority": 0,
+      "decision": "COLLECT_MORE_DATA",
+      "reason": "Not enough closed trades for a profit decision."
+    },
+    {
       "candidate_id": "NEW_NEAR_2H_MR",
       "display_label": "NEW_NEAR_2H_MR",
       "role": "TOO_EARLY",
@@ -388,23 +405,6 @@
       "recovery_priority": 0,
       "decision": "COLLECT_MORE_DATA",
       "reason": "Not enough closed trades for a profit decision."
-    },
-    {
-      "candidate_id": "NEW_BNB_12H_TREND",
-      "display_label": "NEW_BNB_12H_TREND",
-      "role": "WEAK_CANDIDATE",
-      "verdict": "INSUFFICIENT_SAMPLE",
-      "total_trades": 10,
-      "win_rate": 0.6,
-      "expectancy_r": -0.1196,
-      "profit_factor": 0.9955,
-      "net_pnl": -1.28,
-      "max_drawdown": -0.0119,
-      "edge_score": 35.0,
-      "paper_weight": 0.0,
-      "recovery_priority": 0,
-      "decision": "REDUCE_OR_REPAIR",
-      "reason": "Current sample is negative; send to Strategy Doctor if it keeps losing."
     },
     {
       "candidate_id": "RMR_LONG_ONLY_EURUSD_4H",

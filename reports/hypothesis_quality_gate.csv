@@ -1,10 +1,10 @@
 parent,proposed_variant,mode,family,parent_action,parent_trades,parent_expectancy_r,parent_profit_factor,parent_net_pnl,fixes_known_failure,evidence_quality,overfit_risk,gate_score,decision,reason
 V2_MR_REWARD,V2_MR_REWARD_V2,SHADOW_TEST_ONLY,Exit Logic,COLLECT_MORE_DATA,2,-2.092,0.0,-374.56,True,TOO_SMALL,LOW,25.4,COLLECT_EVIDENCE,Idea is not mature enough; collect more clean paper evidence first.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,1,1.125,79.021,29.13,True,TOO_SMALL,HIGH,45.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_BNB_12H_TREND,NEW_BNB_12H_TREND_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,0,0.0,0.0,12.27,True,NO_TRADES,HIGH,33.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_BNB_12H_MR,NEW_BNB_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,79.98,True,NO_TRADES,HIGH,33.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_NEAR_2H_MR,NEW_NEAR_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR_V2,SHADOW_TEST_ONLY,Pairs Research,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
-NEW_BNB_12H_TREND,NEW_BNB_12H_TREND_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,0,0.0,0.0,-1.28,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_XRP_2H_MR,NEW_XRP_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,-98.61,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 V2_MR_RECOVERY,V2_MR_RECOVERY_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-721.31,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 V2_MR_REGIME,V2_MR_REGIME_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-566.38,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
