@@ -1,29 +1,32 @@
 {
   "BTC:WAIT_LONG_TRIGGER:65090.91": {
-    "cooldown": 6
+    "cooldown": 5
   },
   "BTC:WAIT_LONG_TRIGGER:65154.36": {
+    "cooldown": 6
+  },
+  "BTC:WAIT_LONG_TRIGGER:65154.37": {
     "cooldown": 7
   },
   "BTC:WAIT_LONG_TRIGGER:65243.29": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "BTC:WAIT_LONG_TRIGGER:65303.62": {
-    "cooldown": 4
-  },
-  "BTC:WAIT_LONG_TRIGGER:65352.7": {
-    "cooldown": 1
-  },
-  "BTC:WAIT_LONG_TRIGGER:65352.92": {
-    "cooldown": 2
-  },
-  "BTC:WAIT_LONG_TRIGGER:65352.99": {
     "cooldown": 3
   },
+  "BTC:WAIT_LONG_TRIGGER:65352.92": {
+    "cooldown": 1
+  },
+  "BTC:WAIT_LONG_TRIGGER:65352.99": {
+    "cooldown": 2
+  },
+  "GOLD:WAIT_LONG_TRIGGER:4349.81": {
+    "cooldown": 7
+  },
   "GOLD:WAIT_LONG_TRIGGER:4357.33": {
-    "cooldown": 5
+    "cooldown": 4
   },
   "GOLD:WAIT_LONG_TRIGGER:4367.37": {
-    "cooldown": 4
+    "cooldown": 3
   }
 }
