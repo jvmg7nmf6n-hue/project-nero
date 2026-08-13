@@ -2,7 +2,7 @@
   "daily_guard_day": "2026-08-13",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1786633200000,
+  "last_evaluated_close_time": 1786636800000,
   "missed_run_count": 211,
   "open_trade": {
     "asset": "GOLD_FUT",
