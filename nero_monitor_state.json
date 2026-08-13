@@ -1,11 +1,14 @@
 {
   "GOLD:WAIT_LONG_TRIGGER:4442.11": {
-    "cooldown": 2
+    "cooldown": 1
   },
-  "GOLD:WAIT_SHORT_TRIGGER:4368.67": {
+  "GOLD:WAIT_SHORT_TRIGGER:4364.18": {
     "cooldown": 7
   },
-  "GOLD:WAIT_SHORT_TRIGGER:4380.8": {
+  "GOLD:WAIT_SHORT_TRIGGER:4368.67": {
     "cooldown": 6
+  },
+  "GOLD:WAIT_SHORT_TRIGGER:4380.8": {
+    "cooldown": 5
   }
 }
