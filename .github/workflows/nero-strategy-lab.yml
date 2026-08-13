@@ -39,6 +39,8 @@ jobs:
         run: python tools/nero_strategy_verification.py
       - name: Run strategy quarantine automation
         run: python tools/nero_strategy_quarantine.py
+      - name: Reconcile trusted live paper trades
+        run: python tools/nero_live_trade_status.py
       - name: Run profit edge engine
         run: python tools/nero_profit_edge_engine.py
       - name: Run strategy repair workbench

@@ -46,6 +46,7 @@ from nero_app.core.strategy_repair_workbench import build_strategy_repair_workbe
 from nero_app.core.strategy_repair_lab import build_strategy_repair_lab_report
 from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
+from nero_app.core.live_trade_status import build_live_trade_status_report
 from nero_app.core.profit_edge_engine import build_profit_edge_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
@@ -589,6 +590,43 @@ def _render_strategy_test_lab_tab() -> None:
     if total_trades < 30:
         st.warning("Still early. Reliable ranking needs about 30-50 closed trades per algo.")
     st.info("Ratings combine win rate, expectancy, profit factor, drawdown, and sample size. Use this as evidence collection, not a standalone trade command.")
+    try:
+        live_status, live_summary = build_live_trade_status_report()
+    except Exception as exc:  # pragma: no cover - dashboard should survive report errors
+        live_status = pd.DataFrame()
+        live_summary = None
+        st.warning(f"Live trade status report could not be built: {exc}")
+    if live_summary is not None:
+        st.subheader("Live Trade Reconciliation")
+        l_col_a, l_col_b, l_col_c, l_col_d = st.columns(4)
+        l_col_a.metric("State Open", str(live_summary.state_open_trades))
+        l_col_b.metric("Trusted Live", str(live_summary.trusted_live_trades))
+        l_col_c.metric("Stale / Blocked", str(live_summary.stale_or_blocked_trades))
+        l_col_d.metric("Heartbeat Mismatch", str(live_summary.heartbeat_mismatches))
+        if live_summary.state_open_trades and live_summary.trusted_live_trades == 0:
+            st.warning("Open state files exist, but none qualify as trusted live paper trades. They are stale, blocked, or heartbeat-mismatched.")
+        elif live_summary.stale_or_blocked_trades:
+            st.info("Some open states are excluded from live status because heartbeat/quarantine checks failed.")
+        if not live_status.empty:
+            status_display = live_status.copy()
+            status_columns = [
+                "system",
+                "strategy_id",
+                "asset",
+                "side",
+                "opened_at",
+                "entry_price",
+                "target",
+                "stop_loss",
+                "heartbeat_at",
+                "heartbeat_age_minutes",
+                "heartbeat_open_trade",
+                "trusted_live",
+                "issue",
+                "action",
+            ]
+            status_display = status_display[[column for column in status_columns if column in status_display.columns]]
+            st.dataframe(status_display, use_container_width=True, hide_index=True)
     try:
         verification = build_strategy_verification_report()
     except Exception as exc:  # pragma: no cover - dashboard should survive report errors
