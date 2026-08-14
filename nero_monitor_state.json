@@ -1,8 +1,5 @@
 {
   "GOLD:WAIT_SHORT_TRIGGER:4309.94": {
-    "cooldown": 2
-  },
-  "GOLD:WAIT_SHORT_TRIGGER:4309.97": {
     "cooldown": 1
   }
 }
