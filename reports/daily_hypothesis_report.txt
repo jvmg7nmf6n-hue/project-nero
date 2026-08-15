@@ -1,12 +1,12 @@
 NERO Daily Hypothesis Report | 2026-08-15
 New active repair hypotheses: 5
 Need Strategy Doctor design: 3
-New watchlist additions: 0
-Total watchlist: 4
-Successful/profit candidates: 4
+New watchlist additions: 1
+Total watchlist: 5
+Successful/profit candidates: 5
 Top candidates:
 - RMR_CONFIRM_BTC_1D: net $106.58, ExpR +0.53, trades 8
 - RMR_LONG_BTC_1D: net $76.14, ExpR +0.38, trades 10
 - RMR_ADX_ETH_4H: net $54.58, ExpR +0.26, trades 11
-- NEW_BTC_12H_MR: net $32.60, ExpR +0.09, trades 7
+- NEW_BNB_12H_MR: net $70.83, ExpR +0.09, trades 6
 Paper research only. No real orders.

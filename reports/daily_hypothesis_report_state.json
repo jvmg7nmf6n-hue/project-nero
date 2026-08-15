@@ -1,16 +1,16 @@
 {
   "last_sent_date": "2026-08-15",
   "last_summary": {
-    "active_new_hypotheses": 0,
-    "design_required": 0,
-    "new_watchlist_additions": 0,
+    "active_new_hypotheses": 5,
+    "design_required": 3,
+    "new_watchlist_additions": 1,
     "notification_due": true,
     "report_date": "2026-08-15",
-    "successful_strategies": 4,
+    "successful_strategies": 5,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
     "top_strategy_expectancy_r": 0.5315,
     "top_strategy_net_pnl": 106.58,
-    "total_watchlist": 4
+    "total_watchlist": 5
   },
   "seen_hypothesis_ids": [
     "REPAIR_BREAKOUT_QUALITY_V1",
@@ -18,6 +18,7 @@
     "REPAIR_MR_REGIME_LATE_V1"
   ],
   "seen_watchlist_ids": [
+    "NEW_BNB_12H_MR",
     "NEW_BTC_12H_MR",
     "RMR_ADX_FALLING_ETH_4H",
     "RMR_CONFIRMATION_BTC_1D",
