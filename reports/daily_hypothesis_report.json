@@ -331,9 +331,7 @@
       "status": "FORWARD_REPAIR_TRACKING"
     }
   ],
-  "new_watchlist_ids": [
-    "NEW_BNB_12H_MR"
-  ],
+  "new_watchlist_ids": [],
   "source_files": {
     "profit_edge": "reports/profit_edge_report.csv",
     "repair_lab": "reports/strategy_repair_lab_attempts.csv",
@@ -429,8 +427,8 @@
   "summary": {
     "active_new_hypotheses": 5,
     "design_required": 3,
-    "new_watchlist_additions": 1,
-    "notification_due": true,
+    "new_watchlist_additions": 0,
+    "notification_due": false,
     "report_date": "2026-08-15",
     "successful_strategies": 5,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
