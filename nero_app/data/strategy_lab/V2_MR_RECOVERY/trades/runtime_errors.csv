@@ -895,3 +895,5 @@ timestamp,asset,code,message
 2026-08-15T08:36:40.128271+00:00,OIL,ERROR,ValueError: No live fallback candles for OIL: fallback: HTTPError
 2026-08-15T08:59:55.176593+00:00,SILVER,ERROR,ValueError: No live fallback candles for SILVER: fallback: HTTPError
 2026-08-15T08:59:55.176593+00:00,OIL,ERROR,ValueError: No live fallback candles for OIL: fallback: HTTPError
+2026-08-15T09:32:15.424514+00:00,SILVER,ERROR,ValueError: No live fallback candles for SILVER: fallback: HTTPError
+2026-08-15T09:32:15.424514+00:00,OIL,ERROR,ValueError: No live fallback candles for OIL: fallback: HTTPError
