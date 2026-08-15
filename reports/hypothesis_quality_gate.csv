@@ -4,7 +4,7 @@ NEW_BTC_12H_MR,NEW_BTC_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DA
 NEW_BNB_12H_MR,NEW_BNB_12H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,70.83,True,NO_TRADES,HIGH,33.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_NEAR_2H_MR,NEW_NEAR_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR_V2,SHADOW_TEST_ONLY,Pairs Research,COLLECT_MORE_DATA,0,0.0,0.0,0.0,True,NO_TRADES,HIGH,25.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
-NEW_BNB_12H_TREND,NEW_BNB_12H_TREND_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,0,0.0,0.0,-104.68,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
+NEW_BNB_12H_TREND,NEW_BNB_12H_TREND_V2,SHADOW_TEST_ONLY,Momentum,COLLECT_MORE_DATA,0,0.0,0.0,-155.03,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 NEW_XRP_2H_MR,NEW_XRP_2H_MR_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,0,0.0,0.0,-98.61,True,NO_TRADES,HIGH,17.0,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 V2_MR_RECOVERY,V2_MR_RECOVERY_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-291.65,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
 V2_MR_REGIME,V2_MR_REGIME_V2,SHADOW_TEST_ONLY,Mean Reversion,COLLECT_MORE_DATA,4,-1.843,0.0,-319.79,True,TOO_SMALL,HIGH,7.8,REJECT_WEAK_IDEA,Too many filters for a small sample; likely curve-fit risk.
