@@ -2,7 +2,7 @@
   "daily_guard_day": "2026-08-15",
   "daily_r": 0.0,
   "equity": 9895.32217512779,
-  "last_evaluated_close_time": 1786766400000,
+  "last_evaluated_close_time": 1786770000000,
   "missed_run_count": 295,
   "open_trade": {
     "asset": "BNB",
