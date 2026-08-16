@@ -390,23 +390,6 @@
       "win_rate": 0.2727
     },
     {
-      "candidate_id": "NEW_BNB_12H_MR",
-      "decision": "FOCUS_PAPER_ONLY",
-      "display_label": "NEW_BNB_12H_MR",
-      "edge_score": 84.03,
-      "expectancy_r": 0.0868,
-      "max_drawdown": -0.0088,
-      "net_pnl": 70.83,
-      "paper_weight": 0.05,
-      "profit_factor": 1.4575,
-      "reason": "Positive edge is visible but below the promotion sample gate.",
-      "recovery_priority": 3,
-      "role": "PROFIT_CANDIDATE",
-      "total_trades": 6,
-      "verdict": "WATCHLIST",
-      "win_rate": 0.6667
-    },
-    {
       "candidate_id": "NEW_BTC_12H_MR",
       "decision": "FOCUS_PAPER_ONLY",
       "display_label": "NEW_BTC_12H_MR",
@@ -430,11 +413,11 @@
     "new_watchlist_additions": 0,
     "notification_due": false,
     "report_date": "2026-08-16",
-    "successful_strategies": 5,
+    "successful_strategies": 4,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
     "top_strategy_expectancy_r": 0.5315,
     "top_strategy_net_pnl": 106.58,
-    "total_watchlist": 5
+    "total_watchlist": 4
   },
   "watchlist": [
     {
@@ -496,36 +479,6 @@
       "verdict": "WATCHLIST",
       "win_rate": 0.2,
       "wins": 2.0
-    },
-    {
-      "action": "Continue forward testing; do not increase allocation.",
-      "asset_filter": "BNB",
-      "bucket": "NEW_TEST",
-      "candidate_id": "NEW_BNB_12H_MR",
-      "data_status": "OK",
-      "decision": null,
-      "display_label": "NEW_BNB_12H_MR",
-      "edge_score": NaN,
-      "evidence_score": 70.0,
-      "expectancy_r": 0.0868,
-      "family": "Mean Reversion",
-      "interval": "12h",
-      "lab_rating": "INSUFFICIENT_SAMPLE",
-      "losses": 2.0,
-      "max_drawdown": -0.0088,
-      "net_pnl": 70.83,
-      "paper_weight": NaN,
-      "primary_reason": "Positive but sample is below the 30-trade promotion gate.",
-      "profit_factor": 1.4575,
-      "rating_score": 40.99,
-      "reason": null,
-      "recovery_priority": NaN,
-      "role": null,
-      "sample_status": "EARLY",
-      "total_trades": 6,
-      "verdict": "WATCHLIST",
-      "win_rate": 0.6667,
-      "wins": 4.0
     },
     {
       "action": "Continue forward testing; do not increase allocation.",
