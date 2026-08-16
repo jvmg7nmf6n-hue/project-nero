@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-08-15",
-  "daily_r": 1.196029611106942,
+  "daily_guard_day": "2026-08-16",
+  "daily_r": 0.0,
   "equity": 10070.832639584245,
-  "last_evaluated_close_time": 1786834800000,
-  "missed_run_count": 295,
+  "last_evaluated_close_time": 1786842000000,
+  "missed_run_count": 296,
   "open_trade": {
     "asset": "BNB",
     "candidate_id": "NEW_BNB_12H_MR",
