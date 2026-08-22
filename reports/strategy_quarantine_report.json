@@ -84,6 +84,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "NEW_BNB_12H_TREND",
+    "display_label": "NEW_BNB_12H_TREND",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 23,
+    "net_pnl": -4.45,
+    "expectancy_r": -0.1343,
+    "profit_factor": 0.9947,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "REPAIR_BREAKOUT_QUALITY_V1",
     "display_label": "FIX_BREAKOUT_QUALITY",
     "verdict": "QUARANTINE",

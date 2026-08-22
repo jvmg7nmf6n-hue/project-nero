@@ -98,6 +98,20 @@
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
   {
+    "quarantined_strategy": "NEW_BNB_12H_TREND",
+    "quarantined_label": "NEW_BNB_12H_TREND",
+    "quarantined_net_pnl": -4.45,
+    "quarantined_trades": 23,
+    "diagnosis": "Negative evidence with at least 20 trades.",
+    "repair_candidate": "NEEDS_DESIGN",
+    "repair_label": "NEEDS_DESIGN",
+    "repair_status": "DESIGN_REQUIRED",
+    "repair_trades": 0,
+    "repair_net_pnl": 0.0,
+    "next_action": "Design a versioned repair candidate before redeployment.",
+    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
+  },
+  {
     "quarantined_strategy": "REPAIR_BREAKOUT_QUALITY_V1",
     "quarantined_label": "FIX_BREAKOUT_QUALITY",
     "quarantined_net_pnl": 230.58,
