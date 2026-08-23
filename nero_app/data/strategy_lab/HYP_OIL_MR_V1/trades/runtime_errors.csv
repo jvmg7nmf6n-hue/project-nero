@@ -1,0 +1,2 @@
+timestamp,asset,code,message
+2026-08-23T08:12:02.946943+00:00,OIL_FUT,ERROR,ValueError: No live fallback candles for OIL_FUT: fallback: yfinance ValueError
