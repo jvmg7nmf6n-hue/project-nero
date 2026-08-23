@@ -84,6 +84,20 @@
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
   {
+    "quarantined_strategy": "V2_MR_RECOVERY",
+    "quarantined_label": "V2_MR_RECOVERY",
+    "quarantined_net_pnl": -297.47,
+    "quarantined_trades": 20,
+    "diagnosis": "Mean-reversion entry is too early or regime filter is weak. Negative evidence with at least 20 trades.",
+    "repair_candidate": "NEEDS_DESIGN",
+    "repair_label": "NEEDS_DESIGN",
+    "repair_status": "DESIGN_REQUIRED",
+    "repair_trades": 0,
+    "repair_net_pnl": 0.0,
+    "next_action": "Design a versioned repair candidate before redeployment.",
+    "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
+  },
+  {
     "quarantined_strategy": "HYP_OIL_TREND_V1",
     "quarantined_label": "HYP_OIL_TREND",
     "quarantined_net_pnl": -9.45,

@@ -72,6 +72,18 @@
     "action": "Stop new paper entries and send to Strategy Doctor."
   },
   {
+    "candidate_id": "V2_MR_RECOVERY",
+    "display_label": "V2_MR_RECOVERY",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -297.47,
+    "expectancy_r": -0.4488,
+    "profit_factor": 0.6632,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "HYP_OIL_TREND_V1",
     "display_label": "HYP_OIL_TREND",
     "verdict": "QUARANTINE",

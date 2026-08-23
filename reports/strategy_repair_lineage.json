@@ -17,6 +17,23 @@
     "dashboard_lineage_label": "OLD_MR_DEEP -> NEEDS_DESIGN: DESIGN_REQUIRED"
   },
   {
+    "parent_label": "V2_MR_RECOVERY",
+    "repair_label": "NEEDS_DESIGN",
+    "attempt_number": 0,
+    "failure_reason_code": "MEAN_REVERSION_EARLY_ENTRY",
+    "parent_net_pnl": -297.47,
+    "repair_net_pnl": 0.0,
+    "repair_vs_parent_net_delta": 297.47,
+    "repair_quality_label": "NO_REPAIR_SPEC",
+    "repair_quality_detail": "No versioned repair exists yet, so there is no repair edge to judge.",
+    "repair_trades": 0,
+    "sample_milestone": "DESIGN_REQUIRED",
+    "random_baseline_status": "NO_REPAIR_NO_BASELINE",
+    "promotion_decision": "DESIGN_REQUIRED",
+    "lineage_status": "NEEDS_DESIGN",
+    "dashboard_lineage_label": "V2_MR_RECOVERY -> NEEDS_DESIGN: DESIGN_REQUIRED"
+  },
+  {
     "parent_label": "HYP_OIL_TREND",
     "repair_label": "NEEDS_DESIGN",
     "attempt_number": 0,
