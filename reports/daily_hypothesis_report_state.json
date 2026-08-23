@@ -1,11 +1,11 @@
 {
-  "last_sent_date": "2026-08-23",
+  "last_sent_date": "2026-08-24",
   "last_summary": {
     "active_new_hypotheses": 0,
     "design_required": 0,
     "new_watchlist_additions": 0,
     "notification_due": true,
-    "report_date": "2026-08-23",
+    "report_date": "2026-08-24",
     "successful_strategies": 4,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
     "top_strategy_expectancy_r": 0.5315,
