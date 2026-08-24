@@ -87,7 +87,7 @@
     "fees_paid": 15.503033735408504,
     "slippage_paid_estimate": 3.0869726536964865,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 694, \"CLOSE_NOT_BELOW_LOWER_BB\": 1048, \"OPEN_TRADE_EXISTS\": 23, \"RSI_NOT_BELOW_35\": 885, \"TARGET_NOT_ABOVE_ENTRY\": 540}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 694, \"CLOSE_NOT_BELOW_LOWER_BB\": 1049, \"OPEN_TRADE_EXISTS\": 23, \"RSI_NOT_BELOW_35\": 886, \"TARGET_NOT_ABOVE_ENTRY\": 540}"
   },
   {
     "asset": "PAXG",
@@ -159,6 +159,6 @@
     "fees_paid": 799.7540552033394,
     "slippage_paid_estimate": 160.03552009983804,
     "insufficient_sample": false,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 4543, \"CLOSE_NOT_BELOW_LOWER_BB\": 8337, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 265, \"RSI_NOT_BELOW_35\": 7259, \"TARGET_NOT_ABOVE_ENTRY\": 4628}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 4543, \"CLOSE_NOT_BELOW_LOWER_BB\": 8338, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 265, \"RSI_NOT_BELOW_35\": 7260, \"TARGET_NOT_ABOVE_ENTRY\": 4628}"
   }
 ]
