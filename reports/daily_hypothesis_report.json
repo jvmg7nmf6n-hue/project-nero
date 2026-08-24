@@ -81,7 +81,7 @@
     "active_new_hypotheses": 0,
     "design_required": 0,
     "new_watchlist_additions": 0,
-    "notification_due": true,
+    "notification_due": false,
     "report_date": "2026-08-25",
     "successful_strategies": 4,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
