@@ -413,7 +413,9 @@
       "status": "FORWARD_REPAIR_TRACKING"
     }
   ],
-  "new_watchlist_ids": [],
+  "new_watchlist_ids": [
+    "HYP_OIL_MR_V1"
+  ],
   "source_files": {
     "profit_edge": "reports/profit_edge_report.csv",
     "repair_lab": "reports/strategy_repair_lab_attempts.csv",
@@ -487,19 +489,36 @@
       "total_trades": 8,
       "verdict": "WATCHLIST",
       "win_rate": 0.75
+    },
+    {
+      "candidate_id": "HYP_OIL_MR_V1",
+      "decision": "FOCUS_PAPER_ONLY",
+      "display_label": "HYP_OIL_MR",
+      "edge_score": 82.3,
+      "expectancy_r": 0.1537,
+      "max_drawdown": -0.0308,
+      "net_pnl": 88.09,
+      "paper_weight": 0.05,
+      "profit_factor": 1.4028,
+      "reason": "Positive edge is visible but below the promotion sample gate.",
+      "recovery_priority": 3,
+      "role": "PROFIT_CANDIDATE",
+      "total_trades": 5,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.6
     }
   ],
   "summary": {
     "active_new_hypotheses": 5,
     "design_required": 5,
-    "new_watchlist_additions": 0,
-    "notification_due": false,
+    "new_watchlist_additions": 1,
+    "notification_due": true,
     "report_date": "2026-08-24",
-    "successful_strategies": 4,
+    "successful_strategies": 5,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
     "top_strategy_expectancy_r": 0.5315,
     "top_strategy_net_pnl": 106.58,
-    "total_watchlist": 4
+    "total_watchlist": 5
   },
   "watchlist": [
     {
@@ -561,6 +580,36 @@
       "verdict": "WATCHLIST",
       "win_rate": 0.25,
       "wins": 2.0
+    },
+    {
+      "action": "Continue forward testing; do not increase allocation.",
+      "asset_filter": "OIL_FUT,BRENT_FUT",
+      "bucket": "HYPOTHESIS_TEST",
+      "candidate_id": "HYP_OIL_MR_V1",
+      "data_status": "OK",
+      "decision": null,
+      "display_label": "HYP_OIL_MR",
+      "edge_score": NaN,
+      "evidence_score": 70.0,
+      "expectancy_r": 0.1537,
+      "family": "Mean Reversion",
+      "interval": "1h",
+      "lab_rating": "INSUFFICIENT_SAMPLE",
+      "losses": 2.0,
+      "max_drawdown": -0.0308,
+      "net_pnl": 88.09,
+      "paper_weight": NaN,
+      "primary_reason": "Positive but sample is below the 30-trade promotion gate.",
+      "profit_factor": 1.4028,
+      "rating_score": 38.26,
+      "reason": null,
+      "recovery_priority": NaN,
+      "role": null,
+      "sample_status": "EARLY",
+      "total_trades": 5,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.6,
+      "wins": 3.0
     },
     {
       "action": "Continue forward testing; do not increase allocation.",
