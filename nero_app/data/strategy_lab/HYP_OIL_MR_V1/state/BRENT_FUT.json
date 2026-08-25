@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-08-24",
-  "daily_r": -1.2818407618363163,
+  "daily_guard_day": "2026-08-25",
+  "daily_r": 0.0,
   "equity": 10099.30381872875,
-  "last_evaluated_close_time": 1787608800000,
-  "missed_run_count": 295,
+  "last_evaluated_close_time": 1787619600000,
+  "missed_run_count": 296,
   "open_trade": {
     "asset": "BRENT_FUT",
     "candidate_id": "HYP_OIL_MR_V1",

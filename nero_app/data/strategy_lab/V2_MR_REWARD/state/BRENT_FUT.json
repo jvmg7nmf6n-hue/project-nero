@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-08-24",
+  "daily_guard_day": "2026-08-25",
   "daily_r": 0.0,
   "equity": 10105.17961265039,
-  "last_evaluated_close_time": 1787608800000,
-  "missed_run_count": 294,
+  "last_evaluated_close_time": 1787619600000,
+  "missed_run_count": 295,
   "open_trade": {
     "asset": "BRENT_FUT",
     "candidate_id": "V2_MR_REWARD",
