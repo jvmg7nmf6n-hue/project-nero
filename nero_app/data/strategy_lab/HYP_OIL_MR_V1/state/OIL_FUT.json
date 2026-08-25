@@ -2,7 +2,7 @@
   "daily_guard_day": "2026-08-25",
   "daily_r": 0.0,
   "equity": 9887.158617652665,
-  "last_evaluated_close_time": 1787619600000,
+  "last_evaluated_close_time": 1787623200000,
   "missed_run_count": 321,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:HYP_OIL_MR_V1"
