@@ -15,7 +15,7 @@
     "fees_paid": 100.15900699479928,
     "slippage_paid_estimate": 20.013329855633895,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 284, \"CLOSE_NOT_BELOW_LOWER_BB\": 928, \"OPEN_TRADE_EXISTS\": 32, \"RSI_NOT_BELOW_35\": 848, \"TARGET_NOT_ABOVE_ENTRY\": 544}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 284, \"CLOSE_NOT_BELOW_LOWER_BB\": 929, \"OPEN_TRADE_EXISTS\": 32, \"RSI_NOT_BELOW_35\": 849, \"TARGET_NOT_ABOVE_ENTRY\": 545}"
   },
   {
     "asset": "BTC",
@@ -33,7 +33,7 @@
     "fees_paid": 217.9035981926172,
     "slippage_paid_estimate": 43.539268788001614,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 486, \"CLOSE_NOT_BELOW_LOWER_BB\": 1091, \"OPEN_TRADE_EXISTS\": 74, \"RSI_NOT_BELOW_35\": 946, \"TARGET_NOT_ABOVE_ENTRY\": 631}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 486, \"CLOSE_NOT_BELOW_LOWER_BB\": 1092, \"OPEN_TRADE_EXISTS\": 74, \"RSI_NOT_BELOW_35\": 947, \"TARGET_NOT_ABOVE_ENTRY\": 632}"
   },
   {
     "asset": "DOGE",
@@ -51,7 +51,7 @@
     "fees_paid": 19.144438991368336,
     "slippage_paid_estimate": 3.8492687251461817,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 701, \"CLOSE_NOT_BELOW_LOWER_BB\": 1047, \"OPEN_TRADE_EXISTS\": 8, \"RSI_NOT_BELOW_35\": 947, \"TARGET_NOT_ABOVE_ENTRY\": 566}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 701, \"CLOSE_NOT_BELOW_LOWER_BB\": 1048, \"OPEN_TRADE_EXISTS\": 8, \"RSI_NOT_BELOW_35\": 948, \"TARGET_NOT_ABOVE_ENTRY\": 567}"
   },
   {
     "asset": "ETH",
@@ -69,7 +69,7 @@
     "fees_paid": 157.14263163639293,
     "slippage_paid_estimate": 31.59904899511881,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 402, \"CLOSE_NOT_BELOW_LOWER_BB\": 1055, \"OPEN_TRADE_EXISTS\": 53, \"RSI_NOT_BELOW_35\": 927, \"TARGET_NOT_ABOVE_ENTRY\": 630}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 402, \"CLOSE_NOT_BELOW_LOWER_BB\": 1056, \"OPEN_TRADE_EXISTS\": 53, \"RSI_NOT_BELOW_35\": 928, \"TARGET_NOT_ABOVE_ENTRY\": 631}"
   },
   {
     "asset": "NEAR",
@@ -87,7 +87,7 @@
     "fees_paid": 15.503033735408504,
     "slippage_paid_estimate": 3.0869726536964865,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 694, \"CLOSE_NOT_BELOW_LOWER_BB\": 1058, \"OPEN_TRADE_EXISTS\": 23, \"RSI_NOT_BELOW_35\": 895, \"TARGET_NOT_ABOVE_ENTRY\": 542}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 694, \"CLOSE_NOT_BELOW_LOWER_BB\": 1059, \"OPEN_TRADE_EXISTS\": 23, \"RSI_NOT_BELOW_35\": 896, \"TARGET_NOT_ABOVE_ENTRY\": 543}"
   },
   {
     "asset": "PAXG",
@@ -105,7 +105,7 @@
     "fees_paid": 158.71025335645203,
     "slippage_paid_estimate": 31.739887677818842,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 499, \"CLOSE_NOT_BELOW_LOWER_BB\": 1097, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 38, \"RSI_NOT_BELOW_35\": 935, \"TARGET_NOT_ABOVE_ENTRY\": 657}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 499, \"CLOSE_NOT_BELOW_LOWER_BB\": 1098, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 38, \"RSI_NOT_BELOW_35\": 936, \"TARGET_NOT_ABOVE_ENTRY\": 657}"
   },
   {
     "asset": "SOL",
@@ -123,7 +123,7 @@
     "fees_paid": 91.04582579883106,
     "slippage_paid_estimate": 18.180489343901495,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 701, \"CLOSE_NOT_BELOW_LOWER_BB\": 1102, \"OPEN_TRADE_EXISTS\": 35, \"RSI_NOT_BELOW_35\": 959, \"TARGET_NOT_ABOVE_ENTRY\": 581}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 701, \"CLOSE_NOT_BELOW_LOWER_BB\": 1103, \"OPEN_TRADE_EXISTS\": 35, \"RSI_NOT_BELOW_35\": 960, \"TARGET_NOT_ABOVE_ENTRY\": 582}"
   },
   {
     "asset": "XRP",
@@ -141,7 +141,7 @@
     "fees_paid": 40.145266497469876,
     "slippage_paid_estimate": 8.027254060520685,
     "insufficient_sample": true,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 776, \"CLOSE_NOT_BELOW_LOWER_BB\": 1032, \"OPEN_TRADE_EXISTS\": 2, \"RSI_NOT_BELOW_35\": 875, \"TARGET_NOT_ABOVE_ENTRY\": 525}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 776, \"CLOSE_NOT_BELOW_LOWER_BB\": 1033, \"OPEN_TRADE_EXISTS\": 2, \"RSI_NOT_BELOW_35\": 876, \"TARGET_NOT_ABOVE_ENTRY\": 526}"
   },
   {
     "asset": "COMBINED",
@@ -159,6 +159,6 @@
     "fees_paid": 799.7540552033394,
     "slippage_paid_estimate": 160.03552009983804,
     "insufficient_sample": false,
-    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 4543, \"CLOSE_NOT_BELOW_LOWER_BB\": 8410, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 265, \"RSI_NOT_BELOW_35\": 7332, \"TARGET_NOT_ABOVE_ENTRY\": 4676}"
+    "rejected_setup_counts": "{\"CLOSE_NOT_ABOVE_MA200\": 4543, \"CLOSE_NOT_BELOW_LOWER_BB\": 8418, \"DAILY_LOSS_GUARD\": 2, \"OPEN_TRADE_EXISTS\": 265, \"RSI_NOT_BELOW_35\": 7340, \"TARGET_NOT_ABOVE_ENTRY\": 4683}"
   }
 ]
