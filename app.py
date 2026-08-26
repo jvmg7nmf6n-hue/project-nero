@@ -48,6 +48,7 @@ from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
 from nero_app.core.live_trade_status import build_live_trade_status_report
 from nero_app.core.profit_edge_engine import build_profit_edge_report
+from nero_app.core.sunflower_profit_bridge import build_sunflower_profit_bridge_report
 from nero_app.core.social_intelligence import (
     build_social_reliability_report,
     filter_watchlist_for_asset,
@@ -681,6 +682,49 @@ def _render_strategy_test_lab_tab() -> None:
             avg_score=("rating_score", "mean"),
         ).reset_index()
         st.dataframe(bucket_view, use_container_width=True, hide_index=True)
+    try:
+        sunflower_report, sunflower_summary = build_sunflower_profit_bridge_report()
+    except Exception as exc:  # pragma: no cover - dashboard should survive report errors
+        sunflower_report = pd.DataFrame()
+        sunflower_summary = None
+        st.warning(f"Sunflower profit discipline could not be built: {exc}")
+    if sunflower_summary is not None:
+        st.subheader("Sunflower Profit Discipline")
+        st.caption("Merged Sunflower discipline: profit must pass data, sample, drawdown, quarantine, and cost-aware gates before NERO trusts it.")
+        sf_a, sf_b, sf_c, sf_d, sf_e = st.columns(5)
+        sf_a.metric("Status", sunflower_summary.status)
+        sf_b.metric("Disciplined", str(sunflower_summary.disciplined_profit_candidates))
+        sf_c.metric("Early Profit", str(sunflower_summary.early_profit_watchlist))
+        sf_d.metric("Blocked", str(sunflower_summary.capital_drains_blocked))
+        sf_e.metric("Top Candidate", sunflower_summary.top_candidate)
+        sf_f, sf_g = st.columns(2)
+        sf_f.metric("Positive Pool", f"${sunflower_summary.positive_pool_pnl:,.2f}")
+        sf_g.metric("Blocked Pool", f"${sunflower_summary.blocked_pool_pnl:,.2f}")
+        for note in sunflower_summary.notes:
+            st.info(note)
+        if not sunflower_report.empty:
+            sf_display = sunflower_report.copy()
+            sf_columns = [
+                "display_label",
+                "sunflower_gate",
+                "decision",
+                "discipline_score",
+                "total_trades",
+                "win_rate",
+                "expectancy_r",
+                "profit_factor",
+                "max_drawdown",
+                "net_pnl",
+                "reason",
+            ]
+            sf_display = sf_display[[column for column in sf_columns if column in sf_display.columns]]
+            for column in ["win_rate", "max_drawdown"]:
+                if column in sf_display:
+                    sf_display[column] = pd.to_numeric(sf_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.0%}")
+            for column in ["discipline_score", "expectancy_r", "profit_factor", "net_pnl"]:
+                if column in sf_display:
+                    sf_display[column] = pd.to_numeric(sf_display[column], errors="coerce").fillna(0).map(lambda value: f"{value:.2f}")
+            st.dataframe(sf_display, use_container_width=True, hide_index=True)
     display = summary.copy()
     preferred_columns = [
         "display_label",

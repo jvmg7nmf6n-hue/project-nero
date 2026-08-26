@@ -43,6 +43,8 @@ jobs:
         run: python tools/nero_live_trade_status.py
       - name: Run profit edge engine
         run: python tools/nero_profit_edge_engine.py
+      - name: Run Sunflower profit discipline bridge
+        run: python tools/nero_sunflower_profit_bridge.py
       - name: Run strategy repair workbench
         run: python tools/nero_strategy_repair_workbench.py
       - name: Run strategy repair lab
