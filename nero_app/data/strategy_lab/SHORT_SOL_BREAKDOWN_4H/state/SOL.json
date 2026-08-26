@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-08-26",
   "daily_r": 0.0,
   "equity": 9929.224489948578,
-  "last_evaluated_close_time": 1787767200000,
-  "missed_run_count": 426,
+  "last_evaluated_close_time": 1787785200000,
+  "missed_run_count": 430,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SHORT_SOL_BREAKDOWN_4H"
 }

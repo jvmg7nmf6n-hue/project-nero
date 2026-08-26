@@ -4,3 +4,4 @@ timestamp,asset,code,message
 2026-07-20T15:46:52.438667+00:00,BTC,STALE_FEED,Latest closed candle is stale for BTCUSDT
 2026-07-20T15:46:52.438667+00:00,ETH,STALE_FEED,Latest closed candle is stale for ETHUSDT
 2026-08-26T18:39:15.496869+00:00,PAIR,PAIR_ASSETS_MISSING,Pair research requires at least two assets.
+2026-08-26T23:23:33.709646+00:00,PAIR,PAIR_ASSETS_MISSING,Pair research requires at least two assets.
