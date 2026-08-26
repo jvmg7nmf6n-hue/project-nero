@@ -2,7 +2,7 @@ name: Nero Mean Reversion Agent
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "17 */2 * * *"
   workflow_dispatch:
 
 permissions:

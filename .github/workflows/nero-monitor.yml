@@ -2,7 +2,7 @@ name: Nero 24/7 Monitor
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "37 */2 * * *"
   workflow_dispatch:
 
 permissions:

@@ -2,7 +2,7 @@ name: Nero Strategy TEST Lab
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "7 */2 * * *"
   workflow_dispatch:
 
 permissions:
