@@ -87,6 +87,7 @@ MARKET_HOURS_ASSETS = {
     "DXY", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD",
 }
 
+PAID_API_ASSETS = {"GOLD", "SILVER", "OIL"}
 DEFAULT_QUARANTINED_ASSETS = {"ETH", "NEAR", "EURUSD", "GBPUSD", "AUDUSD", "COPPER_FUT"}
 
 MANUAL_BLOCKED_STRATEGIES = {
@@ -1460,10 +1461,17 @@ def _candidate_assets(spec: CandidateSpec, assets: dict[str, str]) -> dict[str, 
         selected = dict(assets)
     excluded = set(_quarantined_assets())
     excluded.update(asset.upper() for asset in spec.asset_exclude)
+    if _free_data_only():
+        excluded.update(PAID_API_ASSETS)
     if spec.asset_filter:
         explicit = {asset.upper() for asset in spec.asset_filter}
-        excluded -= explicit
+        if not _free_data_only():
+            excluded -= explicit
     return {asset: symbol for asset, symbol in selected.items() if asset.upper() not in excluded}
+
+
+def _free_data_only() -> bool:
+    return os.getenv("SLAB_FREE_DATA_ONLY", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _quarantined_assets() -> set[str]:

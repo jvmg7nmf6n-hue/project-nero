@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -129,6 +130,23 @@ class StrategyLabAgentTest(unittest.TestCase):
 
         self.assertNotIn("ETH", broad)
         self.assertEqual(set(oil_hypothesis), {"OIL_FUT", "BRENT_FUT"})
+
+    def test_free_data_only_blocks_paid_api_spot_aliases(self) -> None:
+        previous = os.environ.get("SLAB_FREE_DATA_ONLY")
+        os.environ["SLAB_FREE_DATA_ONLY"] = "true"
+        try:
+            assets = {"GOLD": "XAU/USD", "SILVER": "XAG/USD", "OIL": "WTI/USD", "OIL_FUT": "CL=F"}
+            selected = _candidate_assets(CANDIDATES["MR_RELAXED_PULLBACK_V1"], assets)
+        finally:
+            if previous is None:
+                os.environ.pop("SLAB_FREE_DATA_ONLY", None)
+            else:
+                os.environ["SLAB_FREE_DATA_ONLY"] = previous
+
+        self.assertNotIn("GOLD", selected)
+        self.assertNotIn("SILVER", selected)
+        self.assertNotIn("OIL", selected)
+        self.assertIn("OIL_FUT", selected)
 
     def test_signal_validator_keeps_family_rules_separate(self) -> None:
         mr_spec = CANDIDATES["V2_MR_RECOVERY"]
