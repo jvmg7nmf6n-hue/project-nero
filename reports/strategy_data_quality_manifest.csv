@@ -168,7 +168,7 @@ MR_TARGET_1R_V1,OLD_MR_1R,XRP,True,True,149,1,68.01,INSUFFICIENT_SAMPLE,CHECK,Fa
 NEW_BNB_12H_MR,NEW_BNB_12H_MR,BNB,True,True,4,8,-35.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,BNB,True,True,4,23,-4.45,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,BTC,True,True,2,9,133.16,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,6,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,7,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,ETH,True,True,2,3,54.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,BTC,True,True,15,2,106.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,BTC,True,True,15,2,76.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
@@ -287,7 +287,7 @@ V2_MR_REGIME,V2_MR_REGIME,SPY,True,True,1390,0,0.0,INSUFFICIENT_SAMPLE,CHECK,Fal
 V2_MR_REGIME,V2_MR_REGIME,USDCAD,True,True,1390,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_REGIME,V2_MR_REGIME,USDCHF,True,True,1390,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_REGIME,V2_MR_REGIME,USDJPY,True,True,1390,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-V2_MR_REGIME,V2_MR_REGIME,XRP,True,True,1390,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+V2_MR_REGIME,V2_MR_REGIME,XRP,True,True,1390,1,133.29,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_REWARD,V2_MR_REWARD,BNB,True,True,1823,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_REWARD,V2_MR_REWARD,BRENT_FUT,True,True,1823,2,-17.02,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_REWARD,V2_MR_REWARD,BTC,True,True,1823,1,63.89,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
@@ -318,7 +318,7 @@ V2_MR_REWARD,V2_MR_REWARD,XRP,True,True,1823,0,0.0,INSUFFICIENT_SAMPLE,CHECK,Fal
 HYP_OIL_TREND_V1,HYP_OIL_TREND,BRENT_FUT,True,True,0,9,-233.14,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 HYP_OIL_TREND_V1,HYP_OIL_TREND,OIL_FUT,True,True,0,11,223.69,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 NEW_NEAR_2H_MR,NEW_NEAR_2H_MR,NEAR,True,True,0,0,0.0,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
-NEW_XRP_2H_MR,NEW_XRP_2H_MR,XRP,True,True,0,3,-315.67,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
+NEW_XRP_2H_MR,NEW_XRP_2H_MR,XRP,True,True,0,4,-145.81,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,BNB,True,True,0,10,52.39,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,BTC,True,True,0,3,-116.42,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,PAXG,True,True,0,9,-32.7,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.

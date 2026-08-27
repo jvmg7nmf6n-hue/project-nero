@@ -1,0 +1,51 @@
+[
+  {
+    "layer": "MM Percentile Engine",
+    "status": "REAL",
+    "raw_inputs": "daily close, SMA200",
+    "consumer": "Cycle Intelligence dashboard/report",
+    "reason": "Pure price arithmetic from real daily close history."
+  },
+  {
+    "layer": "200D Slope Engine",
+    "status": "REAL",
+    "raw_inputs": "daily close, rolling SMA200",
+    "consumer": "Cycle Intelligence dashboard/report",
+    "reason": "Pure price arithmetic; unavailable per asset if less than 230 daily closes."
+  },
+  {
+    "layer": "Drawdown From High Engine",
+    "status": "REAL",
+    "raw_inputs": "daily close history",
+    "consumer": "Cycle Intelligence dashboard/report",
+    "reason": "Uses highest close inside available clean history; not claimed as full lifetime ATH unless data covers full life."
+  },
+  {
+    "layer": "ETF Flow Confirmation",
+    "status": "UNAVAILABLE",
+    "raw_inputs": "none configured",
+    "consumer": "Not consumed by Cycle score; raw pass-through only when configured.",
+    "reason": "No ETF proxy fallback is allowed in Cycle Intelligence."
+  },
+  {
+    "layer": "Liquidity Pressure Layer",
+    "status": "UNAVAILABLE",
+    "raw_inputs": "DXY/SPX/yields not fully configured as official synchronized daily inputs",
+    "consumer": "Not consumed by Cycle score.",
+    "reason": "Composite liquidity score is intentionally not built in this tier."
+  },
+  {
+    "layer": "Derivatives Heat Layer",
+    "status": "UNAVAILABLE",
+    "raw_inputs": "funding/open-interest/liquidation feed not configured",
+    "consumer": "Not consumed by Cycle score.",
+    "reason": "No derivative heat proxy is built."
+  },
+  {
+    "layer": "Cycle Similarity Memory",
+    "status": "NOT_BUILT",
+    "raw_inputs": "requires separately validated historical regimes",
+    "consumer": "none",
+    "reason": "Tier C is explicitly deferred by the directive."
+  }
+]

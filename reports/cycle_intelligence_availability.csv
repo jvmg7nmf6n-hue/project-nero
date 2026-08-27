@@ -1,0 +1,8 @@
+layer,status,raw_inputs,consumer,reason
+MM Percentile Engine,REAL,"daily close, SMA200",Cycle Intelligence dashboard/report,Pure price arithmetic from real daily close history.
+200D Slope Engine,REAL,"daily close, rolling SMA200",Cycle Intelligence dashboard/report,Pure price arithmetic; unavailable per asset if less than 230 daily closes.
+Drawdown From High Engine,REAL,daily close history,Cycle Intelligence dashboard/report,Uses highest close inside available clean history; not claimed as full lifetime ATH unless data covers full life.
+ETF Flow Confirmation,UNAVAILABLE,none configured,Not consumed by Cycle score; raw pass-through only when configured.,No ETF proxy fallback is allowed in Cycle Intelligence.
+Liquidity Pressure Layer,UNAVAILABLE,DXY/SPX/yields not fully configured as official synchronized daily inputs,Not consumed by Cycle score.,Composite liquidity score is intentionally not built in this tier.
+Derivatives Heat Layer,UNAVAILABLE,funding/open-interest/liquidation feed not configured,Not consumed by Cycle score.,No derivative heat proxy is built.
+Cycle Similarity Memory,NOT_BUILT,requires separately validated historical regimes,none,Tier C is explicitly deferred by the directive.
