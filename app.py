@@ -18,6 +18,7 @@ from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
 from nero_app.core.btc_structural_models import build_btc_structural_report
 from nero_app.core.consensus_engine import build_consensus_decision
+from nero_app.core.cycle_intelligence import build_cycle_intelligence_report, cycle_dashboard_rows
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.demo_trader import accountability_scorecard, load_demo_trades, run_demo_trader
 from nero_app.core.etf_flow_intelligence import fetch_etf_flow_score
@@ -1320,6 +1321,80 @@ def _render_quant_intelligence_tab(asset: str, price_history: pd.DataFrame, sour
 - This is not a buy/sell signal by itself; it becomes evidence for NERO's consensus brain.
             """.strip()
         )
+
+
+def _render_cycle_intelligence_tab(asset: str, price_history: pd.DataFrame, source: str) -> None:
+    st.subheader("Cycle Intelligence")
+    st.caption("Mayer Multiple and cycle context from real daily closes only. Missing feeds are reported as unavailable, not converted into fake scores.")
+    cycle_asset = "PAXG" if asset == "GOLD" else asset
+    if asset == "GOLD":
+        report = build_cycle_intelligence_report(assets=["PAXG"], prefer_live=True)
+    else:
+        price_frames = {cycle_asset: price_history}
+        report = build_cycle_intelligence_report(
+            assets=[cycle_asset],
+            price_frames=price_frames,
+            provided_sources={cycle_asset: (source, "dashboard")},
+            prefer_live=False,
+        )
+    row = report.rows[0] if report.rows else {}
+
+    if row.get("status") == "OK":
+        col_a, col_b, col_c, col_d = st.columns(4)
+        col_a.metric("Mayer Multiple", _display_number(row.get("mayer_multiple"), 3))
+        col_b.metric("MM Percentile", _display_percent(row.get("mm_percentile_rank")))
+        col_c.metric("SMA200 Slope", str(row.get("sma200_slope_label") or "n/a"))
+        col_d.metric("Drawdown", _display_percent(row.get("drawdown_from_high_pct")))
+        st.info("Cycle context is available, but this is not a standalone trade signal and does not alter NERO live-entry rules.")
+    else:
+        st.warning(f"Cycle Intelligence unavailable: {row.get('unavailable_reason', 'unknown reason')}")
+
+    if row.get("paxg_caveat"):
+        st.warning(str(row["paxg_caveat"]))
+    for note in report.notes:
+        st.info(note)
+
+    st.dataframe(pd.DataFrame(cycle_dashboard_rows(row)), use_container_width=True, hide_index=True)
+    st.caption(
+        f"Source: {row.get('source') or source} | Method: {row.get('data_method', 'n/a')} | "
+        f"Daily closes: {row.get('total_daily_closes', 0)} | Computable MM history: {row.get('computable_history_days', 0)}"
+    )
+
+    st.subheader("Layer Availability")
+    st.dataframe(pd.DataFrame(report.availability_rows), use_container_width=True, hide_index=True)
+
+    st.subheader("Field Provenance")
+    provenance = pd.DataFrame(
+        [
+            {"Field": "latest_close", "Source": "daily close", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "sma_200", "Source": "200-day rolling mean of close", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "mayer_multiple", "Source": "latest_close / sma_200", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "distance_from_sma200_pct", "Source": "(latest_close - sma_200) / sma_200", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "mm_percentile_rank", "Source": "rank of current MM versus computable MM history", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "sma200_slope_pct_30d", "Source": "30-day percentage change in SMA200", "Consumer": row.get("consumer", ""), "Tier": "A"},
+            {"Field": "drawdown_from_high_pct", "Source": "latest close versus highest available close", "Consumer": row.get("consumer", ""), "Tier": "A"},
+        ]
+    )
+    st.dataframe(provenance, use_container_width=True, hide_index=True)
+
+    if report.correlation_rows:
+        st.subheader("Redundancy Check")
+        st.caption("MM and distance from SMA200 are algebraically related; NERO reports both for readability but should not double-count them.")
+        st.dataframe(pd.DataFrame(report.correlation_rows), use_container_width=True, hide_index=True)
+
+
+def _display_number(value: object, decimals: int = 2) -> str:
+    if value is None or pd.isna(value):
+        return "n/a"
+    return f"{float(value):,.{decimals}f}"
+
+
+def _display_percent(value: object) -> str:
+    if value is None or pd.isna(value):
+        return "n/a"
+    return f"{float(value):.2f}%"
+
+
 def main() -> None:
     st.set_page_config(page_title="Project Nero", page_icon="N", layout="wide")
     _install_terminal_skin()
@@ -1514,8 +1589,8 @@ def main() -> None:
 
     _render_opening_market_deck(asset, market_data, intraday_data, trade_plan, sentiment_result, opening_timeframe_label)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, hypothesis_gate_tab, test_lab_tab, profit_edge_tab, market_memory_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "Hypothesis Gate", "TEST Lab", "Profit Engine", "Market Memory", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, hypothesis_gate_tab, test_lab_tab, profit_edge_tab, market_memory_tab, cycle_intel_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "Hypothesis Gate", "TEST Lab", "Profit Engine", "Market Memory", "Cycle Intel", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1729,6 +1804,8 @@ def main() -> None:
     with market_memory_tab:
         _render_market_memory_tab(asset, enriched_headline)
 
+    with cycle_intel_tab:
+        _render_cycle_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})")
 
     with quant_intel_tab:
         _render_quant_intelligence_tab(asset, price_history, f"{market_data.source} ({market_data.status})", sentiment_result.sentiment_score)

@@ -59,6 +59,8 @@ jobs:
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
       - name: Run research integrity audit
         run: python tools/nero_research_integrity.py
+      - name: Run cycle intelligence report
+        run: python tools/nero_cycle_intelligence.py
       - name: Save strategy lab records
         run: |
           git config user.name "nero-strategy-lab"
