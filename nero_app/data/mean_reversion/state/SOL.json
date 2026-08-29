@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-08-28",
+  "daily_guard_day": "2026-08-29",
   "daily_r": 0.0,
   "equity": 10052.33325352476,
-  "last_evaluated_close_time": 1787940000000,
-  "missed_run_count": 840,
+  "last_evaluated_close_time": 1787968800000,
+  "missed_run_count": 847,
   "open_trade": {
     "asset": "SOL",
     "entry_atr": 1.5635714285714275,
