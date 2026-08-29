@@ -22,8 +22,8 @@
     "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
     "repair_label": "FIX_MR_LATE",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 3,
-    "repair_net_pnl": 91.02,
+    "repair_trades": 4,
+    "repair_net_pnl": -9.26,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
@@ -36,8 +36,8 @@
     "repair_candidate": "REPAIR_MR_1R_ASYMMETRIC_V1",
     "repair_label": "FIX_MR_1R_ASYM",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 3,
-    "repair_net_pnl": -84.78,
+    "repair_trades": 4,
+    "repair_net_pnl": -185.06,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
@@ -50,8 +50,8 @@
     "repair_candidate": "REPAIR_MR_REGIME_LATE_V1",
     "repair_label": "FIX_MR_LATE",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 3,
-    "repair_net_pnl": 91.02,
+    "repair_trades": 4,
+    "repair_net_pnl": -9.26,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
