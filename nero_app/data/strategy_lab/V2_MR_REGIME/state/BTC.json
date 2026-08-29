@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-08-29",
   "daily_r": 0.0,
   "equity": 9909.289096307997,
-  "last_evaluated_close_time": 1787997600000,
-  "missed_run_count": 498,
+  "last_evaluated_close_time": 1788019200000,
+  "missed_run_count": 503,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "V2_MR_REGIME",
