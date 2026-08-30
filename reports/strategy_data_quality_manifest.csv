@@ -168,7 +168,7 @@ MR_TARGET_1R_V1,OLD_MR_1R,XRP,True,True,149,1,68.01,INSUFFICIENT_SAMPLE,CHECK,Fa
 NEW_BNB_12H_MR,NEW_BNB_12H_MR,BNB,True,True,4,10,-254.09,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,BNB,True,True,4,23,-4.45,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,BTC,True,True,2,12,-86.87,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,15,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,16,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,ETH,True,True,2,3,54.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,BTC,True,True,15,2,106.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,BTC,True,True,15,2,76.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
