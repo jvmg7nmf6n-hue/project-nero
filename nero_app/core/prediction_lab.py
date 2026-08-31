@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from nero_app.core.ai_sentiment import analyze_news_sentiment
+from nero_app.core.bellwether_calibration import append_calibration_forecast
 from nero_app.core.data_loader import load_macro_events
 from nero_app.core.market_data import MarketDataClient
 from nero_app.core.news_feed import NewsFeedClient
@@ -63,6 +64,10 @@ def run_nero_core_prediction_lab(
             prices=market_data.prices,
             horizon_days=horizon_days,
             path=prediction_log_path,
+        )
+        append_calibration_forecast(
+            result=result,
+            market_data=market_data,
         )
         recorded += 1
 

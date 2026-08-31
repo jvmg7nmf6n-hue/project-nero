@@ -1,0 +1,3 @@
+run_id,started_at_utc,completed_at_utc,status,reason_code,schema_version
+d40ee0725f5ee97e,2026-08-30T13:41:25+00:00,2026-08-30T13:41:25+00:00,OK,,bellwether_calibration_v1
+79a89daa8bcbbf9c,2026-08-31T02:01:22+00:00,2026-08-31T02:01:22+00:00,OK,,bellwether_calibration_v1
