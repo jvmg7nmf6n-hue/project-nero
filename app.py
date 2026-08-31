@@ -16,6 +16,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover
 
 from nero_app.core.ai_sentiment import analyze_news_sentiment
 from nero_app.core.backtester import run_event_backtest
+from nero_app.core.bellwether_calibration import build_calibration_report, load_calibration_ledger, load_heartbeats
 from nero_app.core.btc_structural_models import build_btc_structural_report
 from nero_app.core.consensus_engine import build_consensus_decision
 from nero_app.core.cycle_intelligence import build_cycle_intelligence_report, cycle_dashboard_rows
@@ -487,6 +488,77 @@ def _render_strategy_audit_tab(compact: bool = False) -> None:
             {"File": "prediction_log.csv", "Path": str(DEFAULT_PREDICTION_LOG_PATH), "Exists": DEFAULT_PREDICTION_LOG_PATH.exists()},
         ]
         st.table(pd.DataFrame(source_rows))
+
+
+def _render_bellwether_calibration_tab() -> None:
+    st.subheader("Bellwether Calibration")
+    st.caption("Forecast honesty layer: records NERO forecasts, resolves outcomes, and refuses probability scores until the forecast value is truly probability-valid.")
+    try:
+        ledger = load_calibration_ledger()
+        heartbeats = load_heartbeats()
+        legacy_log = load_prediction_log()
+        report, summary = build_calibration_report(ledger, heartbeats=heartbeats, legacy_prediction_log=legacy_log)
+    except Exception as exc:  # pragma: no cover - dashboard should survive report errors
+        st.warning(f"Bellwether calibration report could not be built: {exc}")
+        return
+
+    status_counts = summary.get("status_counts", {})
+    heartbeat = summary.get("heartbeat", {})
+    col_a, col_b, col_c, col_d, col_e = st.columns(5)
+    col_a.metric("Calibration Status", str(summary.get("headline_status", "UNKNOWN")))
+    col_b.metric("Records", str(summary.get("total_records", 0)))
+    col_c.metric("Legacy Rows", str(summary.get("legacy_prediction_rows", 0)))
+    col_d.metric("Fire Rate 7D", _display_ratio(heartbeat.get("fire_rate_7d", "")))
+    col_e.metric("Missed 7D", str(heartbeat.get("missed_cycles_7d", "")))
+
+    st.info("Calibration accuracy does not equal tradable profitability. This layer measures forecast honesty and information value only.")
+    if not ledger.empty and "status" in ledger:
+        if int(status_counts.get("NOT_A_PROBABILITY", 0)):
+            st.warning("NERO is resolving outcomes, but current confidence values are marked NOT_A_PROBABILITY, so Brier/Murphy scoring is intentionally blocked.")
+        if int(status_counts.get("SOURCE_MISMATCH", 0)):
+            st.warning("Some rows were blocked by SOURCE_MISMATCH and are not scored.")
+        if int(status_counts.get("DATA_QUALITY_FAIL", 0)):
+            st.warning("Some rows failed the data-quality gate and are not scored.")
+    else:
+        st.warning("No v1 calibration ledger rows yet. Run the Prediction Lab workflow to create the first schema-versioned records.")
+
+    st.caption(f"Schema: {summary.get('schema_version', '')} | Pre-registration: {summary.get('preregistration_version', '')}")
+    if not report.empty:
+        st.subheader("Per-Asset Calibration Readiness")
+        display = report.copy()
+        for column in ["n_eff_ratio"]:
+            if column in display:
+                display[column] = display[column].map(_display_ratio)
+        st.dataframe(display, use_container_width=True, hide_index=True)
+    if not ledger.empty:
+        st.subheader("Calibration Ledger")
+        visible_cols = [
+            "forecast_id",
+            "asset",
+            "issued_at_utc",
+            "published_value",
+            "probability_status",
+            "status",
+            "reason_code",
+            "source_id",
+            "resolution_source_id",
+            "horizon_class",
+            "outcome",
+            "resolved_at_utc",
+        ]
+        st.dataframe(ledger[[column for column in visible_cols if column in ledger.columns]].tail(50), use_container_width=True, hide_index=True)
+    if not heartbeats.empty:
+        with st.expander("Calibration heartbeat records"):
+            st.dataframe(heartbeats.tail(50), use_container_width=True, hide_index=True)
+
+
+def _display_ratio(value: object) -> str:
+    if value == "" or value is None:
+        return "insufficient"
+    try:
+        return f"{float(value):.0%}"
+    except (TypeError, ValueError):
+        return str(value)
 
 
 
@@ -1589,8 +1661,8 @@ def main() -> None:
 
     _render_opening_market_deck(asset, market_data, intraday_data, trade_plan, sentiment_result, opening_timeframe_label)
 
-    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, hypothesis_gate_tab, test_lab_tab, profit_edge_tab, market_memory_tab, cycle_intel_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, log_tab = st.tabs(
-        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "Hypothesis Gate", "TEST Lab", "Profit Engine", "Market Memory", "Cycle Intel", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Prediction Log"]
+    verdict_tab, trade_tab, accountability_tab, mean_reversion_tab, strategy_audit_tab, research_lab_tab, evolution_tab, hypothesis_gate_tab, test_lab_tab, profit_edge_tab, market_memory_tab, cycle_intel_tab, quant_intel_tab, trade_path_tab, chat_tab, social_intel_tab, structure_tab, news_tab, knowledge_tab, backtest_tab, calibration_tab, log_tab = st.tabs(
+        ["Verdict", "Trade Desk", "Accountability", "Mean Reversion", "Strategy Audit", "Research Lab", "Evolution", "Hypothesis Gate", "TEST Lab", "Profit Engine", "Market Memory", "Cycle Intel", "Quant Intel", "Trade Path", "NERO Chat", "Social Intel", "Market Structure", "News", "Knowledge Store", "Backtest", "Calibration", "Prediction Log"]
     )
 
     with verdict_tab:
@@ -1900,6 +1972,9 @@ def main() -> None:
         col_b.metric("Win Rate", f"{backtest.win_rate:.0%}")
         col_c.metric("Samples", str(backtest.sample_count))
         st.dataframe(pd.DataFrame(backtest.trades), use_container_width=True)
+
+    with calibration_tab:
+        _render_bellwether_calibration_tab()
 
     with log_tab:
         st.subheader("Signal Truth Dashboard v2")
