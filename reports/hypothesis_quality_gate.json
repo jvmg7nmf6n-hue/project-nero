@@ -160,7 +160,7 @@
       "parent_trades": 4,
       "parent_expectancy_r": -1.843,
       "parent_profit_factor": 0.0,
-      "parent_net_pnl": -288.96,
+      "parent_net_pnl": -314.38,
       "fixes_known_failure": true,
       "evidence_quality": "TOO_SMALL",
       "overfit_risk": "HIGH",
