@@ -336,6 +336,26 @@
       "reason": "No positive cost-aware edge is proven yet."
     },
     {
+      "candidate_id": "SHORT_BTC_BREAKDOWN_4H",
+      "display_label": "SHORT_BTC_4H",
+      "family": "Short Momentum",
+      "interval": "4h",
+      "asset_filter": "BTC",
+      "total_trades": 5,
+      "win_rate": 0.4,
+      "expectancy_r": -0.6003,
+      "profit_factor": 0.3012,
+      "max_drawdown": -0.0146,
+      "net_pnl": -187.74,
+      "verification_verdict": "INSUFFICIENT_SAMPLE",
+      "profit_edge_role": "WEAK_CANDIDATE",
+      "data_status": "OK",
+      "sunflower_gate": "NO_EDGE_YET",
+      "discipline_score": 7.72,
+      "decision": "DO_NOT_ALLOCATE",
+      "reason": "No positive cost-aware edge is proven yet."
+    },
+    {
       "candidate_id": "REPAIR_MR_1R_ASYMMETRIC_V1",
       "display_label": "FIX_MR_1R_ASYM",
       "family": "Exit Logic",
@@ -434,26 +454,6 @@
       "discipline_score": 0.0,
       "decision": "BLOCK_NEW_ENTRIES",
       "reason": "Strategy is blocked before any profit allocation."
-    },
-    {
-      "candidate_id": "SHORT_BTC_BREAKDOWN_4H",
-      "display_label": "SHORT_BTC_4H",
-      "family": "Short Momentum",
-      "interval": "4h",
-      "asset_filter": "BTC",
-      "total_trades": 4,
-      "win_rate": 0.25,
-      "expectancy_r": -0.9936,
-      "profit_factor": 0.0227,
-      "max_drawdown": -0.0146,
-      "net_pnl": -262.57,
-      "verification_verdict": "INSUFFICIENT_SAMPLE",
-      "profit_edge_role": "TOO_EARLY",
-      "data_status": "OK",
-      "sunflower_gate": "TOO_SMALL",
-      "discipline_score": 0.0,
-      "decision": "COLLECT_ONLY",
-      "reason": "Fewer than 5 closed trades; profit reading is noise."
     },
     {
       "candidate_id": "V2_MR_RECOVERY",

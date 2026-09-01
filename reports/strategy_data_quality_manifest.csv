@@ -168,7 +168,7 @@ MR_TARGET_1R_V1,OLD_MR_1R,XRP,True,True,149,1,68.01,INSUFFICIENT_SAMPLE,CHECK,Fa
 NEW_BNB_12H_MR,NEW_BNB_12H_MR,BNB,True,True,4,10,-254.09,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,BNB,True,True,4,23,-4.45,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,BTC,True,True,2,12,-86.87,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,26,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,27,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,ETH,True,True,2,3,54.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,BTC,True,True,15,2,106.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,BTC,True,True,15,2,76.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
@@ -336,6 +336,6 @@ REPAIR_MR_REGIME_LATE_V1,FIX_MR_LATE,PAXG,True,True,0,0,0.0,INSUFFICIENT_SAMPLE,
 REPAIR_MR_REGIME_LATE_V1,FIX_MR_LATE,SOL,True,True,0,1,48.0,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 REPAIR_MR_REGIME_LATE_V1,FIX_MR_LATE,XRP,True,True,0,1,110.83,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 RMR_LONG_ONLY_EURUSD_4H,RMR_LONG_EURUSD_4H,EURUSD,True,True,0,3,-4.27,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
-SHORT_BTC_BREAKDOWN_4H,SHORT_BTC_4H,BTC,True,True,0,4,-262.57,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
+SHORT_BTC_BREAKDOWN_4H,SHORT_BTC_4H,BTC,True,True,0,5,-187.74,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SHORT_ETH_BREAKDOWN_4H,SHORT_ETH_4H,ETH,True,True,0,4,-290.61,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SHORT_SOL_BREAKDOWN_4H,SHORT_SOL_4H,SOL,True,True,0,7,-70.78,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
