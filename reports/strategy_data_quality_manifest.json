@@ -2371,7 +2371,7 @@
     "asset": "BTC_ETH_PAIR",
     "report_exists": true,
     "evaluations_exists": true,
-    "runtime_errors": 24,
+    "runtime_errors": 25,
     "total_trades": 0,
     "net_pnl": 0.0,
     "rating": "INSUFFICIENT_SAMPLE",
