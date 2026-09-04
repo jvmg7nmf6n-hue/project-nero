@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-04",
   "daily_r": -1.1775507291641336,
   "equity": 9991.770814778649,
-  "last_evaluated_close_time": 1788552000000,
-  "missed_run_count": 587,
+  "last_evaluated_close_time": 1788562800000,
+  "missed_run_count": 589,
   "open_trade": {
     "asset": "XRP",
     "candidate_id": "REPAIR_MR_REGIME_LATE_V1",
