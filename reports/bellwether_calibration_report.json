@@ -10,10 +10,10 @@
     },
     "legacy_prediction_rows": 111,
     "heartbeat": {
-      "heartbeat_records": 21,
+      "heartbeat_records": 22,
       "expected_records_7d": 28,
-      "fire_rate_7d": 0.75,
-      "missed_cycles_7d": 7,
+      "fire_rate_7d": 0.786,
+      "missed_cycles_7d": 6,
       "status": "OK"
     },
     "calibration_disclaimer": "Calibration accuracy does not equal tradable profitability.",
