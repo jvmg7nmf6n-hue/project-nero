@@ -1,8 +1,8 @@
 NERO Strategy TEST Lab Weekly Report
-Report time: 2026-08-29 02:17 AM PKT
+Report time: 2026-09-04 07:37 PM PKT
 
 Executive Summary
-5-algo paper-test is active. Total closed paper trades across candidates: 482.
+5-algo paper-test is active. Total closed paper trades across candidates: 494.
 Current top candidate: RMR_CONFIRMATION_BTC_1D | rating=INSUFFICIENT_SAMPLE | score=66/100.
 
 Candidate Scoreboard
@@ -12,28 +12,28 @@ Candidate Scoreboard
 - NEW_BNB_12H_TREND: trades=23, win_rate=57%, expectancy=-0.13R, profit_factor=0.99, drawdown=-2%, rating=WATCHLIST, score=55/100
 - REPAIR_BREAKOUT_QUALITY_V1: trades=26, win_rate=58%, expectancy=-0.29R, profit_factor=1.37, drawdown=-5%, rating=WATCHLIST, score=55/100
 - HYP_OIL_TREND_V1: trades=20, win_rate=55%, expectancy=0.02R, profit_factor=0.99, drawdown=-6%, rating=WATCHLIST, score=55/100
-- REPAIR_MR_REGIME_LATE_V1: trades=3, win_rate=67%, expectancy=0.16R, profit_factor=2.34, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=49/100
 - V2_MR_RECOVERY: trades=20, win_rate=35%, expectancy=-0.45R, profit_factor=0.66, drawdown=-2%, rating=WATCHLIST, score=48/100
 - V2_BREAKOUT_RETEST: trades=44, win_rate=36%, expectancy=-0.86R, profit_factor=0.78, drawdown=-4%, rating=REJECT_OR_REWORK, score=41/100
 - BREAKOUT_MOMENTUM_V1: trades=92, win_rate=39%, expectancy=-0.67R, profit_factor=0.59, drawdown=-7%, rating=REJECT_OR_REWORK, score=39/100
 - MR_RELAXED_PULLBACK_V1: trades=41, win_rate=41%, expectancy=-0.64R, profit_factor=0.61, drawdown=-8%, rating=REJECT_OR_REWORK, score=38/100
 - RMR_LONG_ONLY_EURUSD_4H: trades=13, win_rate=15%, expectancy=-0.09R, profit_factor=0.63, drawdown=-0%, rating=INSUFFICIENT_SAMPLE, score=38/100
-- NEW_BTC_12H_MR: trades=11, win_rate=64%, expectancy=-0.06R, profit_factor=0.78, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=36/100
+- NEW_BTC_12H_MR: trades=12, win_rate=67%, expectancy=-0.06R, profit_factor=0.78, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=37/100
 - MR_REGIME_FILTER_V1: trades=28, win_rate=32%, expectancy=-0.85R, profit_factor=0.43, drawdown=-6%, rating=REJECT_OR_REWORK, score=35/100
 - MR_TARGET_1R_V1: trades=25, win_rate=36%, expectancy=-0.84R, profit_factor=0.38, drawdown=-6%, rating=REJECT_OR_REWORK, score=35/100
 - SHORT_SOL_BREAKDOWN_4H: trades=7, win_rate=57%, expectancy=-0.15R, profit_factor=0.72, drawdown=-1%, rating=INSUFFICIENT_SAMPLE, score=31/100
+- NEW_BNB_12H_MR: trades=11, win_rate=45%, expectancy=-0.41R, profit_factor=0.63, drawdown=-3%, rating=INSUFFICIENT_SAMPLE, score=28/100
+- REPAIR_MR_REGIME_LATE_V1: trades=4, win_rate=50%, expectancy=-0.20R, profit_factor=0.94, drawdown=-3%, rating=INSUFFICIENT_SAMPLE, score=28/100
 - HYP_OIL_MR_V1: trades=7, win_rate=43%, expectancy=-0.25R, profit_factor=0.71, drawdown=-3%, rating=INSUFFICIENT_SAMPLE, score=27/100
 - MR_DEEP_VALUE_V1: trades=20, win_rate=5%, expectancy=-1.66R, profit_factor=0.01, drawdown=-4%, rating=REJECT_OR_REWORK, score=27/100
-- NEW_BNB_12H_MR: trades=10, win_rate=40%, expectancy=-0.54R, profit_factor=0.47, drawdown=-3%, rating=INSUFFICIENT_SAMPLE, score=23/100
+- SHORT_BTC_BREAKDOWN_4H: trades=6, win_rate=50%, expectancy=-0.33R, profit_factor=0.62, drawdown=-1%, rating=INSUFFICIENT_SAMPLE, score=26/100
 - SHORT_OIL_BREAKDOWN_1H: trades=16, win_rate=25%, expectancy=-0.64R, profit_factor=0.26, drawdown=-6%, rating=INSUFFICIENT_SAMPLE, score=23/100
+- V2_MR_DEEP: trades=7, win_rate=43%, expectancy=-0.46R, profit_factor=0.31, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=21/100
+- V2_MR_REWARD: trades=15, win_rate=47%, expectancy=-1.20R, profit_factor=0.60, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=21/100
 - NEW_XRP_2H_MR: trades=4, win_rate=25%, expectancy=-0.43R, profit_factor=0.54, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=21/100
 - NEW_NEAR_2H_MR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
 - NEW_BTC_ETH_12H_PAIR: trades=0, win_rate=0%, expectancy=0.00R, profit_factor=0.00, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=20/100
-- V2_MR_REWARD: trades=13, win_rate=46%, expectancy=-1.20R, profit_factor=0.63, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=20/100
-- V2_MR_DEEP: trades=6, win_rate=33%, expectancy=-0.54R, profit_factor=0.31, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=19/100
-- REPAIR_MR_1R_ASYMMETRIC_V1: trades=3, win_rate=33%, expectancy=-0.59R, profit_factor=0.42, drawdown=0%, rating=INSUFFICIENT_SAMPLE, score=18/100
-- V2_MR_REGIME: trades=13, win_rate=31%, expectancy=-1.46R, profit_factor=0.57, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=17/100
-- SHORT_BTC_BREAKDOWN_4H: trades=4, win_rate=25%, expectancy=-0.99R, profit_factor=0.02, drawdown=-1%, rating=INSUFFICIENT_SAMPLE, score=8/100
+- V2_MR_REGIME: trades=16, win_rate=31%, expectancy=-1.36R, profit_factor=0.52, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=19/100
+- REPAIR_MR_1R_ASYMMETRIC_V1: trades=4, win_rate=25%, expectancy=-0.76R, profit_factor=0.25, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=14/100
 - SHORT_ETH_BREAKDOWN_4H: trades=4, win_rate=0%, expectancy=-1.28R, profit_factor=0.00, drawdown=-2%, rating=INSUFFICIENT_SAMPLE, score=3/100
 
 Operating Rule
