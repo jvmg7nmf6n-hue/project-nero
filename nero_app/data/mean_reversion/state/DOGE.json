@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-04",
   "daily_r": 0.0,
   "equity": 9870.210695875858,
-  "last_evaluated_close_time": 1788537600000,
-  "missed_run_count": 930,
+  "last_evaluated_close_time": 1788552000000,
+  "missed_run_count": 933,
   "open_trade": {
     "asset": "DOGE",
     "entry_atr": 0.0008978571428571437,
