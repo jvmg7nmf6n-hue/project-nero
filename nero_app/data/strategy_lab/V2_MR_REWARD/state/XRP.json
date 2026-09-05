@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-05",
   "daily_r": 0.0,
   "equity": 9888.203278055724,
-  "last_evaluated_close_time": 1788580800000,
-  "missed_run_count": 629,
+  "last_evaluated_close_time": 1788602400000,
+  "missed_run_count": 634,
   "open_trade": {
     "asset": "XRP",
     "candidate_id": "V2_MR_REWARD",
