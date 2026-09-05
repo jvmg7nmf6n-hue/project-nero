@@ -4,16 +4,16 @@
     "preregistration_version": "calibration_v1",
     "total_records": 11,
     "status_counts": {
-      "NOT_A_PROBABILITY": 4,
+      "NOT_A_PROBABILITY": 5,
       "DATA_QUALITY_FAIL": 4,
-      "PENDING": 3
+      "PENDING": 2
     },
     "legacy_prediction_rows": 113,
     "heartbeat": {
-      "heartbeat_records": 23,
+      "heartbeat_records": 24,
       "expected_records_7d": 28,
-      "fire_rate_7d": 0.821,
-      "missed_cycles_7d": 5,
+      "fire_rate_7d": 0.857,
+      "missed_cycles_7d": 4,
       "status": "OK"
     },
     "calibration_disclaimer": "Calibration accuracy does not equal tradable profitability.",
@@ -26,8 +26,8 @@
       "preregistration_version": "calibration_v1",
       "total_records": 6,
       "probability_valid_resolved": 0,
-      "not_probability_resolved": 4,
-      "pending": 2,
+      "not_probability_resolved": 5,
+      "pending": 1,
       "source_mismatch": 0,
       "data_quality_fail": 0,
       "brier_mean": "",

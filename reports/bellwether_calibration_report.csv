@@ -1,3 +1,3 @@
 asset,schema_version,preregistration_version,total_records,probability_valid_resolved,not_probability_resolved,pending,source_mismatch,data_quality_fail,brier_mean,n_raw,n_eff,n_eff_ratio,calibration_status,warning
-BTC,bellwether_calibration_v1,calibration_v1,6,0,4,2,0,0,,0,0,,INSUFFICIENT_EFFECTIVE_SAMPLE,Existing values are resolved context but not scoreable because confidence is not a probability.
+BTC,bellwether_calibration_v1,calibration_v1,6,0,5,1,0,0,,0,0,,INSUFFICIENT_EFFECTIVE_SAMPLE,Existing values are resolved context but not scoreable because confidence is not a probability.
 GOLD,bellwether_calibration_v1,calibration_v1,5,0,0,1,0,4,,0,0,,INSUFFICIENT_EFFECTIVE_SAMPLE,Calibration accuracy does not equal tradable profitability.
