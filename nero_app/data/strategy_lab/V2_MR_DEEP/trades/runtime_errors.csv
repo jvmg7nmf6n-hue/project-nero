@@ -1407,3 +1407,13 @@ timestamp,asset,code,message
 2026-08-25T04:19:42.452438+00:00,OIL,ERROR,ValueError: No live fallback candles for OIL: fallback: HTTPError
 2026-08-26T18:24:53.255770+00:00,SILVER,ERROR,ValueError: No live fallback candles for SILVER: fallback: HTTPError
 2026-08-26T18:24:53.255770+00:00,OIL,ERROR,ValueError: No live fallback candles for OIL: fallback: HTTPError
+2026-09-07T18:42:26.479044+00:00,SPY,STALE_FEED,Latest closed candle is stale for SPY
+2026-09-07T18:42:26.479044+00:00,QQQ,STALE_FEED,Latest closed candle is stale for QQQ
+2026-09-07T18:42:26.479044+00:00,NVDA,STALE_FEED,Latest closed candle is stale for NVDA
+2026-09-07T18:42:26.479044+00:00,MSTR,STALE_FEED,Latest closed candle is stale for MSTR
+2026-09-07T18:42:26.479044+00:00,COIN,STALE_FEED,Latest closed candle is stale for COIN
+2026-09-07T18:42:26.479044+00:00,MARA,STALE_FEED,Latest closed candle is stale for MARA
+2026-09-07T18:42:26.479044+00:00,RIOT,STALE_FEED,Latest closed candle is stale for RIOT
+2026-09-07T18:42:26.479044+00:00,GLD,STALE_FEED,Latest closed candle is stale for GLD
+2026-09-07T18:42:26.479044+00:00,GDX,STALE_FEED,Latest closed candle is stale for GDX
+2026-09-07T18:42:26.479044+00:00,NEM,STALE_FEED,Latest closed candle is stale for NEM
