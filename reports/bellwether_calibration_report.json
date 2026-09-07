@@ -2,15 +2,15 @@
   "summary": {
     "schema_version": "bellwether_calibration_v1",
     "preregistration_version": "calibration_v1",
-    "total_records": 15,
+    "total_records": 16,
     "status_counts": {
+      "DATA_QUALITY_FAIL": 8,
       "NOT_A_PROBABILITY": 7,
-      "DATA_QUALITY_FAIL": 4,
-      "PENDING": 4
+      "PENDING": 1
     },
-    "legacy_prediction_rows": 117,
+    "legacy_prediction_rows": 118,
     "heartbeat": {
-      "heartbeat_records": 32,
+      "heartbeat_records": 33,
       "expected_records_7d": 28,
       "fire_rate_7d": 1.0,
       "missed_cycles_7d": 0,
@@ -41,12 +41,12 @@
       "asset": "GOLD",
       "schema_version": "bellwether_calibration_v1",
       "preregistration_version": "calibration_v1",
-      "total_records": 7,
+      "total_records": 8,
       "probability_valid_resolved": 0,
       "not_probability_resolved": 0,
-      "pending": 3,
+      "pending": 0,
       "source_mismatch": 0,
-      "data_quality_fail": 4,
+      "data_quality_fail": 8,
       "brier_mean": "",
       "n_raw": 0,
       "n_eff": 0,
