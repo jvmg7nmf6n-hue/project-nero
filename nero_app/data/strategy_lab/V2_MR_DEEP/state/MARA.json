@@ -3,7 +3,7 @@
   "daily_r": 0.0,
   "equity": 10000.0,
   "last_evaluated_close_time": 1788544800000,
-  "missed_run_count": 68,
+  "missed_run_count": 69,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:V2_MR_DEEP"
 }
