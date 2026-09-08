@@ -1,3 +1,3 @@
 agent,asset,total,evaluated,wins,misses,win_rate,pending,excluded_sample_or_fallback
-NERO_CORE,BTC,57,56,14,21,0.4,1,1
+NERO_CORE,BTC,58,57,14,22,0.3888888888888889,1,1
 NERO_CORE,GOLD,59,58,16,20,0.4444444444444444,1,1
