@@ -60,6 +60,18 @@
     "action": "Stop new paper entries and send to Strategy Doctor."
   },
   {
+    "candidate_id": "V2_MR_REGIME",
+    "display_label": "V2_MR_REGIME",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -651.41,
+    "expectancy_r": -1.2495,
+    "profit_factor": 0.3914,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "V2_BREAKOUT_RETEST",
     "display_label": "V2_BREAKOUT_RETEST",
     "verdict": "QUARANTINE",
