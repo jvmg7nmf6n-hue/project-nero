@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-11",
   "daily_r": 0.0,
   "equity": 9929.224489948578,
-  "last_evaluated_close_time": 1789099200000,
-  "missed_run_count": 726,
+  "last_evaluated_close_time": 1789124400000,
+  "missed_run_count": 732,
   "open_trade": {
     "asset": "SOL",
     "candidate_id": "SHORT_SOL_BREAKDOWN_4H",
