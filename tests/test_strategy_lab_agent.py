@@ -31,6 +31,11 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(CANDIDATES["REPAIR_MR_REGIME_LATE_V1"].display_label, "FIX_MR_LATE")
         self.assertTrue(CANDIDATES["REPAIR_MR_REGIME_LATE_V1"].require_rsi_recovery)
         self.assertEqual(CANDIDATES["REPAIR_MR_1R_ASYMMETRIC_V1"].target_mode, "FIXED_150R")
+        self.assertEqual(CANDIDATES["SIE_OLD_BREAKOUT_RETEST_QUALITY_V1"].bucket, "SIE_REPAIR_TEST")
+        self.assertTrue(CANDIDATES["SIE_OLD_BREAKOUT_RETEST_QUALITY_V1"].require_breakout_retest)
+        self.assertEqual(CANDIDATES["SIE_OLD_MR_DEEP_EXHAUSTION_CONFIRM_V1"].display_label, "SIE_OLD_MR_DEEP_CONFIRM")
+        self.assertTrue(CANDIDATES["SIE_OLD_MR_DEEP_EXHAUSTION_CONFIRM_V1"].require_rsi_recovery)
+        self.assertEqual(CANDIDATES["SIE_FIX_BREAKOUT_QUALITY_R_QUALITY_V1"].min_planned_reward_r, 1.5)
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].bucket, "HYPOTHESIS_TEST")
         self.assertEqual(CANDIDATES["HYP_OIL_TREND_V1"].asset_filter, ("OIL_FUT", "BRENT_FUT"))
         self.assertEqual(CANDIDATES["HYP_OIL_MR_V1"].display_label, "HYP_OIL_MR")
@@ -242,6 +247,14 @@ class StrategyLabAgentTest(unittest.TestCase):
         self.assertEqual(set(short_ids), {"SHORT_BTC_BREAKDOWN_4H", "SHORT_ETH_BREAKDOWN_4H", "SHORT_SOL_BREAKDOWN_4H", "SHORT_OIL_BREAKDOWN_1H"})
         self.assertTrue(all(CANDIDATES[candidate_id].entry_side == "SHORT" for candidate_id in short_ids))
         self.assertTrue(all(CANDIDATES[candidate_id].bucket == "SHORT_SIDE_TEST" for candidate_id in short_ids))
+
+    def test_strategy_intelligence_candidates_are_registered_for_paper_repair(self) -> None:
+        sie_ids = [candidate_id for candidate_id, spec in CANDIDATES.items() if spec.bucket == "SIE_REPAIR_TEST"]
+
+        self.assertEqual(len(sie_ids), 9)
+        self.assertTrue(all(CANDIDATES[candidate_id].min_planned_reward_r >= 1.25 for candidate_id in sie_ids))
+        self.assertTrue(all(CANDIDATES[candidate_id].max_atr_pct is not None for candidate_id in sie_ids))
+        self.assertTrue(all("Strategy Intelligence Engine" in CANDIDATES[candidate_id].evidence_note for candidate_id in sie_ids))
 
     def test_short_momentum_entry_and_target_accounting(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

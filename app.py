@@ -46,6 +46,7 @@ from nero_app.core.strategy_evolution import build_strategy_evolution_report
 from nero_app.core.strategy_research_lab import build_strategy_research_report
 from nero_app.core.strategy_repair_workbench import build_strategy_repair_workbench
 from nero_app.core.strategy_repair_lab import build_strategy_repair_lab_report
+from nero_app.core.strategy_intelligence_engine import build_strategy_intelligence_report
 from nero_app.core.strategy_quarantine import build_strategy_quarantine_report
 from nero_app.core.strategy_verification import build_strategy_verification_report
 from nero_app.core.live_trade_status import build_live_trade_status_report
@@ -888,6 +889,32 @@ def _render_strategy_evolution_tab() -> None:
             "anti_overfit_guard",
         ]
         visible = repair_lab[[column for column in preferred if column in repair_lab.columns] + [column for column in repair_lab.columns if column not in preferred]]
+        st.dataframe(visible, use_container_width=True, hide_index=True)
+    intelligence_report, intelligence_summary = build_strategy_intelligence_report()
+    st.subheader("Strategy Intelligence Engine")
+    st.caption("Failure-learning brain. It converts NERO losses into strict, LLM-ready paper-strategy proposals without changing live rules.")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    col_a.metric("Status", intelligence_summary.status)
+    col_b.metric("Failures Read", str(intelligence_summary.failures_read))
+    col_c.metric("Test-Lab Ready", str(intelligence_summary.test_lab_ready))
+    col_d.metric("Top Proposal", intelligence_summary.top_proposal)
+    for note in intelligence_summary.notes:
+        st.info(note)
+    if not intelligence_report.empty:
+        preferred = [
+            "parent_label",
+            "failure_class",
+            "proposed_label",
+            "intelligence_score",
+            "decision",
+            "parent_trades",
+            "parent_net_pnl",
+            "parent_expectancy_r",
+            "changed_rules",
+            "fresh_data_plan",
+            "next_action",
+        ]
+        visible = intelligence_report[[column for column in preferred if column in intelligence_report.columns] + [column for column in intelligence_report.columns if column not in preferred]]
         st.dataframe(visible, use_container_width=True, hide_index=True)
     if report.asset_action_rows:
         st.subheader("Asset Failure Correction")
