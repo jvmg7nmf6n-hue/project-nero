@@ -1,7 +1,7 @@
-NERO Daily Hypothesis Report | 2026-09-18
-New active repair hypotheses: 5
-Need Strategy Doctor design: 6
-New watchlist additions: 2
+NERO Daily Hypothesis Report | 2026-09-19
+New active repair hypotheses: 0
+Need Strategy Doctor design: 0
+New watchlist additions: 0
 Total watchlist: 6
 Successful/profit candidates: 6
 Top candidates:
