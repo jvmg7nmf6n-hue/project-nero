@@ -670,10 +670,10 @@
       "family": "BREAKOUT",
       "failure_class": "BREAKOUT_FAKEOUT",
       "failure_evidence": "Breakout family is losing; likely entering first breaks without enough trend/retest quality.",
-      "parent_trades": 1,
-      "parent_net_pnl": -118.1,
-      "parent_expectancy_r": -1.181,
-      "parent_profit_factor": 0.0,
+      "parent_trades": 2,
+      "parent_net_pnl": -61.61,
+      "parent_expectancy_r": -0.0513,
+      "parent_profit_factor": 0.4783,
       "proposed_strategy_id": "SIE_SIE_OLD_BREAKOUT_RETEST_RETEST_QUALITY_V1",
       "proposed_label": "SIE_SIE_OLD_BREAKOUT_RETEST_RETEST",
       "core_hypothesis": "Breakout edge may improve if NERO waits for a retest close and blocks high ATR shock candles.",
@@ -687,7 +687,7 @@
       "anti_overfit_guard": "Max two changed rules, no same-window retest promotion, no parameter search after seeing results, paper-only.",
       "llm_prompt": "Draft only one paper-trading repair candidate using the attached schema. Parent=SIE_OLD_BREAKOUT_RETEST_QUALITY_V1; failure_class=BREAKOUT_FAKEOUT; hypothesis=Breakout edge may improve if NERO waits for a retest close and blocks high ATR shock candles. Do not add more than two changed rules. Do not use same-window retest as proof. Return JSON only.",
       "proposal_contract": "{\"blocked\": [\"real_orders\", \"same_window_retest_promotion\", \"unlimited_parameter_search\", \"silent_rule_mutation\"], \"changed_rules\": [\"require retest confirmation after breakout\", \"block entries when ATR percentage is above the strategy ceiling\"], \"failure_class\": \"BREAKOUT_FAKEOUT\", \"fresh_data_requirement\": \"forward paper from next run or documented non-overlapping historical window\", \"parent_strategy\": \"SIE_OLD_BREAKOUT_RETEST_QUALITY_V1\", \"promotion_gates\": {\"beats_parent\": true, \"beats_random_baseline\": true, \"expectancy_r\": \"> 0\", \"fresh_trades\": [30, 50, 100], \"profit_factor\": \">= 1.20\"}, \"proposal_id\": \"SIE_SIE_OLD_BREAKOUT_RETEST_RETEST_QUALITY_V1\", \"schema_version\": \"strategy_intelligence_engine_v1\", \"unchanged_rules\": [\"long-only breakout family\", \"existing fee and paper risk model\", \"fixed R accounting\"]}",
-      "intelligence_score": 69.97,
+      "intelligence_score": 69.62,
       "decision": "RESEARCH_QUEUE_SMALL_SAMPLE",
       "next_action": "Keep proposal visible, but collect more parent/repair evidence before spending more test budget."
     }
