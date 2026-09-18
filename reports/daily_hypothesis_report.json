@@ -455,7 +455,8 @@
     }
   ],
   "new_watchlist_ids": [
-    "SIE_V2_BREAKOUT_RETEST_RETEST_QUALITY_V1"
+    "SIE_FIX_BREAKOUT_QUALITY_R_QUALITY_V1",
+    "SIE_OLD_BREAKOUT_RETEST_QUALITY_V1"
   ],
   "source_files": {
     "profit_edge": "reports/profit_edge_report.csv",
@@ -515,6 +516,23 @@
       "win_rate": 0.2727
     },
     {
+      "candidate_id": "SIE_FIX_BREAKOUT_QUALITY_R_QUALITY_V1",
+      "decision": "FOCUS_PAPER_ONLY",
+      "display_label": "SIE_FIX_BREAKOUT_R_QUALITY",
+      "edge_score": 95.54,
+      "expectancy_r": 0.1733,
+      "max_drawdown": -0.0203,
+      "net_pnl": 102.01,
+      "paper_weight": 0.05,
+      "profit_factor": 1.8257,
+      "reason": "Positive edge is visible but below the promotion sample gate.",
+      "recovery_priority": 3,
+      "role": "PROFIT_CANDIDATE",
+      "total_trades": 6,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.6667
+    },
+    {
       "candidate_id": "SIE_V2_BREAKOUT_RETEST_RETEST_QUALITY_V1",
       "decision": "FOCUS_PAPER_ONLY",
       "display_label": "SIE_V2_BREAKOUT_RETEST",
@@ -530,19 +548,36 @@
       "total_trades": 5,
       "verdict": "WATCHLIST",
       "win_rate": 0.6
+    },
+    {
+      "candidate_id": "SIE_OLD_BREAKOUT_RETEST_QUALITY_V1",
+      "decision": "FOCUS_PAPER_ONLY",
+      "display_label": "SIE_OLD_BREAKOUT_RETEST",
+      "edge_score": 70.4,
+      "expectancy_r": 0.022,
+      "max_drawdown": -0.0231,
+      "net_pnl": 9.95,
+      "paper_weight": 0.05,
+      "profit_factor": 1.0397,
+      "reason": "Positive edge is visible but below the promotion sample gate.",
+      "recovery_priority": 3,
+      "role": "PROFIT_CANDIDATE",
+      "total_trades": 7,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.5714
     }
   ],
   "summary": {
     "active_new_hypotheses": 5,
     "design_required": 6,
-    "new_watchlist_additions": 1,
+    "new_watchlist_additions": 2,
     "notification_due": true,
     "report_date": "2026-09-18",
-    "successful_strategies": 4,
+    "successful_strategies": 6,
     "top_strategy": "RMR_CONFIRM_BTC_1D",
     "top_strategy_expectancy_r": 0.5315,
     "top_strategy_net_pnl": 106.58,
-    "total_watchlist": 4
+    "total_watchlist": 6
   },
   "watchlist": [
     {
@@ -574,6 +609,36 @@
       "verdict": "WATCHLIST",
       "win_rate": 0.25,
       "wins": 2.0
+    },
+    {
+      "action": "Continue forward testing; do not increase allocation.",
+      "asset_filter": "BTC,BNB,PAXG",
+      "bucket": "SIE_REPAIR_TEST",
+      "candidate_id": "SIE_FIX_BREAKOUT_QUALITY_R_QUALITY_V1",
+      "data_status": "OK",
+      "decision": null,
+      "display_label": "SIE_FIX_BREAKOUT_R_QUALITY",
+      "edge_score": NaN,
+      "evidence_score": 70.0,
+      "expectancy_r": 0.1733,
+      "family": "Momentum",
+      "interval": "4h",
+      "lab_rating": "INSUFFICIENT_SAMPLE",
+      "losses": 2.0,
+      "max_drawdown": -0.0203,
+      "net_pnl": 102.01,
+      "paper_weight": NaN,
+      "primary_reason": "Positive but sample is below the 30-trade promotion gate.",
+      "profit_factor": 1.8257,
+      "rating_score": 44.82,
+      "reason": null,
+      "recovery_priority": NaN,
+      "role": null,
+      "sample_status": "EARLY",
+      "total_trades": 6,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.6667,
+      "wins": 4.0
     },
     {
       "action": "Continue forward testing; do not increase allocation.",
@@ -664,6 +729,36 @@
       "verdict": "WATCHLIST",
       "win_rate": 0.6,
       "wins": 3.0
+    },
+    {
+      "action": "Continue forward testing; do not increase allocation.",
+      "asset_filter": "BTC,XRP,BNB,PAXG",
+      "bucket": "SIE_REPAIR_TEST",
+      "candidate_id": "SIE_OLD_BREAKOUT_RETEST_QUALITY_V1",
+      "data_status": "OK",
+      "decision": null,
+      "display_label": "SIE_OLD_BREAKOUT_RETEST",
+      "edge_score": NaN,
+      "evidence_score": 65.09,
+      "expectancy_r": 0.022,
+      "family": "Momentum",
+      "interval": "4h",
+      "lab_rating": "INSUFFICIENT_SAMPLE",
+      "losses": 3.0,
+      "max_drawdown": -0.0231,
+      "net_pnl": 9.95,
+      "paper_weight": NaN,
+      "primary_reason": "Positive but sample is below the 30-trade promotion gate.",
+      "profit_factor": 1.0397,
+      "rating_score": 35.42,
+      "reason": null,
+      "recovery_priority": NaN,
+      "role": null,
+      "sample_status": "EARLY",
+      "total_trades": 7,
+      "verdict": "WATCHLIST",
+      "win_rate": 0.5714,
+      "wins": 4.0
     }
   ]
 }

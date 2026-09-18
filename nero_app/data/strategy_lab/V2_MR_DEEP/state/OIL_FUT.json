@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-18",
   "daily_r": 0.0,
   "equity": 9886.588812446082,
-  "last_evaluated_close_time": 1789732800000,
-  "missed_run_count": 246,
+  "last_evaluated_close_time": 1789747200000,
+  "missed_run_count": 247,
   "open_trade": {
     "asset": "OIL_FUT",
     "candidate_id": "V2_MR_DEEP",
