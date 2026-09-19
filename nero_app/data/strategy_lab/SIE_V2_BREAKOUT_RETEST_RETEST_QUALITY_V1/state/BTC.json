@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-19",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1789801200000,
-  "missed_run_count": 58,
+  "last_evaluated_close_time": 1789819200000,
+  "missed_run_count": 62,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "SIE_V2_BREAKOUT_RETEST_RETEST_QUALITY_V1",
