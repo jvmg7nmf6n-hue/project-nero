@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-09-18",
-  "daily_r": 1.1286961761156606,
+  "daily_guard_day": "2026-09-19",
+  "daily_r": 0.0,
   "equity": 10067.195619418757,
-  "last_evaluated_close_time": 1789761600000,
-  "missed_run_count": 49,
+  "last_evaluated_close_time": 1789776000000,
+  "missed_run_count": 52,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "SIE_FIX_BREAKOUT_QUALITY_R_QUALITY_V1",
