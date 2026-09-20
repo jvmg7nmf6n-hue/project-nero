@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-20",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1789876800000,
-  "missed_run_count": 74,
+  "last_evaluated_close_time": 1789902000000,
+  "missed_run_count": 80,
   "open_trade": {
     "asset": "XRP",
     "candidate_id": "SIE_OLD_MR_RELAXED_EXHAUSTION_CONFIRM_V1",

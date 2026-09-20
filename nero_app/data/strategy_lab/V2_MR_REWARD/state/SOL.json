@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-20",
   "daily_r": 0.0,
   "equity": 9975.390640694888,
-  "last_evaluated_close_time": 1789876800000,
-  "missed_run_count": 919,
+  "last_evaluated_close_time": 1789902000000,
+  "missed_run_count": 925,
   "open_trade": {
     "asset": "SOL",
     "candidate_id": "V2_MR_REWARD",
