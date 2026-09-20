@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-20",
   "daily_r": 0.0,
   "equity": 10000.0,
-  "last_evaluated_close_time": 1789902000000,
-  "missed_run_count": 80,
+  "last_evaluated_close_time": 1789916400000,
+  "missed_run_count": 83,
   "open_trade": {
     "asset": "BNB",
     "candidate_id": "SIE_V2_MR_RECOVERY_EXHAUSTION_CONFIRM_V1",
