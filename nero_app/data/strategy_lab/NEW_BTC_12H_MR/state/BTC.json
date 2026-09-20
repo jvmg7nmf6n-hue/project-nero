@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-20",
   "daily_r": 1.5360134025923533,
   "equity": 9888.783487370763,
-  "last_evaluated_close_time": 1789927200000,
-  "missed_run_count": 946,
+  "last_evaluated_close_time": 1789941600000,
+  "missed_run_count": 949,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:NEW_BTC_12H_MR"
 }

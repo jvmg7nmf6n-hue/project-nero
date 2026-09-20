@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-20",
   "daily_r": 1.1574324571095542,
   "equity": 10074.717141663165,
-  "last_evaluated_close_time": 1789927200000,
-  "missed_run_count": 85,
+  "last_evaluated_close_time": 1789941600000,
+  "missed_run_count": 88,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SIE_V2_MR_RECOVERY_EXHAUSTION_CONFIRM_V1"
 }

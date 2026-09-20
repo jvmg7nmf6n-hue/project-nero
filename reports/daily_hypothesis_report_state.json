@@ -1,11 +1,11 @@
 {
-  "last_sent_date": "2026-09-20",
+  "last_sent_date": "2026-09-21",
   "last_summary": {
     "active_new_hypotheses": 0,
     "design_required": 0,
     "new_watchlist_additions": 0,
     "notification_due": true,
-    "report_date": "2026-09-20",
+    "report_date": "2026-09-21",
     "successful_strategies": 6,
     "top_strategy": "SIE_FIX_BREAKOUT_R_QUALITY",
     "top_strategy_expectancy_r": 0.3132,
