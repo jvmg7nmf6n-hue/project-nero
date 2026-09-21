@@ -48,6 +48,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "SHORT_OIL_BREAKDOWN_1H",
+    "display_label": "SHORT_OIL_1H",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -699.91,
+    "expectancy_r": -0.4175,
+    "profit_factor": 0.4642,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "MR_RELAXED_PULLBACK_V1",
     "display_label": "OLD_MR_RELAXED",
     "verdict": "QUARANTINE",

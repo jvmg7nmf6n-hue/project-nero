@@ -1,12 +1,12 @@
-NERO Daily Hypothesis Report | 2026-09-21
-New active repair hypotheses: 5
-Need Strategy Doctor design: 7
-New watchlist additions: 1
+NERO Daily Hypothesis Report | 2026-09-22
+New active repair hypotheses: 0
+Need Strategy Doctor design: 0
+New watchlist additions: 0
 Total watchlist: 7
 Successful/profit candidates: 7
 Top candidates:
-- SIE_FIX_BREAKOUT_R_QUALITY: net $268.41, ExpR +0.33, trades 10
+- SIE_FIX_BREAKOUT_R_QUALITY: net $360.91, ExpR +0.41, trades 11
+- SIE_OLD_BREAKOUT_RETEST: net $342.75, ExpR +0.23, trades 14
+- SIE_V2_BREAKOUT_RETEST: net $231.79, ExpR +0.24, trades 9
 - RMR_CONFIRM_BTC_1D: net $106.58, ExpR +0.53, trades 8
-- RMR_LONG_BTC_1D: net $76.14, ExpR +0.38, trades 10
-- RMR_ADX_ETH_4H: net $54.58, ExpR +0.26, trades 11
 Paper research only. No real orders.
