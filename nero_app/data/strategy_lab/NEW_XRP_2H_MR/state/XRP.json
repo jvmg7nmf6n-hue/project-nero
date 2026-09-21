@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-21",
   "daily_r": 1.798720149467463,
   "equity": 9918.686181633606,
-  "last_evaluated_close_time": 1789963200000,
-  "missed_run_count": 954,
+  "last_evaluated_close_time": 1789992000000,
+  "missed_run_count": 961,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:NEW_XRP_2H_MR"
 }
