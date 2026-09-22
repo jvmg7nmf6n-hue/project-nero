@@ -1,8 +1,8 @@
 {
-  "run_id": "strategy-lab-20260922T165055Z",
-  "created_at": "2026-09-22T16:50:55.426898+00:00",
+  "run_id": "strategy-lab-20260922T211402Z",
+  "created_at": "2026-09-22T21:14:02.274475+00:00",
   "workflow_name": "manual-strategy-manifest-refresh",
-  "git_commit": "e15e4be8c099ab1c692eab6aa0e632e60b0025b1",
+  "git_commit": "352d53eae83aee6346e410c9c14f9cdc5ded2bfb",
   "strategy_count": 38,
   "enabled_strategy_count": 38,
   "asset_count": 33,
