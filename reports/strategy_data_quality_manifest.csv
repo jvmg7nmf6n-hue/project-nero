@@ -168,7 +168,7 @@ MR_TARGET_1R_V1,OLD_MR_1R,XRP,True,True,149,1,68.01,INSUFFICIENT_SAMPLE,CHECK,Fa
 NEW_BNB_12H_MR,NEW_BNB_12H_MR,BNB,True,True,4,18,-133.36,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,BNB,True,True,4,23,-4.45,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,BTC,True,True,2,17,-111.22,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,128,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,129,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,ETH,True,True,2,3,54.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,BTC,True,True,15,2,106.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,BTC,True,True,15,2,76.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
@@ -346,7 +346,7 @@ SIE_NEW_BNB_12H_TREND_RETEST_QUALITY_V1,SIE_BNB_12H_RETEST,BNB,True,True,0,6,123
 SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,BNB,True,True,0,6,123.75,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,BTC,True,True,0,7,261.04,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,PAXG,True,True,0,1,-51.27,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
-SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,XRP,True,True,0,4,32.17,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
+SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,XRP,True,True,0,5,-83.01,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SIE_OLD_MR_1R_EXHAUSTION_CONFIRM_V1,SIE_OLD_MR_1R_CONFIRM,BNB,True,True,0,1,74.72,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SIE_OLD_MR_1R_EXHAUSTION_CONFIRM_V1,SIE_OLD_MR_1R_CONFIRM,BTC,True,True,0,0,0.0,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
 SIE_OLD_MR_1R_EXHAUSTION_CONFIRM_V1,SIE_OLD_MR_1R_CONFIRM,DOGE,True,True,0,0,0.0,INSUFFICIENT_SAMPLE,OK,True,Saved report and evaluation ledger exist with no runtime-error marker.
