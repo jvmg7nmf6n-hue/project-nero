@@ -1,16 +1,16 @@
 {
-  "last_sent_date": "2026-09-23",
+  "last_sent_date": "2026-09-24",
   "last_summary": {
     "active_new_hypotheses": 0,
     "design_required": 0,
     "new_watchlist_additions": 0,
     "notification_due": true,
-    "report_date": "2026-09-23",
-    "successful_strategies": 7,
+    "report_date": "2026-09-24",
+    "successful_strategies": 6,
     "top_strategy": "SIE_FIX_BREAKOUT_R_QUALITY",
     "top_strategy_expectancy_r": 0.3471,
     "top_strategy_net_pnl": 359.34,
-    "total_watchlist": 7
+    "total_watchlist": 6
   },
   "seen_hypothesis_ids": [
     "REPAIR_BREAKOUT_QUALITY_V1",
