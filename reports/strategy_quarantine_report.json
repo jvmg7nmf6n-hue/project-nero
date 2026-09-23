@@ -144,6 +144,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "SIE_OLD_BREAKOUT_RETEST_QUALITY_V1",
+    "display_label": "SIE_OLD_BREAKOUT_RETEST",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 21,
+    "net_pnl": 62.34,
+    "expectancy_r": -0.0107,
+    "profit_factor": 1.0645,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "REPAIR_BREAKOUT_QUALITY_V1",
     "display_label": "FIX_BREAKOUT_QUALITY",
     "verdict": "QUARANTINE",

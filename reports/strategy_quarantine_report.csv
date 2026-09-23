@@ -11,4 +11,5 @@ V2_MR_RECOVERY,V2_MR_RECOVERY,QUARANTINE,True,20,-297.47,-0.4488,0.6632,Negative
 V2_MR_REWARD,V2_MR_REWARD,QUARANTINE,True,22,-70.03,-0.7196,0.9181,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 HYP_OIL_TREND_V1,HYP_OIL_TREND,QUARANTINE,True,20,-9.45,0.0156,0.9898,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,QUARANTINE,True,23,-4.45,-0.1343,0.9947,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
+SIE_OLD_BREAKOUT_RETEST_QUALITY_V1,SIE_OLD_BREAKOUT_RETEST,QUARANTINE,True,21,62.34,-0.0107,1.0645,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 REPAIR_BREAKOUT_QUALITY_V1,FIX_BREAKOUT_QUALITY,QUARANTINE,True,26,230.58,-0.2924,1.3706,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.

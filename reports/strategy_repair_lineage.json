@@ -119,6 +119,23 @@
     "dashboard_lineage_label": "NEW_BNB_12H_TREND -> NEEDS_DESIGN: DESIGN_REQUIRED"
   },
   {
+    "parent_label": "SIE_OLD_BREAKOUT_RETEST",
+    "repair_label": "NEEDS_DESIGN",
+    "attempt_number": 0,
+    "failure_reason_code": "BREAKOUT_FAKEOUT",
+    "parent_net_pnl": 62.34,
+    "repair_net_pnl": 0.0,
+    "repair_vs_parent_net_delta": -62.34,
+    "repair_quality_label": "NO_REPAIR_SPEC",
+    "repair_quality_detail": "No versioned repair exists yet, so there is no repair edge to judge.",
+    "repair_trades": 0,
+    "sample_milestone": "DESIGN_REQUIRED",
+    "random_baseline_status": "NO_REPAIR_NO_BASELINE",
+    "promotion_decision": "DESIGN_REQUIRED",
+    "lineage_status": "NEEDS_DESIGN",
+    "dashboard_lineage_label": "SIE_OLD_BREAKOUT_RETEST -> NEEDS_DESIGN: DESIGN_REQUIRED"
+  },
+  {
     "parent_label": "FIX_BREAKOUT_QUALITY",
     "repair_label": "NEEDS_DESIGN",
     "attempt_number": 0,
