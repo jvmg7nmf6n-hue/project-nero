@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-09-23",
-  "daily_r": -2.4531271038884617,
+  "daily_guard_day": "2026-09-24",
+  "daily_r": 0.0,
   "equity": 9665.066186563434,
-  "last_evaluated_close_time": 1790200800000,
-  "missed_run_count": 1008,
+  "last_evaluated_close_time": 1790222400000,
+  "missed_run_count": 1013,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "NEW_BTC_12H_MR",
