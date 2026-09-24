@@ -9,6 +9,7 @@ V2_MR_REGIME,V2_MR_REGIME,QUARANTINE,True,20,-651.41,-1.2495,0.3914,Negative evi
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,QUARANTINE,True,20,-449.33,-0.2109,0.521,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 V2_BREAKOUT_RETEST,V2_BREAKOUT_RETEST,QUARANTINE,True,44,-323.01,-0.8623,0.7761,30+ trade sample shows negative or weak risk-adjusted edge.,Stop new paper entries and send to Strategy Doctor.
 V2_MR_RECOVERY,V2_MR_RECOVERY,QUARANTINE,True,20,-297.47,-0.4488,0.6632,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
+NEW_BNB_12H_MR,NEW_BNB_12H_MR,QUARANTINE,True,20,-178.95,-0.2327,0.8095,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 V2_MR_REWARD,V2_MR_REWARD,QUARANTINE,True,22,-70.03,-0.7196,0.9181,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 HYP_OIL_TREND_V1,HYP_OIL_TREND,QUARANTINE,True,20,-9.45,0.0156,0.9898,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,QUARANTINE,True,23,-4.45,-0.1343,0.9947,Negative evidence with at least 20 trades.,Pause new entries until loss autopsy is reviewed.

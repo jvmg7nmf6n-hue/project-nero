@@ -120,6 +120,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "NEW_BNB_12H_MR",
+    "display_label": "NEW_BNB_12H_MR",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -178.95,
+    "expectancy_r": -0.2327,
+    "profit_factor": 0.8095,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "V2_MR_REWARD",
     "display_label": "V2_MR_REWARD",
     "verdict": "QUARANTINE",
