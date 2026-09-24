@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-24",
   "daily_r": 0.0,
   "equity": 10123.748851054315,
-  "last_evaluated_close_time": 1790222400000,
-  "missed_run_count": 152,
+  "last_evaluated_close_time": 1790247600000,
+  "missed_run_count": 158,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SIE_V2_BREAKOUT_RETEST_RETEST_QUALITY_V1"
 }
