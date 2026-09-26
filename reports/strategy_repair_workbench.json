@@ -36,8 +36,8 @@
     "repair_candidate": "REPAIR_MR_1R_ASYMMETRIC_V1",
     "repair_label": "FIX_MR_1R_ASYM",
     "repair_status": "DEPLOYED_COLLECTING_EVIDENCE",
-    "repair_trades": 12,
-    "repair_net_pnl": -427.97,
+    "repair_trades": 13,
+    "repair_net_pnl": -518.74,
     "next_action": "Continue paper testing until at least 30 repair trades.",
     "release_gate": "30+ repair trades, expectancy > 0, profit factor >= 1.10, max drawdown acceptable, beats parent and random baseline."
   },
