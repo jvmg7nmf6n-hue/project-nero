@@ -2,16 +2,16 @@
   "summary": {
     "schema_version": "bellwether_calibration_v1",
     "preregistration_version": "calibration_v1",
-    "total_records": 52,
+    "total_records": 53,
     "status_counts": {
-      "NOT_A_PROBABILITY": 25,
+      "NOT_A_PROBABILITY": 26,
       "DATA_QUALITY_FAIL": 24,
       "UNRESOLVABLE": 2,
       "PENDING": 1
     },
-    "legacy_prediction_rows": 154,
+    "legacy_prediction_rows": 155,
     "heartbeat": {
-      "heartbeat_records": 103,
+      "heartbeat_records": 104,
       "expected_records_7d": 28,
       "fire_rate_7d": 0.964,
       "missed_cycles_7d": 1,
@@ -25,9 +25,9 @@
       "asset": "BTC",
       "schema_version": "bellwether_calibration_v1",
       "preregistration_version": "calibration_v1",
-      "total_records": 26,
+      "total_records": 27,
       "probability_valid_resolved": 0,
-      "not_probability_resolved": 25,
+      "not_probability_resolved": 26,
       "pending": 1,
       "source_mismatch": 0,
       "data_quality_fail": 0,
