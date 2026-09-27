@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-09-27",
   "daily_r": 0.0,
   "equity": 9553.947983885457,
-  "last_evaluated_close_time": 1790467200000,
-  "missed_run_count": 1358,
+  "last_evaluated_close_time": 1790496000000,
+  "missed_run_count": 1365,
   "open_trade": {
     "asset": "XRP",
     "entry_atr": 0.011785714285714257,
