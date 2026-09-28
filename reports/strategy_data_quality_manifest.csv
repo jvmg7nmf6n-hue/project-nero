@@ -168,7 +168,7 @@ MR_TARGET_1R_V1,OLD_MR_1R,XRP,True,True,149,1,68.01,INSUFFICIENT_SAMPLE,CHECK,Fa
 NEW_BNB_12H_MR,NEW_BNB_12H_MR,BNB,True,True,4,20,-178.95,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BNB_12H_TREND,NEW_BNB_12H_TREND,BNB,True,True,4,23,-4.45,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
 NEW_BTC_12H_MR,NEW_BTC_12H_MR,BTC,True,True,2,20,-449.33,WATCHLIST,CHECK,False,Runtime errors exist for this candidate.
-NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,153,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+NEW_BTC_ETH_12H_PAIR,NEW_BTC_ETH_12H_PAIR,BTC_ETH_PAIR,True,True,154,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_ADX_FALLING_ETH_4H,RMR_ADX_ETH_4H,ETH,True,True,2,3,54.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_CONFIRMATION_BTC_1D,RMR_CONFIRM_BTC_1D,BTC,True,True,15,2,106.58,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 RMR_LONG_ONLY_BTC_1D,RMR_LONG_BTC_1D,BTC,True,True,15,2,76.14,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
@@ -228,7 +228,7 @@ V2_MR_DEEP,V2_MR_DEEP,SOL,True,True,1452,2,226.42,INSUFFICIENT_SAMPLE,CHECK,Fals
 V2_MR_DEEP,V2_MR_DEEP,SPY,True,True,1452,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_DEEP,V2_MR_DEEP,USDCAD,True,True,1452,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_DEEP,V2_MR_DEEP,USDCHF,True,True,1452,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
-V2_MR_DEEP,V2_MR_DEEP,USDJPY,True,True,1452,0,0.0,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
+V2_MR_DEEP,V2_MR_DEEP,USDJPY,True,True,1452,1,-7.73,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_DEEP,V2_MR_DEEP,XRP,True,True,1452,1,127.59,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_RECOVERY,V2_MR_RECOVERY,BNB,True,True,1223,1,41.83,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
 V2_MR_RECOVERY,V2_MR_RECOVERY,BRENT_FUT,True,True,1223,1,143.52,INSUFFICIENT_SAMPLE,CHECK,False,Runtime errors exist for this candidate.
