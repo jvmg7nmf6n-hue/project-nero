@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-09-28",
-  "daily_r": 1.5120694883260841,
+  "daily_guard_day": "2026-09-29",
+  "daily_r": 0.0,
   "equity": 10241.99968631229,
-  "last_evaluated_close_time": 1790625600000,
-  "missed_run_count": 1395,
+  "last_evaluated_close_time": 1790643600000,
+  "missed_run_count": 1399,
   "open_trade": {
     "asset": "NEAR",
     "entry_atr": 0.15949999999999998,
