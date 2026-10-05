@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-10-05",
   "daily_r": 1.7531088136757265,
   "equity": 10056.385292276273,
-  "last_evaluated_close_time": 1791176400000,
-  "missed_run_count": 372,
+  "last_evaluated_close_time": 1791208800000,
+  "missed_run_count": 380,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SIE_NEW_BNB_12H_TREND_RETEST_QUALITY_V1"
 }
