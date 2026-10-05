@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-10-04",
+  "daily_guard_day": "2026-10-05",
   "daily_r": 0.0,
   "equity": 9595.238521534948,
-  "last_evaluated_close_time": 1791154800000,
-  "missed_run_count": 1184,
+  "last_evaluated_close_time": 1791176400000,
+  "missed_run_count": 1189,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:SHORT_BTC_BREAKDOWN_4H"
 }
