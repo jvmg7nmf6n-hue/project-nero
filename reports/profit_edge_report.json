@@ -475,23 +475,6 @@
       "reason": "Not enough closed trades for a profit decision."
     },
     {
-      "candidate_id": "SIE_OLD_MR_RELAXED_EXHAUSTION_CONFIRM_V1",
-      "display_label": "SIE_OLD_MR_RELAXED_CONFIRM",
-      "role": "TOO_EARLY",
-      "verdict": "INSUFFICIENT_SAMPLE",
-      "total_trades": 4,
-      "win_rate": 0.5,
-      "expectancy_r": -0.1048,
-      "profit_factor": 0.7061,
-      "net_pnl": -68.91,
-      "max_drawdown": -0.0338,
-      "edge_score": 23.41,
-      "paper_weight": 0.0,
-      "recovery_priority": 0,
-      "decision": "COLLECT_MORE_DATA",
-      "reason": "Not enough closed trades for a profit decision."
-    },
-    {
       "candidate_id": "SIE_OLD_MR_REGIME_EXHAUSTION_CONFIRM_V1",
       "display_label": "SIE_OLD_MR_REGIME_CONFIRM",
       "role": "TOO_EARLY",
@@ -524,6 +507,23 @@
       "recovery_priority": 0,
       "decision": "COLLECT_MORE_DATA",
       "reason": "Not enough closed trades for a profit decision."
+    },
+    {
+      "candidate_id": "SIE_OLD_MR_RELAXED_EXHAUSTION_CONFIRM_V1",
+      "display_label": "SIE_OLD_MR_RELAXED_CONFIRM",
+      "role": "WEAK_CANDIDATE",
+      "verdict": "INSUFFICIENT_SAMPLE",
+      "total_trades": 5,
+      "win_rate": 0.6,
+      "expectancy_r": 0.0945,
+      "profit_factor": 0.9406,
+      "net_pnl": -13.93,
+      "max_drawdown": -0.0338,
+      "edge_score": 35.0,
+      "paper_weight": 0.0,
+      "recovery_priority": 0,
+      "decision": "REDUCE_OR_REPAIR",
+      "reason": "Current sample is negative; send to Strategy Doctor if it keeps losing."
     },
     {
       "candidate_id": "HYP_OIL_MR_V1",
