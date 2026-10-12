@@ -132,6 +132,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "SHORT_SOL_BREAKDOWN_4H",
+    "display_label": "SHORT_SOL_4H",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -91.77,
+    "expectancy_r": -0.1227,
+    "profit_factor": 0.9025,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "V2_MR_REWARD",
     "display_label": "V2_MR_REWARD",
     "verdict": "QUARANTINE",
