@@ -1,9 +1,9 @@
 {
-  "daily_guard_day": "2026-10-12",
+  "daily_guard_day": "2026-10-13",
   "daily_r": 0.0,
   "equity": 9812.428216318689,
-  "last_evaluated_close_time": 1791842400000,
-  "missed_run_count": 1335,
+  "last_evaluated_close_time": 1791871200000,
+  "missed_run_count": 1342,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:REPAIR_MR_REGIME_LATE_V1"
 }
