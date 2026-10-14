@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-10-14",
   "daily_r": 0.0,
   "equity": 9564.844290002924,
-  "last_evaluated_close_time": 1792000800000,
-  "missed_run_count": 1384,
+  "last_evaluated_close_time": 1792018800000,
+  "missed_run_count": 1388,
   "open_trade": {
     "asset": "BTC",
     "candidate_id": "SHORT_BTC_BREAKDOWN_4H",
