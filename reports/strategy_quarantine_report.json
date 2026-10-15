@@ -96,6 +96,18 @@
     "action": "Pause new entries until loss autopsy is reviewed."
   },
   {
+    "candidate_id": "SHORT_BTC_BREAKDOWN_4H",
+    "display_label": "SHORT_BTC_4H",
+    "verdict": "QUARANTINE",
+    "blocked": true,
+    "total_trades": 20,
+    "net_pnl": -359.61,
+    "expectancy_r": -0.2483,
+    "profit_factor": 0.6192,
+    "reason": "Negative evidence with at least 20 trades.",
+    "action": "Pause new entries until loss autopsy is reviewed."
+  },
+  {
     "candidate_id": "V2_BREAKOUT_RETEST",
     "display_label": "V2_BREAKOUT_RETEST",
     "verdict": "QUARANTINE",
