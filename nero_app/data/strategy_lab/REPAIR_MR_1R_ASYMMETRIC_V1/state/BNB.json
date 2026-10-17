@@ -2,8 +2,8 @@
   "daily_guard_day": "2026-10-17",
   "daily_r": 0.0,
   "equity": 9985.226435080564,
-  "last_evaluated_close_time": 1792267200000,
-  "missed_run_count": 1426,
+  "last_evaluated_close_time": 1792278000000,
+  "missed_run_count": 1428,
   "open_trade": null,
   "strategy_version": "strategy-lab-v1.0.0:REPAIR_MR_1R_ASYMMETRIC_V1"
 }
