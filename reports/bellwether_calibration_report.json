@@ -4,15 +4,15 @@
     "preregistration_version": "calibration_v1",
     "total_records": 109,
     "status_counts": {
-      "NOT_A_PROBABILITY": 52,
+      "NOT_A_PROBABILITY": 53,
       "DATA_QUALITY_FAIL": 52,
       "UNRESOLVABLE": 2,
-      "PENDING": 2,
-      "SOURCE_MISMATCH": 1
+      "SOURCE_MISMATCH": 1,
+      "PENDING": 1
     },
     "legacy_prediction_rows": 211,
     "heartbeat": {
-      "heartbeat_records": 198,
+      "heartbeat_records": 199,
       "expected_records_7d": 28,
       "fire_rate_7d": 0.964,
       "missed_cycles_7d": 1,
@@ -28,8 +28,8 @@
       "preregistration_version": "calibration_v1",
       "total_records": 55,
       "probability_valid_resolved": 0,
-      "not_probability_resolved": 52,
-      "pending": 2,
+      "not_probability_resolved": 53,
+      "pending": 1,
       "source_mismatch": 1,
       "data_quality_fail": 0,
       "brier_mean": "",
