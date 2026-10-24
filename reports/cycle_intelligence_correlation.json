@@ -4,7 +4,7 @@
     "field_x": "close",
     "field_y": "sma_200",
     "n": 101,
-    "correlation": 0.009314842985360313,
+    "correlation": 0.010762786454653159,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -12,7 +12,7 @@
     "field_x": "close",
     "field_y": "mayer_multiple",
     "n": 101,
-    "correlation": 0.9873076808223193,
+    "correlation": 0.9873078389303999,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -20,215 +20,215 @@
     "field_x": "close",
     "field_y": "distance_from_sma200_pct",
     "n": 101,
-    "correlation": 0.9873076808223187,
+    "correlation": 0.9873078389303998,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
     "asset": "BTC",
     "field_x": "close",
     "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9999999999999992,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "sma_200",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": -0.14729464284486637,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "sma_200",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": -0.14729464284486649,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "sma_200",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.010762786454653249,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "mayer_multiple",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": 1.0,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "mayer_multiple",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9873078389303995,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "BTC",
+    "field_x": "distance_from_sma200_pct",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9873078389303995,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "close",
+    "field_y": "sma_200",
+    "n": 101,
+    "correlation": -0.11416300214649223,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "close",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": 0.9839955153654065,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "close",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": 0.983995515365407,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "close",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 1.0,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "sma_200",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": -0.287681674683512,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "sma_200",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": -0.28768167468351225,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "sma_200",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": -0.11416300214649223,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "mayer_multiple",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": 0.9999999999999999,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "mayer_multiple",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9839955153654061,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "ETH",
+    "field_x": "distance_from_sma200_pct",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9839955153654072,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "close",
+    "field_y": "sma_200",
+    "n": 101,
+    "correlation": -0.13192863325701834,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "close",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": 0.9865743860766779,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "close",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": 0.9865743860766779,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "close",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.9999999999999999,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "sma_200",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": -0.2899717235234574,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "sma_200",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": -0.2899717235234571,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "sma_200",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": -0.13192863325701823,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "SOL",
+    "field_x": "mayer_multiple",
+    "field_y": "distance_from_sma200_pct",
     "n": 101,
     "correlation": 0.9999999999999998,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
-    "asset": "BTC",
-    "field_x": "sma_200",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": -0.1487289992190821,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "BTC",
-    "field_x": "sma_200",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": -0.1487289992190823,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "BTC",
-    "field_x": "sma_200",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.009314842985360321,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "BTC",
-    "field_x": "mayer_multiple",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": 0.9999999999999997,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "BTC",
-    "field_x": "mayer_multiple",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.9873076808223191,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "BTC",
-    "field_x": "distance_from_sma200_pct",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.9873076808223193,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "close",
-    "field_y": "sma_200",
-    "n": 101,
-    "correlation": -0.1155334624043236,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "close",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": 0.9840160313852169,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "close",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": 0.9840160313852162,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "close",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 1.0,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "sma_200",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": -0.2888933364380009,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "sma_200",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": -0.28889333643800075,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "sma_200",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": -0.11553346240432377,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "mayer_multiple",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": 1.0,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "mayer_multiple",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.9840160313852161,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "ETH",
-    "field_x": "distance_from_sma200_pct",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.9840160313852165,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "close",
-    "field_y": "sma_200",
-    "n": 101,
-    "correlation": -0.13320407208839646,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "close",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": 0.9865876659742823,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "close",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": 0.9865876659742816,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "close",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 1.0,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "sma_200",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": -0.29112797020020587,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "sma_200",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": -0.29112797020020575,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "sma_200",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": -0.13320407208839655,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "SOL",
-    "field_x": "mayer_multiple",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": 0.9999999999999994,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
     "asset": "SOL",
     "field_x": "mayer_multiple",
     "field_y": "drawdown_from_high_pct",
     "n": 101,
-    "correlation": 0.9865876659742814,
+    "correlation": 0.9865743860766779,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -236,7 +236,7 @@
     "field_x": "distance_from_sma200_pct",
     "field_y": "drawdown_from_high_pct",
     "n": 101,
-    "correlation": 0.9865876659742819,
+    "correlation": 0.9865743860766776,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -244,7 +244,7 @@
     "field_x": "close",
     "field_y": "sma_200",
     "n": 101,
-    "correlation": 0.08475306774255661,
+    "correlation": 0.08412323791757183,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -252,7 +252,7 @@
     "field_x": "close",
     "field_y": "mayer_multiple",
     "n": 101,
-    "correlation": 0.8896953666530167,
+    "correlation": 0.8896067311287169,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -260,55 +260,55 @@
     "field_x": "close",
     "field_y": "distance_from_sma200_pct",
     "n": 101,
-    "correlation": 0.8896953666530169,
+    "correlation": 0.8896067311287165,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
     "asset": "PAXG",
     "field_x": "close",
     "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.9999999999999997,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "PAXG",
-    "field_x": "sma_200",
-    "field_y": "mayer_multiple",
-    "n": 101,
-    "correlation": -0.37941281462019644,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "PAXG",
-    "field_x": "sma_200",
-    "field_y": "distance_from_sma200_pct",
-    "n": 101,
-    "correlation": -0.37941281462019694,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "PAXG",
-    "field_x": "sma_200",
-    "field_y": "drawdown_from_high_pct",
-    "n": 101,
-    "correlation": 0.08475306774255638,
-    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
-  },
-  {
-    "asset": "PAXG",
-    "field_x": "mayer_multiple",
-    "field_y": "distance_from_sma200_pct",
     "n": 101,
     "correlation": 1.0,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
     "asset": "PAXG",
+    "field_x": "sma_200",
+    "field_y": "mayer_multiple",
+    "n": 101,
+    "correlation": -0.38017843846645566,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "PAXG",
+    "field_x": "sma_200",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": -0.38017843846645555,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "PAXG",
+    "field_x": "sma_200",
+    "field_y": "drawdown_from_high_pct",
+    "n": 101,
+    "correlation": 0.08412323791757173,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "PAXG",
+    "field_x": "mayer_multiple",
+    "field_y": "distance_from_sma200_pct",
+    "n": 101,
+    "correlation": 0.9999999999999993,
+    "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
+  },
+  {
+    "asset": "PAXG",
     "field_x": "mayer_multiple",
     "field_y": "drawdown_from_high_pct",
     "n": 101,
-    "correlation": 0.8896953666530164,
+    "correlation": 0.8896067311287169,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   },
   {
@@ -316,7 +316,7 @@
     "field_x": "distance_from_sma200_pct",
     "field_y": "drawdown_from_high_pct",
     "n": 101,
-    "correlation": 0.8896953666530173,
+    "correlation": 0.8896067311287167,
     "note": "Price-derived redundancy check; MM and SMA distance should be near-perfectly related."
   }
 ]
