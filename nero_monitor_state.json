@@ -1,14 +1,11 @@
 {
-  "BTC:WAIT_LONG_TRIGGER:81736.53": {
-    "cooldown": 1
-  },
   "GOLD:WAIT_SHORT_TRIGGER:3986.27": {
-    "cooldown": 6
-  },
-  "GOLD:WAIT_SHORT_TRIGGER:4002.75": {
     "cooldown": 5
   },
-  "GOLD:WAIT_SHORT_TRIGGER:4005.44": {
+  "GOLD:WAIT_SHORT_TRIGGER:4002.75": {
     "cooldown": 4
+  },
+  "GOLD:WAIT_SHORT_TRIGGER:4005.44": {
+    "cooldown": 3
   }
 }
