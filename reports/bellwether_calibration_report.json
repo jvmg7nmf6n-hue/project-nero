@@ -12,7 +12,7 @@
     },
     "legacy_prediction_rows": 227,
     "heartbeat": {
-      "heartbeat_records": 225,
+      "heartbeat_records": 226,
       "expected_records_7d": 28,
       "fire_rate_7d": 0.821,
       "missed_cycles_7d": 5,
