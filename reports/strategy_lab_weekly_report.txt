@@ -1,5 +1,5 @@
 NERO Strategy TEST Lab Weekly Report
-Report time: 2026-10-30 09:52 PM PKT
+Report time: 2026-11-06 10:44 PM PKT
 
 Executive Summary
 5-algo paper-test is active. Total closed paper trades across candidates: 680.
