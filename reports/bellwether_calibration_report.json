@@ -2,20 +2,20 @@
   "summary": {
     "schema_version": "bellwether_calibration_v1",
     "preregistration_version": "calibration_v1",
-    "total_records": 138,
+    "total_records": 139,
     "status_counts": {
-      "NOT_A_PROBABILITY": 67,
+      "NOT_A_PROBABILITY": 68,
       "DATA_QUALITY_FAIL": 64,
       "UNRESOLVABLE": 4,
       "PENDING": 2,
       "SOURCE_MISMATCH": 1
     },
-    "legacy_prediction_rows": 240,
+    "legacy_prediction_rows": 241,
     "heartbeat": {
-      "heartbeat_records": 241,
+      "heartbeat_records": 242,
       "expected_records_7d": 28,
-      "fire_rate_7d": 0.607,
-      "missed_cycles_7d": 11,
+      "fire_rate_7d": 0.643,
+      "missed_cycles_7d": 10,
       "status": "OK"
     },
     "calibration_disclaimer": "Calibration accuracy does not equal tradable profitability.",
@@ -26,9 +26,9 @@
       "asset": "BTC",
       "schema_version": "bellwether_calibration_v1",
       "preregistration_version": "calibration_v1",
-      "total_records": 69,
+      "total_records": 70,
       "probability_valid_resolved": 0,
-      "not_probability_resolved": 67,
+      "not_probability_resolved": 68,
       "pending": 1,
       "source_mismatch": 1,
       "data_quality_fail": 0,
